@@ -1,0 +1,396 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Sandwich Index — design tokens
+
+   Semantic names only. No component in this codebase should contain a raw hex
+   value; if you need a colour that isn't here, the token list is wrong, not the
+   component.
+
+   The palette deliberately avoids red and yellow. Those are McDonald's trade
+   dress, and using descriptive trademarks in body copy is a very different
+   thing from dressing the product up in someone else's brand colours.
+
+   Committed to a single light treatment rather than a light/dark pair. The
+   editorial direction is print — ink on paper — and a dark variant would be a
+   second design, not a toggle.
+--------------------------------------------------------------------------- */
+
+@theme {
+  /* Surfaces */
+  --color-paper: #fbfaf7;
+  --color-paper-raised: #ffffff;
+  --color-paper-sunken: #f2efe8;
+
+  /* Text. Contrast against --color-paper is verified in scripts/check-contrast.ts. */
+  --color-ink: #15140f;
+  --color-ink-muted: #524f45;
+  --color-ink-subtle: #6b675b;
+
+  /* Lines and edges */
+  --color-rule: #ddd8cc;
+  --color-rule-strong: #15140f;
+
+  /* Inverted band. The landing page turns the palette over once, for the
+     closing ask — one block of ink is the only heavy element on the page.
+     Both pairs are checked in scripts/check-contrast.mjs against --color-ink. */
+  --color-paper-muted: #c9c4b6;
+
+  /* Accent — deep ink blue, chosen to sit apart from the trade dress */
+  --color-accent: #12395e;
+  --color-accent-hover: #0d2b48;
+  --color-accent-ink: #ffffff;
+
+  /* Price tiers. Ordinal, but never conveyed by colour alone — every marker
+     and row also carries a text label. These three are distinguishable under
+     deuteranopia and all clear 4.5:1 against white for their label text. */
+  --color-tier-low: #0f5c55;
+  --color-tier-mid: #8a5a12;
+  --color-tier-high: #7b2d3b;
+
+  /* States */
+  --color-stale: #6b675b;
+  --color-danger: #9a2515;
+  --color-focus: #12395e;
+
+  /* Typography. Loaded via next/font in layout.tsx, which self-hosts them —
+     no external requests, and the fallback metrics are matched so swapping
+     costs no layout shift. */
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-plex-sans), "Helvetica Neue", sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  /* Motion. Never `ease-in` for UI — it withholds feedback at the moment the
+     user most needs it and reads as lag. */
+  --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
+
+  /* Duration budget. Product UI stays under 300ms; exits run ~20% faster than
+     entrances so dismissal never feels like it is dragging. */
+  --duration-micro: 120ms;
+  --duration-ui: 200ms;
+  --duration-ui-exit: 160ms;
+  --duration-modal: 240ms;
+  --duration-modal-exit: 190ms;
+  --duration-hero: 600ms;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+
+html {
+  /* 16px base, 1.5 line-height, and zoom left alone. */
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+
+  /* Say out loud what the palette above already commits to.
+   *
+   * This is not a no-op for a light-only design. An undeclared color-scheme
+   * is what lets Chrome on Android apply its Auto Dark Theme, which inverts
+   * a light page wholesale for anyone whose phone is in dark mode — and
+   * every contrast ratio in scripts/check-contrast.mjs is measured against
+   * the palette as authored, not against an inversion of it. Declaring the
+   * scheme opts out, and also pins natively-rendered controls (radios,
+   * scrollbars) to the light rendering the rest of the design assumes. */
+  color-scheme: light;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+/* Prices are compared down a column constantly. Tabular figures keep the
+   decimal points aligned; proportional digits make the whole list wobble. */
+.tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------------
+   Focus
+
+   A 2px ring on everything interactive, never removed. `:focus-visible` so
+   mouse users do not get a ring on click, keyboard users always do.
+--------------------------------------------------------------------------- */
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Skip link: present in the tab order, off-screen until focused. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-accent);
+  color: var(--color-accent-ink);
+  font-weight: 500;
+}
+
+.skip-link:focus {
+  left: 0.5rem;
+  top: 0.5rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Interaction primitives
+--------------------------------------------------------------------------- */
+
+/* The cheapest possible way to make a button feel physical. Transform only —
+   never width/height/padding, which would trigger layout on every press. */
+.press {
+  transition: transform var(--duration-micro) ease;
+}
+
+.press:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .press {
+    transition: none;
+  }
+
+  .press:active {
+    transform: none;
+  }
+}
+
+/* Hover states are gated so a tap on a touch device does not leave an element
+   stuck in a phantom hover. */
+@media (hover: hover) and (pointer: fine) {
+  .hover-accent {
+    transition: color var(--duration-micro) ease,
+      background-color var(--duration-micro) ease;
+  }
+
+  .hover-accent:hover {
+    color: var(--color-accent-hover);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: reduce) {
+  .hover-accent {
+    transition: none;
+  }
+}
+
+/* A tappable area for controls that have to stay inline.
+ *
+ * A link-styled button sitting inside a sentence cannot take vertical padding
+ * without pushing the line apart, so its box ends up the height of the text —
+ * around 20px, well under the 44px this project holds itself to. The overlay
+ * grows the hit area outward from the centre without occupying any layout
+ * space, so the sentence stays a sentence and the thumb still lands.
+ *
+ * `position: relative` on the control is what the overlay anchors to, so it is
+ * set here rather than left to the caller to remember. */
+.tap-target {
+  position: relative;
+}
+
+.tap-target::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  min-height: 44px;
+  height: 100%;
+  transform: translateY(-50%);
+}
+
+/* ---------------------------------------------------------------------------
+   Landing page
+
+   One orchestrated load sequence, not a scattering of micro-animations. Each
+   block rises 12px into place and `animation-delay` staggers them so the eye is
+   walked down the page in the order the argument is meant to be read.
+
+   `both` fill is what makes the stagger visible: it holds an element at its
+   `from` state through its delay instead of letting everything appear at once
+   and then animate.
+
+   No `will-change` here on purpose. CSS cannot take it off again once the
+   animation finishes, and a permanent compositor layer on half the page costs
+   more than these few hundred milliseconds are worth.
+--------------------------------------------------------------------------- */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reveal {
+  animation: rise var(--duration-hero) var(--ease-out-quart) both;
+}
+
+/* Removed outright rather than shortened. With `animation: none` the element
+   renders at its natural state, so nothing is left stranded at opacity 0. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    animation: none;
+  }
+}
+
+/**
+ * The hero figure.
+ *
+ * Tabular figures are not a nicety here — the number counts up from zero on
+ * load, and proportional digits would make it change width on every frame.
+ */
+.hero-figure {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(5rem, 19vw, 10.5rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-optical-sizing: auto;
+  letter-spacing: -0.035em;
+  line-height: 0.85;
+}
+
+/* The focus ring is a dark blue, which disappears against the inverted band.
+   Anything focusable inside it gets a paper-coloured ring instead. */
+.on-ink :focus-visible {
+  outline-color: var(--color-paper);
+}
+
+/* ---------------------------------------------------------------------------
+   Connection notice
+
+   Reuses the `rise` keyframe at the standard-UI duration rather than the hero
+   budget — this is a status message, not a reveal, and 600ms of it easing into
+   place while the network is down would be its own small insult.
+--------------------------------------------------------------------------- */
+
+.offline-banner {
+  animation: rise var(--duration-ui) var(--ease-out-quart) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .offline-banner {
+    animation: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Map markers
+
+   Deliberately unanimated. A user hovers markers hundreds of times in a
+   session, and a transition on each one turns reading the map into waiting for
+   it. State changes here are instant, by design, not by omission — there is no
+   reduced-motion guard below because there is no motion to guard.
+--------------------------------------------------------------------------- */
+
+.marker-hit {
+  /* 44px minimum touch target. The pill is smaller; this box is not. */
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 44px;
+  /* Clicks belong to the Leaflet marker element that wraps this, which is where
+     the handler and the keyboard affordance live. Without this the inner span
+     intercepts the event and the marker never registers a click. */
+  pointer-events: none;
+}
+
+.marker-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  border: 2px solid var(--color-paper-raised);
+  background-color: var(--pill-color);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+}
+
+.marker-pill--selected {
+  border-color: var(--color-ink);
+  box-shadow: 0 0 0 3px var(--color-ink);
+}
+
+/* Stale and unmeasured markers recede, but the glyph and label still carry the
+   meaning — the muting is reinforcement, never the signal itself. */
+.marker-pill--muted {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 3px,
+    rgb(255 255 255 / 0.22) 3px,
+    rgb(255 255 255 / 0.22) 6px
+  );
+}
+
+.marker-glyph {
+  font-size: 0.6875rem;
+  line-height: 1;
+}
+
+.leaflet-marker-icon:focus-visible .marker-pill {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Leaflet paints its own controls and attribution; align them with the palette
+   rather than leaving two visual systems on one screen. */
+.leaflet-container {
+  background-color: var(--color-paper-sunken);
+  font-family: var(--font-body);
+}
+
+.leaflet-container .leaflet-control-attribution {
+  background-color: rgb(255 255 255 / 0.85);
+  font-size: 0.6875rem;
+}
+
+/* Leaflet's own transitions, which its stylesheet applies unconditionally.
+   MapCanvas already disables the animations at the source; this covers a
+   preference changed after the map was created, and it is here rather than in
+   a patched copy of leaflet.css so the dependency stays upgradable.
+
+   No `!important`: each selector below is one class more specific than the
+   Leaflet rule it overrides, which is enough. */
+@media (prefers-reduced-motion: reduce) {
+  .leaflet-container .leaflet-fade-anim .leaflet-tile,
+  .leaflet-container .leaflet-fade-anim .leaflet-tile-loaded,
+  .leaflet-container .leaflet-zoom-anim .leaflet-zoom-animated {
+    transition: none;
+  }
+}

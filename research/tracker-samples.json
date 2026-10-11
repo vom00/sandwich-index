@@ -1,0 +1,21 @@
+{
+  "source": "menupricetracker.com, sampled by hand 2026-08-10; per-store prices only where the store page itself was read. Verification samples — NOT bulk import data (see price-sources.md for the licensing position).",
+  "verifiedAt": "2026-08-03",
+  "rows": [
+    { "address": "1717 W Mockingbird Ln", "city": "Dallas", "zip": "75038", "mcchickenCents": 199, "url": "https://menupricetracker.com/mcdonalds/texas/dallas/1717-w-mockingbird-ln" },
+    { "address": "813 Macarthur Blvd", "city": "Coppell", "zip": "75019", "mcchickenCents": 249, "url": "https://menupricetracker.com/mcdonalds/texas/coppell/813-macarthur-blvd" },
+    { "address": "8435 N Beltline Road", "city": "Irving", "zip": "75063", "mcchickenCents": 249, "url": "https://menupricetracker.com/mcdonalds/texas/irving/8435-n-beltline-road" },
+    { "address": "2109 Long Prairie Rd", "city": "Flower Mound", "zip": "75022", "mcchickenCents": 259, "url": "https://menupricetracker.com/mcdonalds/texas/flower-mound/2109-long-prairie-rd" },
+    { "address": "501 E Fm 3040", "city": "Lewisville", "zip": "75028", "mcchickenCents": null, "url": "https://menupricetracker.com/mcdonalds/texas/lewisville/501-e-fm-3040" },
+    { "address": "1107 W Fm3040", "city": "Lewisville", "zip": "75067", "mcchickenCents": null, "url": "https://menupricetracker.com/mcdonalds/texas/lewisville/1107-w-fm3040" },
+    { "address": "2301 S Hwy 121", "city": "Lewisville", "zip": "75067", "mcchickenCents": null, "url": "https://menupricetracker.com/mcdonalds/texas/lewisville/2301-s-hwy-121" },
+    { "address": "765 W Main St", "city": "Lewisville", "zip": "75067", "mcchickenCents": null, "url": "https://menupricetracker.com/mcdonalds/texas/lewisville/765-w-main-st" },
+    { "address": "1598 W Main St", "city": "Lewisville", "zip": "75067", "mcchickenCents": null, "url": "https://menupricetracker.com/mcdonalds/texas/lewisville/1598-w-main-st" },
+    { "address": "101 E Tx-114", "city": "Grapevine", "zip": "76051", "mcchickenCents": null, "url": "https://menupricetracker.com/mcdonalds/texas/grapevine/101-e-tx-114" },
+    { "address": "1753 S Interstate 35e", "city": "Carrollton", "zip": "75006", "mcchickenCents": null, "url": "https://menupricetracker.com/mcdonalds/texas/carrollton/1753-s-interstate-35e" },
+    { "address": "2151 N Josey Ln", "city": "Carrollton", "zip": "75006", "mcchickenCents": null, "url": "https://menupricetracker.com/mcdonalds/texas/carrollton/2151-n-josey-ln" },
+    { "address": "1050 W Frankford", "city": "Carrollton", "zip": "75007", "mcchickenCents": null, "url": "https://menupricetracker.com/mcdonalds/texas/carrollton/1050-w-frankford" },
+    { "address": "4125 Josey Ln", "city": "Carrollton", "zip": "75007", "mcchickenCents": null, "url": "https://menupricetracker.com/mcdonalds/texas/carrollton/4125-josey-ln" },
+    { "address": "2899 Valley View Lane", "city": "Farmers Branch", "zip": "75234", "mcchickenCents": null, "url": "https://menupricetracker.com/mcdonalds/texas/farmers-branch/2899-valley-view-lane" }
+  ]
+}

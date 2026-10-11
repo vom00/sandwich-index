@@ -1,0 +1,189 @@
+rules_version = '2';
+
+// Sandwich Index — Firestore security rules
+//
+// These rules are the enforcement layer, not a second opinion. Client-side
+// validation exists to give contributors a fast error message; it stops nobody
+// who opens a console. Everything that matters is decided here.
+//
+// Three things are enforced:
+//   1. Price range (100..1500 cents).
+//   2. One submission per device per store per 24 hours.
+//   3. A report that moves a store's price too far is held as `pending` and
+//      cannot claim `accepted`.
+//
+// The rate limit is the interesting one. Rules cannot run queries, so there is
+// no way to ask "what was this device's last submission for this store?". The
+// answer has to live at a path a rule can `get()` directly, which is why
+// `rateLimits/{uid}_{storeId}` exists. And because a client could simply write
+// the submission while skipping the ledger entry, the submission rule uses
+// `getAfter()` to require that both documents land in the same atomic batch.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------------
+    // Shared helpers
+    // ---------------------------------------------------------------------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function minCents() { return 100; }
+    function maxCents() { return 1500; }
+
+    // How far a report may move a store's price before it needs a second
+    // opinion. Expressed as a whole percent so the comparison stays in integer
+    // math. There is deliberately no minimum-report threshold: a store has one
+    // price or it has none, so the baseline either exists or it does not.
+    function bigMovePercent() { return 40; }
+
+    function storePath(storeId) {
+      return /databases/$(database)/documents/stores/$(storeId);
+    }
+
+    function rateLimitPath(storeId) {
+      return /databases/$(database)/documents/rateLimits/$(uid() + '_' + storeId);
+    }
+
+    // ---------------------------------------------------------------------
+    // stores — public read, Admin SDK write only
+    // ---------------------------------------------------------------------
+    //
+    // Writes come from the Overpass sync and the price recompute, both of
+    // which run through firebase-admin and bypass rules entirely. Clients are
+    // locked out on purpose: the move gate below reads `priceCents` from this
+    // collection, so a client that could edit a store's price could set it to
+    // anything and walk any report past the gate.
+
+    match /stores/{storeId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // rateLimits — the private ledger backing the 24h limit
+    // ---------------------------------------------------------------------
+    //
+    // Document id is `{uid}_{storeId}`, which is the whole point: a rule can
+    // reach a deterministic path but cannot search for one. Store ids look
+    // like `node-1234567890` and never contain an underscore, so the id stays
+    // unambiguous.
+    //
+    // `lastSubmittedAt == request.time` is what stops a client from backdating
+    // its own ledger to escape the window. The value is the server's clock,
+    // not the client's claim.
+
+    match /rateLimits/{limitId} {
+      function ownsPath(storeId) {
+        return isSignedIn() && limitId == uid() + '_' + storeId;
+      }
+
+      function wellFormed() {
+        return request.resource.data.keys().hasOnly(['storeId', 'lastSubmittedAt'])
+            && request.resource.data.storeId is string
+            && request.resource.data.lastSubmittedAt == request.time;
+      }
+
+      // Readable only by the device it belongs to, so the UI can say
+      // "you already logged a price here today" without a failed write.
+      allow read: if ownsPath(resource.data.storeId);
+
+      allow create: if ownsPath(request.resource.data.storeId)
+                    && wellFormed();
+
+      // The 24-hour window lives here. An update is only permitted once the
+      // previous stamp has aged out.
+      allow update: if ownsPath(request.resource.data.storeId)
+                    && wellFormed()
+                    && request.resource.data.storeId == resource.data.storeId
+                    && resource.data.lastSubmittedAt < request.time - duration.value(24, 'h');
+
+      // Deleting the ledger would reset the rate limit. Never allowed.
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // submissions — the crowdsourced price records
+    // ---------------------------------------------------------------------
+
+    match /submissions/{submissionId} {
+
+      function data() {
+        return request.resource.data;
+      }
+
+      function hasExactShape() {
+        return data().keys().hasOnly([
+                 'storeId', 'priceCents', 'submittedAt', 'source', 'status', 'flagCount'
+               ])
+            && data().keys().hasAll([
+                 'storeId', 'priceCents', 'submittedAt', 'source', 'status', 'flagCount'
+               ])
+            && data().storeId is string
+            && data().source in ['in_store', 'drive_thru', 'app', 'delivery']
+            && data().status in ['accepted', 'pending']
+            && data().flagCount == 0
+            // Server clock, so price history cannot be forged.
+            && data().submittedAt == request.time;
+      }
+
+      // Integer type check matters as much as the bounds: `3.19` is not a
+      // price in this system, and `is int` is what rejects it.
+      function priceInRange() {
+        return data().priceCents is int
+            && data().priceCents >= minCents()
+            && data().priceCents <= maxCents();
+      }
+
+      // Mirrors `statusForSubmission` in src/lib/pricing.ts. Kept in integer
+      // math (`deviation * 100 > current * 40`) so the rule and the client can
+      // never disagree about a value sitting exactly on the boundary.
+      //
+      // A store with no price yet accepts whatever it is first told — there is
+      // nothing to check against, and refusing the first report would mean no
+      // store could ever acquire a price.
+      function moveGatePassed(store) {
+        let current = store.data.get('priceCents', null);
+        let hasBaseline = current != null;
+        let deviation = hasBaseline
+          ? (data().priceCents > current ? data().priceCents - current : current - data().priceCents)
+          : 0;
+        let isBigMove = hasBaseline && deviation * 100 > current * bigMovePercent();
+
+        return data().status == (isBigMove ? 'pending' : 'accepted');
+      }
+
+      // One `get()` for the store, reused for both the existence check and the
+      // move gate.
+      function storeIsValid() {
+        let store = get(storePath(data().storeId));
+        return store != null && moveGatePassed(store);
+      }
+
+      // Requires the rate-limit ledger to be stamped in this same atomic
+      // batch. Without this the client could write the submission alone and
+      // the 24h limit would be decorative.
+      function ledgerStampedInSameBatch() {
+        return getAfter(rateLimitPath(data().storeId)).data.lastSubmittedAt == request.time;
+      }
+
+      allow read: if true;
+
+      allow create: if isSignedIn()
+                    && hasExactShape()
+                    && priceInRange()
+                    && storeIsValid()
+                    && ledgerStampedInSameBatch();
+
+      // Price history is append-only. Corrections happen by submitting again;
+      // moderation happens through the Admin SDK.
+      allow update, delete: if false;
+    }
+  }
+}
