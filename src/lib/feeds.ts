@@ -56,7 +56,7 @@ export const FEEDS: Readonly<Record<string, FeedDefinition>> = {
     id: "menupricetracker",
     name: "MenuPriceTracker",
     homepage: "https://menupricetracker.com",
-    method: "which says it reads them from the McDonald's app",
+    method: "which says it reads its prices from the McDonald's app",
     // Its store pages give a month ("last verified October 2026"), never a
     // day, so the import dates each price by when we read the page.
     dateVerb: "checked",

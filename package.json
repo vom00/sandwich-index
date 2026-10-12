@@ -22,7 +22,7 @@
     "test:rules": "firebase emulators:exec --only firestore --config firebase.itest.json \"vitest run tests/rules\"",
     "check:contrast": "node scripts/check-contrast.mjs",
     "test:a11y": "node tests/browser/taptargets.js && node tests/browser/keyboard.js && node tests/browser/semantics.js",
-    "test:browser": "node tests/browser/phase1.js && node tests/browser/phase3.js && node tests/browser/phase4.js && node tests/browser/phase5.js && node tests/browser/phase6.js && node tests/browser/logrun.js && node tests/browser/hydration.js && node tests/browser/map-race.js"
+    "test:browser": "node tests/browser/phase1.js && node tests/browser/phase3.js && node tests/browser/phase4.js && node tests/browser/phase5.js && node tests/browser/phase6.js && node tests/browser/logrun.js && node tests/browser/hydration.js && node tests/browser/map-race.js && node tests/browser/scenes.js && node tests/browser/nav.js"
   },
   "dependencies": {
     "firebase": "^12.17.1",
@@ -37,6 +37,7 @@
     "react-leaflet": "^5.0.0",
     "recharts": "^3.10.1",
     "server-only": "^0.0.1",
+    "three": "0.186.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -48,6 +49,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "0.186.0",
     "axe-core": "^4.13.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",

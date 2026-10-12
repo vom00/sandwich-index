@@ -101,11 +101,16 @@ export function StoreList({
                       {formatCents(store.priceCents)}
                     </span>
                   )}
-                  <Confidence
-                    sampleCount={store.confirmedCount}
-                    totalCount={store.reportCount}
-                    priceFeed={store.priceFeed}
-                  />
+                  {/* A store nobody has reported carries a "No prices yet"
+                      badge below; saying "no confirmed prices" here as well
+                      would be the same fact twice in one row. */}
+                  {store.priceCents === null && store.reportCount === 0 ? null : (
+                    <Confidence
+                      sampleCount={store.confirmedCount}
+                      totalCount={store.reportCount}
+                      priceFeed={store.priceFeed}
+                    />
+                  )}
                 </div>
               </div>
 

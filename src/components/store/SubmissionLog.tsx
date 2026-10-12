@@ -29,7 +29,7 @@ function countedLabel(submission: SubmissionWithId): string {
   if (canSetPrice(submission)) return "Counted";
   if (submission.status === "pending") return "Held for review";
   if (submission.status === "rejected") return "Rejected";
-  if (submission.source === "delivery") return "Delivery — excluded";
+  if (submission.source === "delivery") return "Delivery, not counted";
   return "Not counted";
 }
 

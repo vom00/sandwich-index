@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { CountUpPrice } from "@/components/landing/CountUpPrice";
+import { ClayScene } from "@/components/landing/scenes/ClayScene";
 import { HAS_ACTIVE_FEED } from "@/lib/feeds";
 import { formatCents } from "@/lib/money";
 import { priceAge, provenanceSummary } from "@/lib/provenance";
@@ -120,47 +121,58 @@ function Hero({ snapshot }: { snapshot: IndexSnapshot }) {
         </>
       ) : (
         <>
-          {/* The number and the sentence are one heading. The figure is not
-              decoration sitting above a headline — it is the subject of it. */}
-          {/* `auto` rather than a fixed column split, so the sentence sits
-              against the figure instead of across a gap whose width depends on
-              how many digits today's number happens to have. */}
-          <h1 className="mt-7 grid gap-x-10 gap-y-4 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-end">
-            <span className="reveal block" style={{ animationDelay: "70ms" }}>
-              <CountUpPrice cents={spreadCents} className="hero-figure" />
-            </span>
-            <span
-              className="reveal block max-w-lg font-display text-2xl leading-[1.2] sm:text-[1.75rem] lg:pb-5"
-              style={{ animationDelay: "170ms" }}
-            >
-              separates the cheapest McChicken in the index from the priciest.
-            </span>
-          </h1>
+          {/* One grid for the whole hero. On a wide screen the headline takes
+              the left seven columns and the kitchen line the right five, with
+              the interval and the call to action across the full width below.
+              On a phone the scene moves after the button, so the number and
+              the way in stay on the first screen. */}
+          <div className="mt-7 grid gap-x-10 lg:grid-cols-12 lg:items-center">
+            {/* The number and the sentence are one heading. The figure is the
+                subject of the sentence, so it sits inside it. */}
+            <h1 className="grid gap-y-4 lg:col-span-7 lg:row-start-1">
+              <span className="reveal block" style={{ animationDelay: "70ms" }}>
+                <CountUpPrice cents={spreadCents} className="hero-figure" />
+              </span>
+              <span
+                className="reveal block max-w-lg font-display text-2xl leading-[1.2] sm:text-[1.75rem]"
+                style={{ animationDelay: "170ms" }}
+              >
+                separates the cheapest McChicken in the index from the priciest.
+              </span>
+            </h1>
 
-          {/* The one place the grid is broken: this measurement spans the full
-              width while every other line of type stays inside the column. */}
-          <div className="reveal mt-14" style={{ animationDelay: "270ms" }}>
-            <IntervalBar
-              lowCents={lowestPriceCents}
-              highCents={highestPriceCents}
-              storeCount={snapshot.pricedStoreCount}
+            <ClayScene
+              scene="kitchen"
+              caption="One sandwich, made the same way on every line, with a different price at every counter."
+              className="reveal order-last mt-12 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:mt-0"
             />
-          </div>
 
-          <div
-            className="reveal mt-12 flex flex-col gap-x-8 gap-y-5 sm:flex-row sm:items-center"
-            style={{ animationDelay: "350ms" }}
-          >
-            <Link
-              href="/map"
-              className="press inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-accent px-6 py-3 font-medium text-accent-ink"
+            {/* The one place the grid is broken: this measurement spans the
+                full width while every other line of type stays inside a column. */}
+            <div className="reveal mt-14 lg:col-span-12" style={{ animationDelay: "270ms" }}>
+              <IntervalBar
+                lowCents={lowestPriceCents}
+                highCents={highestPriceCents}
+                storeCount={snapshot.pricedStoreCount}
+              />
+            </div>
+
+            <div
+              className="reveal mt-12 flex flex-col gap-x-8 gap-y-5 sm:flex-row sm:items-center lg:col-span-12"
+              style={{ animationDelay: "350ms" }}
             >
-              Find prices near you
-            </Link>
-            <p className="max-w-md leading-relaxed text-ink-muted">
-              Same sandwich, same week, different franchisee. Nothing official
-              publishes this, so it gets built one price at a time.
-            </p>
+              <Link
+                href="/map"
+                className="press inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-accent px-6 py-3 font-medium text-accent-ink"
+              >
+                Find prices near you
+              </Link>
+              <p className="max-w-md leading-relaxed text-ink-muted">
+                Each franchisee prices the same sandwich differently, and nothing
+                official publishes those prices. This site collects them one at
+                a time.
+              </p>
+            </div>
           </div>
         </>
       )}
@@ -218,18 +230,25 @@ function IntervalBar({
 
 function Premise() {
   return (
-    <section className="mt-24 grid gap-6 lg:grid-cols-12">
+    <section className="mt-24 grid gap-6 lg:grid-cols-12 lg:gap-x-10">
       {/* The section heading sits in the gutter as a running head rather than
           competing with the body type for the reader's attention. */}
-      <h2 className="font-mono text-[0.6875rem] uppercase tracking-[0.22em] text-ink-subtle lg:col-span-3 lg:pt-2">
+      <h2 className="font-mono text-[0.6875rem] uppercase tracking-[0.22em] text-ink-subtle lg:col-span-5 lg:row-start-1 lg:pt-2">
         Why it moves
       </h2>
 
-      <div className="lg:col-span-8 lg:col-start-5">
+      <ClayScene
+        scene="headquarters"
+        aspect="aspect-[1/1]"
+        caption="Corporate is the big building. The prices are set at the small ones, by the people who run them."
+        className="order-last mt-4 lg:order-none lg:col-span-5 lg:row-start-2 lg:mt-0"
+      />
+
+      <div className="lg:col-span-7 lg:col-start-6 lg:row-span-2 lg:row-start-1">
         <p className="max-w-2xl font-display text-2xl leading-[1.3] sm:text-[1.75rem]">
           Most McDonald&rsquo;s restaurants in the United States are owned and run
-          by independent franchisees, not by the corporation. Suggested prices are
-          exactly that. The operator decides.
+          by independent franchisees, not by the corporation. Corporate can
+          suggest a price, and the operator decides what to charge.
         </p>
 
         <div className="mt-7 max-w-xl space-y-4 leading-relaxed text-ink-muted">
@@ -239,10 +258,10 @@ function Premise() {
             and whatever the store on the other side of the highway is charging.
           </p>
           <p>
-            None of that is published anywhere. Two restaurants a few minutes
-            apart can differ by more than a dollar on the same item, and there is
-            no way to find out before you have already ordered. This is an attempt
-            to write it down.
+            McDonald&rsquo;s publishes none of it. Two restaurants a few minutes
+            apart can differ by more than a dollar on the same item, and you
+            usually find out only after you have ordered. This site writes the
+            prices down.
           </p>
         </div>
       </div>
@@ -377,7 +396,7 @@ const STEPS = [
   },
   {
     title: "That store's price updates",
-    body: "Each store shows one price: the newest that passed the check, whether a visitor's or a tracker's. A report that would move the price by more than 40% is held until a second person agrees with it, so no single number can swing a store on its own. Delivery prices are recorded and shown but never become the price — the platforms add a markup that has nothing to do with the restaurant.",
+    body: "Each store shows one price: the newest that passed the check, whether a visitor's or a tracker's. A report that would move the price by more than 40% is held until a second person agrees with it, so no single number can swing a store on its own. Delivery prices are recorded and shown but never become the price, because the platforms add their own markup on top of the restaurant's.",
   },
 ] as const;
 
@@ -392,31 +411,39 @@ function HowItWorks() {
   const measures = ["md:max-w-2xl", "md:max-w-xl", "md:max-w-lg"] as const;
 
   return (
-    <section className="mt-24 border-t border-rule pt-10">
-      <h2 className="font-display text-2xl sm:text-3xl">How a price gets here</h2>
+    <section className="mt-24 grid border-t border-rule pt-10 lg:grid-cols-12 lg:gap-x-10">
+      <div className="lg:col-span-7">
+        <h2 className="font-display text-2xl sm:text-3xl">How a price gets here</h2>
 
-      <ol className="mt-4">
-        {STEPS.map((step, index) => (
-          <li
-            key={step.title}
-            className={`grid gap-x-6 gap-y-1 border-b border-rule py-8 last:border-b-0 sm:grid-cols-[4.5rem_1fr] ${indents[index]} ${measures[index]}`}
-          >
-            {/* The ordinal is also spelled out in the list semantics, so this
-                numeral is purely typographic and hidden from screen readers. */}
-            <span
-              aria-hidden="true"
-              className="font-display text-4xl leading-none text-ink-subtle sm:text-5xl"
+        <ol className="mt-4">
+          {STEPS.map((step, index) => (
+            <li
+              key={step.title}
+              className={`grid gap-x-6 gap-y-1 border-b border-rule py-8 last:border-b-0 sm:grid-cols-[4.5rem_1fr] ${indents[index]} ${measures[index]}`}
             >
-              {String(index + 1).padStart(2, "0")}
-            </span>
+              {/* The ordinal is also spelled out in the list semantics, so this
+                  numeral is purely typographic and hidden from screen readers. */}
+              <span
+                aria-hidden="true"
+                className="font-display text-4xl leading-none text-ink-subtle sm:text-5xl"
+              >
+                {String(index + 1).padStart(2, "0")}
+              </span>
 
-            <div>
-              <h3 className="font-display text-xl">{step.title}</h3>
-              <p className="mt-2 leading-relaxed text-ink-muted">{step.body}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
+              <div>
+                <h3 className="font-display text-xl">{step.title}</h3>
+                <p className="mt-2 leading-relaxed text-ink-muted">{step.body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <ClayScene
+        scene="logging"
+        caption="Somebody reads the menu board, types the price in, and it lands on that store's pin."
+        className="mt-6 self-start lg:sticky lg:top-8 lg:col-span-5 lg:mt-16"
+      />
     </section>
   );
 }
@@ -434,15 +461,15 @@ function Contribute({ snapshot }: { snapshot: IndexSnapshot }) {
       <div className="mx-auto grid w-full max-w-[68rem] gap-8 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-12">
         <div className="lg:col-span-7">
           <h2 className="max-w-xl font-display text-3xl leading-tight sm:text-4xl">
-            The index is only ever as good as the last price someone logged.
+            Seen a McChicken price lately? Add it.
           </h2>
 
           <p className="mt-5 max-w-lg leading-relaxed text-paper-muted">
             {blank > 0 ? (
               <>
                 {blank} of the {snapshot.trackedStoreCount} restaurants on file have
-                no current price at all. They are blank because nobody has been,
-                not because there is nothing to report.
+                no current price at all. Each one is blank because nobody has
+                logged a price there yet.
               </>
             ) : (
               <>

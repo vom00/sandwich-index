@@ -213,7 +213,7 @@ export function SubmitPriceDialog({
                 >
                   <div className="flex items-start justify-between gap-4">
                     <h2 id={titleId} className="font-display text-xl leading-snug">
-                      {accepted === null ? "Log a McChicken price" : "Thanks — that is in"}
+                      {accepted === null ? "Log a McChicken price" : "Thanks, that's in"}
                     </h2>
                     <button
                       type="button"
@@ -341,7 +341,7 @@ function PriceForm({
         </label>
         <p id={priceHintId} className="mt-0.5 text-xs text-ink-subtle">
           From a receipt, the menu board or the app. Before tax, and for the
-          sandwich on its own — not a meal.
+          sandwich on its own, not a meal.
         </p>
 
         <div className="relative mt-1.5">
@@ -418,8 +418,8 @@ function PriceForm({
           ))}
         </div>
         <p className="mt-2 text-xs text-ink-subtle">
-          Delivery prices are recorded and shown, but never become the price —
-          the platforms add their own markup.
+          Delivery prices are recorded and shown but never become the price,
+          because the platforms add their own markup.
         </p>
       </fieldset>
 
@@ -483,9 +483,9 @@ function Confirmation({
           ) : (
             <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
               It is more than 40% away from what this store is currently listed
-              at, so it is held rather than applied. That is not an accusation —
-              prices really do jump — it just needs one more person to see the
-              same thing, and then it becomes the price.
+              at, so it is held rather than applied. That is not an accusation:
+              prices really do jump. It needs one more person to see the same
+              thing, and then it becomes the price.
             </p>
           )}
         </div>

@@ -96,7 +96,7 @@ export async function submitPrice(input: SubmitPriceInput): Promise<SubmitPriceR
       ok: false,
       reason: "offline",
       message:
-        "You are offline, so this has not been saved. Nothing is queued — try again once you are back.",
+        "You are offline, so this has not been saved. Nothing is queued, so try again once you are back online.",
     };
   }
 

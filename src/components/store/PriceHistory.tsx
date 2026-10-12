@@ -58,7 +58,7 @@ export function PriceHistory({
     const only = counted[0];
     return (
       <p className="text-ink-muted">
-        One counted price so far —{" "}
+        One counted price so far:{" "}
         <span className="tabular text-ink">
           {formatCents(only?.priceCents ?? 0)}
         </span>

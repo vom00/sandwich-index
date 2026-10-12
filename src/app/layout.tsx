@@ -4,6 +4,7 @@ import { Fraunces, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { ConnectionNotice } from "@/components/ui/ConnectionNotice";
 import { FirebaseBoot } from "@/components/ui/FirebaseBoot";
 import { SiteFooter } from "@/components/ui/SiteFooter";
+import { SiteHeader } from "@/components/ui/SiteHeader";
 import { HAS_ACTIVE_FEED } from "@/lib/feeds";
 import "./globals.css";
 
@@ -41,7 +42,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Sandwich Index",
   description:
-    `${HAS_ACTIVE_FEED ? "A price index" : "A crowdsourced price index"} for the McChicken. McDonald's franchisees set their own prices — this tracks what they actually charge, store by store.`,
+    `${HAS_ACTIVE_FEED ? "A price index" : "A crowdsourced price index"} for the McChicken. McDonald's franchisees set their own prices. This tracks what they actually charge, store by store.`,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -69,6 +70,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <a className="skip-link" href="#main">
           Skip to main content
         </a>
+        <SiteHeader />
         {children}
         <SiteFooter />
         <ConnectionNotice />

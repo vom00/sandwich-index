@@ -217,7 +217,7 @@ describe("summarise", () => {
 describe("describeRun", () => {
   it("says so plainly when nothing was entered", () => {
     expect(describeRun({ saved: 0, held: 0, failed: 0 })).toBe(
-      "Nothing to save — no prices were entered.",
+      "Nothing to save: no prices were entered.",
     );
   });
 

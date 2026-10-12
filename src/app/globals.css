@@ -261,6 +261,34 @@ h6 {
   }
 }
 
+/* The site header has a fixed height so the map can take the rest of the
+   viewport exactly: MapExperience sizes itself to 100dvh minus this. */
+:root {
+  --site-header-height: 3.5rem;
+}
+
+.site-header {
+  height: var(--site-header-height);
+}
+
+/* Each clay scene fades in once its first frame is drawn, so a diorama
+   never pops in half-built. Opacity only, and none at all with reduced motion:
+   the still frame simply appears. */
+.clay-canvas {
+  opacity: 0;
+  transition: opacity var(--duration-hero) var(--ease-out-quart);
+}
+
+.clay-canvas[data-status="ready"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clay-canvas {
+    transition: none;
+  }
+}
+
 /**
  * The hero figure.
  *

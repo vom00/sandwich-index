@@ -225,13 +225,14 @@ export function MapExperience() {
   const selected = stores.find((store) => store.id === selectedId) ?? null;
 
   return (
-    // `lg:flex-none` is load-bearing next to `lg:h-dvh`. `flex-1` resolves to
+    // `lg:flex-none` is load-bearing next to the `lg:h-[…]` viewport height
+    // (the viewport minus the site header). `flex-1` resolves to
     // `flex: 1 1 0%`, and in a column flex container the basis governs the main
     // axis — the height is simply ignored, so the element keeps growing to fit
     // the store list. Dropping the flex sizing at lg is what makes the height
     // apply, which in turn keeps the map inside the viewport where its markers
     // are actually clickable.
-    <main id="main" className="flex min-h-0 flex-1 flex-col lg:h-dvh lg:flex-none">
+    <main id="main" className="flex min-h-0 flex-1 flex-col lg:h-[calc(100dvh-var(--site-header-height))] lg:flex-none">
       <div className="shrink-0 border-b border-rule bg-paper-raised px-5 py-3 sm:px-8">
         <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
           <div>

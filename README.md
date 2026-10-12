@@ -32,8 +32,9 @@ outstanding. See [Price feeds](#price-feeds).
 | 5 | Landing page: live hero figure, leaderboards, editorial treatment | Done |
 | 6 | Polish: motion sweep, axe audit, error/empty states, offline | Done |
 | 7 | Price feeds: provenance, feed registry, import pipeline, labelled UI, MenuPriceTracker reader | Built; MenuPriceTracker in use, unlicensed |
+| 8 | Design pass: 3D kitchen line on the landing page, copy edit across the site | Done |
 
-All seven phases are built. Three items are open:
+All eight phases are built. Three items are open:
 
 - **A licence for MenuPriceTracker**, or its answer. The request is drafted in
   `research/feed-outreach.md`. It needs a reply nobody here can write.
@@ -635,6 +636,21 @@ parsers are tested against trimmed copies of real pages
 
 ---
 
+## The site header
+
+Every page has a header (`src/components/ui/SiteHeader.tsx`): the wordmark
+links home, and Map, Log prices and About the data link to the rest. It was
+added on 2026-10-12 after the owner found that the map had no way back to the
+landing page except the browser's back button.
+
+The current section carries `aria-current="page"` and an underline, so it is
+never shown by colour alone; a store page counts as part of the map. On a phone
+the labels shorten to Map, Log and About, while each link's accessible name
+stays the full label, so the visible text is always part of it (WCAG 2.5.3). The
+header has a fixed height, `--site-header-height` in `globals.css`, and the map
+sizes itself to the viewport minus that height. `tests/browser/nav.js` checks
+every route at both widths, including the trip from the map back home.
+
 ## The map
 
 Three encodings carry the same information, so none of them is doing the job
@@ -825,6 +841,36 @@ Suspense boundary above *every* route, and a streamed response has already sent
 its 200 by the time `/store/<unknown>` calls `notFound()`. It briefly made every
 404 on the site answer 200.
 
+### The kitchen line
+
+Beside the headline on a wide screen, and after the call to action on a phone,
+is a small 3D scene: three clay cooks on a conveyor belt build the same chicken
+sandwich over and over, a press pins a price flag in each one, and it drops into
+a bag. The sandwiches are identical and the flags all differ, which is the
+site's premise in one loop. It was added on 2026-10-11, modelled on the clay,
+isometric style of a [Sendoso animation on
+Dribbble](https://dribbble.com/shots/26613831-3D-Animation-For-Sendoso-com),
+but built here from primitives in three.js: no model files, no logos, and the
+site's own palette, so no red or yellow anywhere.
+
+- **Code:** `src/components/landing/kitchen/`. `scene.ts` is the three.js
+  scene and `KitchenLine.tsx` the React wrapper.
+- **Loading:** the figure and its caption are server-rendered at a fixed 4:3
+  ratio, so nothing moves when the scene arrives. `three` (pinned at 0.186.1)
+  is imported with `import()` only on the client, only on `/`, and only once
+  the browser is idle and the figure is on screen. The headline number still
+  paints first.
+- **Motion:** one clock drives everything. The belt runs at a constant speed
+  and every cook's movement is a function of where the next sandwich is, so
+  nothing drifts. It renders only while on screen and while the tab is visible.
+  Under `prefers-reduced-motion` or data saver it draws one still frame and
+  never animates; without WebGL the canvas stays empty and the caption stands
+  alone.
+- **Accessibility:** the canvas is `aria-hidden`. The caption says in words
+  what the animation shows.
+
+`tests/browser/kitchen.js` checks all of that from the outside.
+
 ---
 
 ## Offline
@@ -998,6 +1044,10 @@ them at the source via `zoomAnimation` / `fadeAnimation` / `markerZoomAnimation`
 and `globals.css` neutralises the stylesheet as well, for a preference changed
 after the map was created. No `!important`: each override is one class more
 specific than the Leaflet rule it replaces.
+
+The landing page's kitchen scene is the one continuous animation on the site.
+It runs in a canvas, so it never touches layout, and it stops whenever it is off
+screen or motion is reduced (see [The kitchen line](#the-kitchen-line)).
 
 Map marker hover is deliberately **not** animated. Users hover markers hundreds
 of times in a session, and a transition on each one turns reading the map into

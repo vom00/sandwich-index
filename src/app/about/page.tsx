@@ -33,14 +33,14 @@ export default function AboutPage() {
             Every number on this site is either a price a visitor logged, from
             a receipt, a menu board or the app, or a dated price listed by an
             outside tracker, and every one says which. There is no official
-            source. That shapes everything about how the data should be read.
+            source, so read each figure alongside where it came from and how old
+            it is.
           </>
         ) : (
           <>
             Every number on this site was typed in by a person who saw it on a
-            receipt, a menu board or the app. There is no feed, no scrape, no
-            official source. That shapes everything about how the data should
-            be read.
+            receipt, a menu board or the app. There is no feed and no official
+            source, so read each figure alongside how old it is.
           </>
         )}
       </p>
@@ -57,9 +57,9 @@ export default function AboutPage() {
           </p>
           <p>
             Corporate publishes no per-store price list, and franchise pricing
-            is not disclosed anywhere central. The only practical way to know
-            what a specific store charges is for someone standing in it to say
-            so.
+            is not disclosed anywhere central. Short of the McDonald&rsquo;s
+            app, the practical way to know what a store charges is for somebody
+            who has been there to say so.
           </p>
         </Section>
 
@@ -76,8 +76,8 @@ export default function AboutPage() {
             </a>
             , a public map database maintained by volunteers, used under the
             Open Database Licence. Some entries carry a full street address and
-            some carry none at all — where an address is missing, it is missing
-            upstream, and we would rather show nothing than invent one.
+            some carry none at all. Where an address is missing upstream, the
+            site shows nothing rather than inventing one.
           </p>
           <p>
             {HAS_ACTIVE_FEED
@@ -111,20 +111,19 @@ export default function AboutPage() {
               {CORROBORATION_PERCENT}%.
             </li>
             <li>
-              Each store shows one price — the most recent report that passed
-              the check above — rather than an average of everything anyone has
-              ever said. Prices are replaced, not blended.
+              Each store shows one price: the most recent report that passed the
+              check above. A newer price replaces the old one, and nothing is
+              averaged.
             </li>
           </ul>
           <p>
-            That last choice is deliberate, and it has a cost worth stating.
-            Averaging is better at absorbing a single wrong number; replacing is
-            better at telling the truth after a real price change, and it means
-            the figure on screen is one somebody actually saw on a menu board
-            rather than a midpoint nobody was ever charged. The held-report rule
-            above is what keeps the first problem in check: no single report can
-            move a price far, and two that agree can move it anywhere — which is
-            also how a store recovers if its very first report was wrong.
+            Replacing has a cost. An average absorbs a single wrong number
+            better. Replacing catches a real price change sooner, and the figure
+            on screen is one somebody actually saw on a menu board instead of a
+            midpoint nobody was ever charged. The held-report rule limits the
+            cost: no single report can move a price far, while two that agree
+            can move it anywhere. That is also how a store recovers if its very
+            first report was wrong.
           </p>
           <p>
             Delivery prices are recorded but can never become a store&rsquo;s
@@ -175,8 +174,8 @@ export default function AboutPage() {
           </p>
           <p>
             Prices older than {STALE_AFTER_DAYS} days are marked stale and
-            excluded from cheapest-nearby rankings. A stale price is not wrong,
-            it is just old, and menu prices move.
+            excluded from cheapest-nearby rankings. It may still be right, but
+            menu prices move, so it is labelled as old.
           </p>
         </Section>
 

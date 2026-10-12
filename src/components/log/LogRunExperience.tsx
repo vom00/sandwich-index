@@ -251,8 +251,8 @@ export function LogRunExperience() {
         </h1>
         <p className="mt-3 max-w-prose leading-relaxed text-ink-muted">
           Open the McDonald&rsquo;s app, switch stores, and read the McChicken
-          price off the menu. Type what you see and move down the list — nothing
-          is saved until you finish. Stores nobody has priced come first.
+          price off the menu. Type what you see and move down the list. Nothing
+          is saved until you finish, and stores nobody has priced come first.
         </p>
       </header>
 
@@ -281,7 +281,7 @@ export function LogRunExperience() {
       ) : candidates.length === 0 ? (
         <EmptyState
           title="No stores tracked here yet"
-          body={`We have no McDonald's locations on file within ${RADIUS_MILES} miles. Open the map first — it reconciles the area against OpenStreetMap.`}
+          body={`We have no McDonald's locations on file within ${RADIUS_MILES} miles. Open the map first, which checks the area against OpenStreetMap.`}
         />
       ) : (
         <>
@@ -353,8 +353,8 @@ export function LogRunExperience() {
             {source === "delivery" ? (
               <p className="mt-2 flex items-start gap-1.5 text-xs text-ink-muted">
                 <CircleAlert aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
-                Delivery prices are recorded and shown, but never counted in a
-                price — the platforms add their own markup on top of the
+                Delivery prices are recorded and shown but never counted in a
+                price, because the platforms add their own markup on top of the
                 franchise price.
               </p>
             ) : null}

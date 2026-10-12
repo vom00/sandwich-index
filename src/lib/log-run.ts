@@ -196,7 +196,7 @@ export function describeRun(summary: RunSummary): string {
     parts.push(`${summary.failed} could not be saved`);
   }
 
-  if (parts.length === 0) return "Nothing to save — no prices were entered.";
+  if (parts.length === 0) return "Nothing to save: no prices were entered.";
   if (parts.length === 1) return `${parts[0]}.`;
 
   const last = parts[parts.length - 1];

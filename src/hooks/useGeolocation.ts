@@ -87,7 +87,7 @@ export function useGeolocation(): GeolocationState & {
           setState({
             phase: "denied",
             position: null,
-            message: "No problem — enter a ZIP code and we will use that instead.",
+            message: "No problem. Enter a ZIP code and we will use that instead.",
           });
           return;
         }
