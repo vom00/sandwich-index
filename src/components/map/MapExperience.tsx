@@ -1,9 +1,9 @@
 "use client";
 
-import { LoaderCircle, MapPinOff, RefreshCw } from "lucide-react";
+import { LoaderCircle, MapPinOff, RefreshCw, Search, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { LocationGate } from "@/components/map/LocationGate";
 import { StoreList } from "@/components/map/StoreList";
@@ -12,6 +12,7 @@ import { useGeolocation } from "@/hooks/useGeolocation";
 import type { LatLng } from "@/lib/geohash";
 import { formatCents } from "@/lib/money";
 import { storeLabel } from "@/lib/store-label";
+import { matchesSearch, searchTerms } from "@/lib/store-search";
 import { rankableStores } from "@/lib/tiers";
 import type { StoreWithId } from "@/types";
 
@@ -61,6 +62,34 @@ export function MapExperience() {
    * neutral state is the price of not guessing.
    */
   const [restoreAttempted, setRestoreAttempted] = useState(false);
+
+  /**
+   * The search box. Kept in the address bar as ?q= so a search can be shared
+   * or survive a reload, written with replaceState so typing doesn't fill the
+   * back button with one entry per letter. Read once on mount rather than
+   * through useSearchParams, which would need a Suspense boundary around the
+   * whole page for one string.
+   */
+  const [query, setQuery] = useState("");
+  const searchId = useId();
+  useEffect(() => {
+    const initial = new URLSearchParams(window.location.search).get("q");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one read of the URL after hydration
+    if (initial !== null) setQuery(initial);
+  }, []);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (query.trim() === "") url.searchParams.delete("q");
+    else url.searchParams.set("q", query);
+    window.history.replaceState(window.history.state, "", url);
+  }, [query]);
+
+  const terms = useMemo(() => searchTerms(query), [query]);
+  const visibleIds = useMemo(
+    () => (terms.length === 0 ? null : new Set(stores.filter((store) => matchesSearch(store, terms)).map((store) => store.id))),
+    [stores, terms],
+  );
+  const hiddenSelection = visibleIds !== null && selectedId !== null && !visibleIds.has(selectedId);
 
   const fetchStores = useCallback(async (position: LatLng): Promise<StoreWithId[]> => {
     const params = new URLSearchParams({
@@ -222,7 +251,9 @@ export function MapExperience() {
   }
 
   const cheapest = rankableStores(stores)[0] ?? null;
-  const selected = stores.find((store) => store.id === selectedId) ?? null;
+  // A store the search has hidden is not shown as selected either; its sheet
+  // would describe a marker that isn't on the map.
+  const selected = hiddenSelection ? null : (stores.find((store) => store.id === selectedId) ?? null);
 
   return (
     // `lg:flex-none` is load-bearing next to the `lg:h-[…]` viewport height
@@ -287,6 +318,47 @@ export function MapExperience() {
             </Link>
           </div>
         </div>
+
+        {stores.length > 0 ? (
+          <div className="mt-3 lg:w-[22rem]">
+            <label htmlFor={searchId} className="sr-only">
+              Search these stores
+            </label>
+            <div className="relative">
+              <Search
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-subtle"
+              />
+              <input
+                id={searchId}
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search by street, city, ZIP or store #"
+                autoComplete="off"
+                spellCheck={false}
+                className="min-h-11 w-full rounded-md border border-rule-strong bg-paper py-2 pl-9 pr-11 text-sm [&::-webkit-search-cancel-button]:hidden"
+              />
+              {query !== "" ? (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  aria-label="Clear search"
+                  className="press absolute right-0 top-0 inline-flex size-11 items-center justify-center rounded-md text-ink-subtle"
+                >
+                  <X aria-hidden="true" className="size-4" />
+                </button>
+              ) : null}
+            </div>
+            {/* Polite, and only the count: a screen reader hears "3 of 98
+                stores match" once typing pauses, not every row. */}
+            <p aria-live="polite" className="mt-1 text-xs text-ink-subtle empty:hidden">
+              {visibleIds === null
+                ? ""
+                : `${visibleIds.size} of ${stores.length} ${stores.length === 1 ? "store" : "stores"} match`}
+            </p>
+          </div>
+        ) : null}
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
@@ -313,11 +385,26 @@ export function MapExperience() {
               title="No stores tracked here yet"
               body="We have no McDonald's locations on file within fifteen miles. That usually means OpenStreetMap has not been checked for this area yet, or there genuinely are none nearby."
             />
+          ) : visibleIds !== null && visibleIds.size === 0 ? (
+            <EmptyState
+              title={`No store here matches “${query.trim()}”`}
+              body={`The search covers the ${stores.length} stores within 15 miles of this location. To look somewhere else, change location.`}
+              action={
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="press inline-flex min-h-11 items-center rounded-md border border-rule-strong px-4 py-2 font-medium"
+                >
+                  Clear search
+                </button>
+              }
+            />
           ) : (
             <StoreList
               stores={stores}
+              visibleIds={visibleIds}
               center={geo.position}
-              selectedId={selectedId}
+              selectedId={hiddenSelection ? null : selectedId}
               onSelect={setSelectedId}
             />
           )}
@@ -329,7 +416,8 @@ export function MapExperience() {
           <MapCanvas
             center={geo.position}
             stores={stores}
-            selectedId={selectedId}
+            visibleIds={visibleIds}
+            selectedId={hiddenSelection ? null : selectedId}
             onSelect={setSelectedId}
           />
           <StoreSheet store={selected} onClose={() => setSelectedId(null)} />

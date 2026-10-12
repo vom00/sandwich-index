@@ -31,7 +31,10 @@ import "leaflet/dist/leaflet.css";
 
 interface MapCanvasProps {
   center: LatLng;
+  /** Every store in the area. Tiers are ranked across all of them. */
   stores: readonly StoreWithId[];
+  /** The ones a search left on screen, or null when nothing is searched. */
+  visibleIds: ReadonlySet<string> | null;
   selectedId: string | null;
   onSelect: (storeId: string) => void;
 }
@@ -143,6 +146,44 @@ function ViewportSync({
 }
 
 /**
+ * Frames the stores a search found, and goes back to the area view when the
+ * search is cleared. Keyed on the set of ids, so typing a letter that leaves
+ * the same results doesn't move the map.
+ */
+function FitToResults({
+  center,
+  matches,
+  reducedMotion,
+}: {
+  center: LatLng;
+  matches: readonly StoreWithId[] | null;
+  reducedMotion: boolean;
+}) {
+  const map = useMap();
+  const key = matches === null ? null : matches.map((store) => store.id).join(",");
+
+  useEffect(() => {
+    if (key === null) return;
+    if (matches === null || matches.length === 0) return;
+    const bounds = L.latLngBounds(matches.map((store) => [store.lat, store.lng] as [number, number]));
+    map.fitBounds(bounds, { padding: [48, 48], maxZoom: 14, animate: !reducedMotion });
+    // `matches` is read through `key`; depending on the array would refit on
+    // every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, key, reducedMotion]);
+
+  const searching = key !== null;
+  useEffect(() => {
+    if (searching) return;
+    map.setView([center.lat, center.lng], 11, { animate: !reducedMotion });
+    // Only when a search ends; ViewportSync owns the centre otherwise.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searching]);
+
+  return null;
+}
+
+/**
  * Leaflet measures the container on creation. When the map is inside a layout
  * that settles after mount, that measurement is wrong and the tiles render into
  * a grey band. Invalidating once on mount and on resize fixes it.
@@ -165,10 +206,15 @@ function SizeGuard() {
 export default function MapCanvas({
   center,
   stores,
+  visibleIds,
   selectedId,
   onSelect,
 }: MapCanvasProps) {
   const tiers = useMemo(() => assignTiers(stores), [stores]);
+  const shown = useMemo(
+    () => (visibleIds === null ? stores : stores.filter((store) => visibleIds.has(store.id))),
+    [stores, visibleIds],
+  );
   const reducedMotion =
     typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -197,8 +243,9 @@ export default function MapCanvas({
 
       <SizeGuard />
       <ViewportSync center={center} selected={selected} reducedMotion={reducedMotion} />
+      <FitToResults center={center} matches={visibleIds === null ? null : shown} reducedMotion={reducedMotion} />
 
-      {stores.map((store) => {
+      {shown.map((store) => {
         const state = displayStateFor(store);
         return (
           <Marker

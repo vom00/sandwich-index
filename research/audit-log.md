@@ -870,3 +870,32 @@ should be tuned on the first real receipts.
 Checks: lint, typecheck and build clean; `npm test` 189, `test:emulated`
 272, `test:rules` 37, `test:browser` 349 (twice in a row), `test:a11y` 68,
 `check:contrast` 22 pairs. That makes the README's 689.
+
+## Owner feedback, round two (2026-10-12)
+
+From looking at the running site:
+
+- **"The 3D part moves down with the page."** The logging scene was
+  `lg:sticky`, held beside the steps while they scrolled. It read as a bug,
+  so it's static now.
+- **"Text is a bit blurry."** The scenes' signs are text drawn into textures,
+  shrunk about 4x and seen at a slant. The scenes now render at 2x even on 1x
+  screens, sign textures use 16x anisotropic filtering, and the menu board's
+  type is larger. The menu board and phone read cleanly at 1x.
+- **Squeezed addresses in the map list.** Caused by this session's "visitor
+  prices on file" wording: the price column was `shrink-0` with no cap, so a
+  long source line pushed the address to one word a line (up to 7 lines). The
+  column is capped and the visitor count stays on one line; no row is taller
+  than 3 lines now. A running dev server didn't pick up the new Tailwind class
+  until it was restarted, which looked like the fix failing.
+- **A logo.** A small McChicken drawing beside the wordmark, in the kitchen
+  scene's colours, also used as the favicon (it replaces the Next.js default).
+- **Search.** The map has a search box: street, city, ZIP or restaurant
+  number, filtering the list and markers together without re-ranking tiers,
+  zooming to the matches, and kept in the URL. `tests/browser/search.js`, 18
+  checks; 9 unit tests.
+
+Checks: lint, typecheck and build clean; `npm test` 198, `test:browser` 367,
+`test:a11y` 68. Integration and rules were not re-run (no server code changed
+since they last passed at 272 and 37; `test:emulated` now counts 281 with the
+new unit tests).

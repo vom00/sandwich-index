@@ -54,7 +54,7 @@ the owner found none (see `research/price-sources.md`).
 
 | Suite | Count | Runner |
 | --- | --- | --- |
-| `tests/unit` | 189 | `npm test` |
+| `tests/unit` | 198 | `npm test` |
 | `tests/rules` | 37 | `npm run test:emulated` |
 | `tests/integration` | 46 | `npm run test:emulated` |
 | Phase 1 — foundation | 16 | `npm run test:browser` |
@@ -68,11 +68,12 @@ the owner found none (see `research/price-sources.md`).
 | Clay scenes on `/` | 30 | `npm run test:browser` |
 | Navigation — the site header | 32 | `npm run test:browser` |
 | Photo reader — receipts and app screenshots | 19 | `npm run test:browser` |
+| Store search on the map | 18 | `npm run test:browser` |
 | Tap targets — every route, 2 viewports | 10 | `npm run test:a11y` |
 | Keyboard navigation | 13 | `npm run test:a11y` |
 | Screen-reader semantics | 45 | `npm run test:a11y` |
 
-689 checks, all passing on 2026-10-12 against `next dev` and the saved
+716 checks, all passing on 2026-10-12 against `next dev` and the saved
 emulator data with all 197 MenuPriceTracker prices loaded; the browser suite
 passes twice in a row in one session; the production
 `next build` compiles all routes clean.
@@ -512,7 +513,7 @@ npm run test:emulated
 | Suite | Count | Covers |
 | --- | --- | --- |
 | `tests/rules` | 37 | Range boundaries, float and string prices, backdated timestamps, ledger-skipping, cross-device tampering, ledger deletion, move-gate band edges, read visibility, feed observations readable but never client-writable, and the server-only sync log and Overpass budget. |
-| `tests/unit` | 189 | Set-price reconciliation, the move gate and corroboration bands, delivery exclusion, staleness vs. unmeasured, cents parsing and formatting, area comparison, OSM twin filtering, address composition and the store-label ladder, query-parameter coercion at the API boundary, feed observations in the replay, feed parsing and store matching, MenuPriceTracker page parsing and robots.txt rules, feed date wording, reading receipts and app screenshots (the plain McChicken only, per-unit price, OCR's colon-for-point), checking a photo's store by restaurant or street number, receipt age, and sync-cell coverage at four latitudes. |
+| `tests/unit` | 198 | Set-price reconciliation, the move gate and corroboration bands, delivery exclusion, staleness vs. unmeasured, cents parsing and formatting, area comparison, OSM twin filtering, address composition and the store-label ladder, query-parameter coercion at the API boundary, feed observations in the replay, feed parsing and store matching, MenuPriceTracker page parsing and robots.txt rules, feed date wording, reading receipts and app screenshots (the plain McChicken only, per-unit price, OCR's colon-for-point), checking a photo's store by restaurant or street number, receipt age, store search (abbreviations, word-start matching, restaurant numbers), and sync-cell coverage at four latitudes. |
 | `tests/integration` | 46 | Rollup recomputation, corroboration promotion written through to submission status, idempotency, re-sync not clobbering prices or addresses, geohash proximity, the Overpass sync gate including whole-cell coverage and the radius it reached, the site-wide Overpass budget, feed observations written through to the rollup, the address backfill's cap and retry window, index snapshot including stale exclusion. |
 
 The browser suites attack the same machinery from the outside: Phase 4 submits
@@ -730,6 +731,19 @@ sizes itself to the viewport minus that height. `tests/browser/nav.js` checks
 every route at both widths, including the trip from the map back home.
 
 ## The map
+
+**Search.** A box above the list filters the stores already loaded, by
+street, city, ZIP or the restaurant number on a receipt
+(`src/lib/store-search.ts`). The list and the markers filter together, the
+map zooms to the matches, and a polite live region says "10 of 86 stores
+match". Abbreviations are expanded on both sides, so "S MacArthur Blvd" finds
+"South MacArthur Boulevard", and a term must start a word but may run across
+spaces, so "macarthur" finds "Mac Arthur" while "rving" doesn't find Irving.
+A search never re-ranks: tiers are computed across the whole area, so a
+store's "cheapest third" doesn't change with what is typed. It doesn't fetch
+either; "Change location" is how to look somewhere else. The query is kept in
+the address bar as `?q=` (written with `replaceState`, so typing doesn't
+fill the back button), and a shared link opens with it applied.
 
 Three encodings carry the same information, so none of them is doing the job
 alone:

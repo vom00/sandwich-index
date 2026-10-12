@@ -27,7 +27,7 @@
     "check:contrast": "node scripts/check-contrast.mjs",
     "test:a11y": "node tests/browser/taptargets.js && node tests/browser/keyboard.js && node tests/browser/semantics.js",
     "pretest:browser": "npm run seed:fixtures",
-    "test:browser": "node tests/browser/phase1.js && node tests/browser/phase3.js && node tests/browser/phase4.js && node tests/browser/phase5.js && node tests/browser/phase6.js && node tests/browser/logrun.js && node tests/browser/hydration.js && node tests/browser/map-race.js && node tests/browser/scenes.js && node tests/browser/nav.js && node tests/browser/receipt.js"
+    "test:browser": "node tests/browser/phase1.js && node tests/browser/phase3.js && node tests/browser/phase4.js && node tests/browser/phase5.js && node tests/browser/phase6.js && node tests/browser/logrun.js && node tests/browser/hydration.js && node tests/browser/map-race.js && node tests/browser/scenes.js && node tests/browser/nav.js && node tests/browser/receipt.js && node tests/browser/search.js"
   },
   "dependencies": {
     "@tesseract.js-data/eng": "1.0.0",

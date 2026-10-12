@@ -25,18 +25,24 @@ import type { StoreWithId } from "@/types";
  */
 export function StoreList({
   stores,
+  visibleIds,
   center,
   selectedId,
   onSelect,
 }: {
+  /** Every store in the area. Tiers are ranked across all of them. */
   stores: readonly StoreWithId[];
+  /** The ones a search left on screen, or null when nothing is searched. */
+  visibleIds: ReadonlySet<string> | null;
   center: LatLng;
   selectedId: string | null;
   onSelect: (storeId: string) => void;
 }) {
   // Distance is measured once per store and carried through the sort, rather
-  // than recomputed for the row that displays it.
+  // than recomputed for the row that displays it. A search hides rows but
+  // never re-ranks: a store's tier is about the whole area, not the results.
   const ordered = stores
+    .filter((store) => visibleIds === null || visibleIds.has(store.id))
     .map((store) => ({ store, miles: distanceMeters(center, store) / 1609.344 }))
     .sort((a, b) => a.miles - b.miles);
 
@@ -51,7 +57,7 @@ export function StoreList({
     row?.scrollIntoView({ block: "nearest", behavior: "auto" });
   }, [selectedId]);
 
-  if (stores.length === 0) return null;
+  if (ordered.length === 0) return null;
 
   return (
     <ul ref={listRef} className="divide-y divide-rule">
