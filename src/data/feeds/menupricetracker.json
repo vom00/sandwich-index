@@ -1969,6 +1969,196 @@
       "observedAt": "2026-10-12T22:05:59.610Z",
       "url": "https://menupricetracker.com/mcdonalds/texas/terrell/1704-hwy-34-s",
       "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "13124 Hwy 287",
+      "city": "Fort Worth",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T22:22:06.531Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/13124-hwy-287",
+      "listedAs": "last verified October 2026",
+      "storeId": "way-691824042"
+    },
+    {
+      "address": "986 Burleson Blvd",
+      "city": "Burleson",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-12T22:22:26.144Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/burleson/986-burleson-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "464 E Main",
+      "city": "Crowley",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T22:22:46.083Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/crowley/464-e-main",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4375 Risinger Road",
+      "city": "Fort Worth",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T22:22:56.020Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/4375-risinger-road",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5901 Bryant Irvin Road",
+      "city": "Fort Worth",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T22:23:06.007Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/5901-bryant-irvin-road",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5421 Sycamore School Rd",
+      "city": "Fort Worth",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-12T22:23:16.113Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/5421-sycamore-school-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8540 West Freeway",
+      "city": "White Settlement",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T22:23:36.290Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/white-settlement/8540-west-freeway",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "9559 Clifford Ave",
+      "city": "Fort Worth",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-12T22:23:46.121Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/9559-clifford-ave",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "911 Sw Wilshire Blvd",
+      "city": "Burleson",
+      "mcchickenCents": 179,
+      "observedAt": "2026-10-12T22:23:56.154Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/burleson/911-sw-wilshire-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8516 Hwy 377 S",
+      "city": "Benbrook",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T22:24:16.808Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/benbrook/8516-hwy-377-s",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2908 Chapel Creek Blvd.",
+      "city": "Fort Worth",
+      "mcchickenCents": 179,
+      "observedAt": "2026-10-12T22:24:26.049Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/2908-chapel-creek-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1449 Fm 66",
+      "city": "Waxahachie",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-12T22:24:46.717Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/waxahachie/1449-fm-66",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4800 E Hwy 114",
+      "city": "Rhome",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T22:25:06.088Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/rhome/4800-e-hwy-114",
+      "listedAs": "last verified October 2026",
+      "storeId": "way-225729879"
+    },
+    {
+      "address": "597 Northwest Pky",
+      "city": "Azle",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T22:25:26.655Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/azle/597-northwest-pky",
+      "listedAs": "last verified October 2026",
+      "storeId": "way-1263555535"
+    },
+    {
+      "address": "200 W Ih 30",
+      "city": "Royse City",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T22:25:46.231Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/royse-city/200-w-ih-30",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2810 Washington Dr.",
+      "city": "Melissa",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T22:26:06.303Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/melissa/2810-washington-dr",
+      "listedAs": "last verified October 2026",
+      "storeId": "way-1288445363"
+    },
+    {
+      "address": "601 N Stemmons St",
+      "city": "Sanger",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T22:26:26.831Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/sanger/601-n-stemmons-st",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1801 W Audie Murphy Pkwy",
+      "city": "Farmersville",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T22:26:46.029Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/farmersville/1801-w-audie-murphy-pkwy",
+      "listedAs": "last verified October 2026",
+      "storeId": "way-1509805255"
+    },
+    {
+      "address": "5090 I-H 20 East Service Road",
+      "city": "Willow Park",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T22:27:06.213Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/willow-park/5090-i-h-20-east-service-road",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2215 So Washington",
+      "city": "Kaufman",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T22:27:26.873Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/kaufman/2215-so-washington",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "421 E Hwy 199",
+      "city": "Springtown",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T22:27:46.853Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/springtown/421-e-hwy-199",
+      "listedAs": "last verified October 2026",
+      "storeId": "node-6959314163"
+    },
+    {
+      "address": "2980 Fort Worth Highway",
+      "city": "Hudson Oaks",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T22:28:07.233Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/hudson-oaks/2980-fort-worth-highway",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8840 Hwy 34 South",
+      "city": "Quinlan",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T22:28:26.278Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/quinlan/8840-hwy-34-south",
+      "listedAs": "last verified October 2026"
     }
   ]
 }
