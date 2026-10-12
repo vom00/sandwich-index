@@ -168,14 +168,17 @@ export default function AboutPage() {
 
         <Section title="How to read a price">
           <p>
-            Every price is shown with the number of submissions behind it. A
-            store with one report and a store with thirty should not be trusted
-            equally, and showing the count is the honest way to say so.
+            A visitor&rsquo;s price is shown with the number of reports behind
+            it. A store with one report and a store with thirty should not be
+            trusted equally, and showing the count is the honest way to say so.
+            {HAS_ACTIVE_FEED
+              ? " A feed's price is shown with the feed's name and the day it was dated instead, because it is one listing, not a count of people."
+              : null}
           </p>
           <p>
             Prices older than {STALE_AFTER_DAYS} days are marked stale and
-            excluded from cheapest-nearby rankings. It may still be right, but
-            menu prices move, so it is labelled as old.
+            excluded from cheapest-nearby rankings. A stale price may still be
+            right, but menu prices move, so it is labelled as old.
           </p>
         </Section>
 

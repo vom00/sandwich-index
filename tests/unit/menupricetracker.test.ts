@@ -218,6 +218,16 @@ describe("MenuPriceTracker as a feed", () => {
     expect(provenanceSummary(store)).toBe("from MenuPriceTracker");
   });
 
+  it("says visitors' prices are on file, not behind the feed's figure", () => {
+    const pricedAt = new Date().toISOString();
+    expect(provenanceSummary({ priceFeed: "menupricetracker", confirmedCount: 18, pricedAt })).toBe(
+      "from MenuPriceTracker · 18 visitor prices on file",
+    );
+    expect(provenanceSummary({ priceFeed: "menupricetracker", confirmedCount: 1, pricedAt })).toBe(
+      "from MenuPriceTracker · 1 visitor price on file",
+    );
+  });
+
   it("leaves a visitor's price with the visitor's verb", () => {
     const store = { priceFeed: null, confirmedCount: 2, pricedAt: new Date().toISOString() };
     expect(priceAge(store)).toBe("last confirmed today");

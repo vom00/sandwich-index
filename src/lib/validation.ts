@@ -9,6 +9,7 @@
 import { z } from "zod";
 
 import { PRICE_MAX_CENTS, PRICE_MIN_CENTS } from "@/lib/money";
+import { ZIP_MESSAGE, ZIP_PATTERN } from "@/lib/zip";
 import { PRICE_SOURCES } from "@/types";
 
 /** Matches the OSM element id format used as a store document id. */
@@ -76,4 +77,4 @@ export const nearbyQuerySchema = coordinatesSchema.extend({
 export const zipSchema = z
   .string()
   .trim()
-  .regex(/^\d{5}$/, "Enter a 5-digit ZIP code");
+  .regex(ZIP_PATTERN, ZIP_MESSAGE);

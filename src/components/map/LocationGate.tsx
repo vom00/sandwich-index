@@ -5,7 +5,7 @@ import { useId, useState, type FormEvent } from "react";
 
 import type { LatLng } from "@/lib/geohash";
 import type { GeolocationPhase } from "@/hooks/useGeolocation";
-import { zipSchema } from "@/lib/validation";
+import { parseZip, ZIP_MESSAGE } from "@/lib/zip";
 
 /**
  * Asks for location, and makes declining a real option rather than a dead end.
@@ -38,9 +38,9 @@ export function LocationGate({
   async function handleZipSubmit(event: FormEvent) {
     event.preventDefault();
 
-    const parsed = zipSchema.safeParse(zip);
-    if (!parsed.success) {
-      setZipError(parsed.error.issues[0]?.message ?? "Enter a 5-digit ZIP code");
+    const parsed = parseZip(zip);
+    if (parsed === null) {
+      setZipError(ZIP_MESSAGE);
       return;
     }
 
@@ -48,7 +48,7 @@ export function LocationGate({
     setLookingUp(true);
 
     try {
-      const response = await fetch(`/api/geocode?zip=${encodeURIComponent(parsed.data)}`);
+      const response = await fetch(`/api/geocode?zip=${encodeURIComponent(parsed)}`);
       const body = await response.json();
 
       if (!response.ok) {
@@ -56,7 +56,7 @@ export function LocationGate({
         return;
       }
 
-      onManualLocation({ lat: body.lat, lng: body.lng }, parsed.data);
+      onManualLocation({ lat: body.lat, lng: body.lng }, parsed);
     } catch {
       setZipError("Could not reach the lookup service. Check your connection.");
     } finally {
@@ -131,8 +131,7 @@ export function LocationGate({
                 }}
                 onBlur={() => {
                   if (zip === "") return;
-                  const parsed = zipSchema.safeParse(zip);
-                  setZipError(parsed.success ? null : "Enter a 5-digit ZIP code");
+                  setZipError(parseZip(zip) === null ? ZIP_MESSAGE : null);
                 }}
                 aria-invalid={zipError !== null}
                 aria-describedby={zipError !== null ? zipErrorId : undefined}

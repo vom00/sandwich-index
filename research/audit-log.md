@@ -750,3 +750,81 @@ Checks after the change: lint, typecheck and build clean; `npm test` 172,
 `test:emulated` 255 (including rules and integration), `test:rules` 37,
 `test:browser` 327, `test:a11y` 68, `check:contrast` 22 pairs. That makes the
 README's 650.
+
+## Full system audit (2026-10-12)
+
+Run after the MenuPriceTracker import, across dependencies, security, the
+data, every page on desktop and phone, performance on a production build,
+accessibility and the docs. Seven findings were fixed; three are left open,
+each for a stated reason.
+
+**Fixed**
+
+- **No security headers at all.** Nothing stopped another site from framing
+  the store page and overlaying its submit button, and nothing limited
+  geolocation to our own pages. `next.config.ts` now sends `frame-ancestors
+  'none'` (plus `X-Frame-Options` for older browsers), `nosniff`, a referrer
+  policy, and a Permissions-Policy allowing geolocation only from the site.
+  `interest-cohort` was left out on purpose: browsers that don't know a
+  feature log an error on every page.
+- **The price chart lost the plot when a feed set the price.** On a store
+  whose visitor history sat near $2.90 and whose current price was
+  MenuPriceTracker's $1.49, the "now $1.49" line fell to the axis floor and its
+  label printed over the "Jun 1" date tick, and nothing on the chart explained
+  where $1.49 came from. Feed prices are now drawn as hollow squares, the axis
+  is padded to include the current price, and the caption says what the
+  squares are. Phase 4 checks all three (80 checks, up from 77).
+- **"from MenuPriceTracker · 18 visitor prices"** read as if 18 people backed
+  the feed's figure. It now says "18 visitor prices on file".
+- **About page.** "Every price is shown with the number of submissions behind
+  it" stopped being true when feed prices arrived; it now says how a feed's
+  price is shown instead. "Prices older than 90 days … It may still be right"
+  had no subject that matched; fixed.
+- **Zod on every page.** The location gate imported a zod schema to check a
+  five-digit ZIP, which put about 67 KB gzipped of zod on `/map`, and the new
+  header prefetches `/map` from every page. A plain pattern in `src/lib/zip.ts`
+  does the same check, and the server's schema uses the same pattern and
+  message. Every page is 62 KB lighter (production build, transferred):
+  `/about`, `/map` and `/log` 459 → 397 KB; store page 571 → 509 KB.
+- **Addresses with an empty city.** Two stores rendered as "2391 North Collins
+  Street, , TX 76011-2627". `composeLocality` filtered out `""` but not a
+  missing city (`undefined`), and `join` printed it as an empty slot. Fixed,
+  with a unit test; the two stored addresses were repaired in the saved data
+  (there is no production database yet).
+- **robots.txt** now disallows `/api/`. It serves JSON for the site's own
+  pages, and a crawler walking store ids would spend Firestore reads.
+
+**Checked and fine**
+
+- No secrets in git history. The only key-shaped string is the placeholder in
+  `.env.local.example`. `.env.local` was never committed; `feeds/` is ignored.
+- `npm audit --omit=dev`: the same four findings as before, all Firebase's
+  pinned `@grpc/grpc-js` 1.9. Firebase 13.0.0 (released 2026-10-07) still pins
+  `~1.9.0`, so upgrading doesn't help. The advisories concern gRPC servers; the
+  browser SDK uses WebChannel, not gRPC.
+- The MenuPriceTracker data: 197 rows, no store page used twice, prices
+  $1.49 to $2.99 with a median of $2.19, all "last verified October 2026".
+- Performance (production build): LCP under 300 ms on every route, CLS 0 on
+  `/`, `/about` and store pages, 0.014 on `/map` and `/log`. three.js (137 KB)
+  arrives only on `/`, after the hero has painted.
+- Every page on desktop and a 375 px phone, with no console errors. The site
+  is light-only by design (README, Design).
+
+**Open**
+
+- **Repeat browser runs exhaust "no prices yet".** Before the import about 70
+  stores near Coppell had no price; now 4 do, and the bulk-logging suite logs
+  prices to them. A run against a fresh start of the saved data passes; a
+  second run in the same session fails two phase 3 checks. Fixing it means
+  giving the logging suite stores of its own. Documented in the README.
+- **A full Content-Security-Policy** (scripts, connections) needs the
+  production Firebase, App Check and tile hosts tested in place. Added to the
+  README's deployment pre-flight.
+- **Map markers overlap at DFW Airport**, where five terminal stores sit within
+  about a kilometre and their price pills stack. Every one is still in the
+  list beside the map. Clustering would fix it, at the cost of hiding prices
+  behind a click at low zoom: a design decision, not an audit fix.
+
+Checks after the audit: lint, typecheck and build clean; `npm test` 174,
+`test:emulated` 257, `test:rules` 37, `test:browser` 330, `test:a11y` 68,
+`check:contrast` 22 pairs. That makes the README's 655.

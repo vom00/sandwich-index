@@ -3,26 +3,32 @@
 import { useState } from "react";
 import {
   CartesianGrid,
+  ComposedChart,
   Line,
-  LineChart,
   ReferenceLine,
   ResponsiveContainer,
+  Scatter,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 
+import { feedName } from "@/lib/feeds";
 import { canSetPrice } from "@/lib/pricing";
 import { formatCents } from "@/lib/money";
-import { PRICE_SOURCE_LABELS, type PriceSource, type Submission } from "@/types";
+import { PRICE_SOURCE_LABELS, type Observation, type Submission } from "@/types";
 
 /**
  * Price history for one store.
  *
- * Only counted submissions are plotted. A delivery price sitting a
+ * Only counted submissions make the line. A delivery price sitting a
  * dollar above the counter price would draw a spike that looks like a price
  * rise and is nothing of the sort — the full log below the chart is where every
  * submission, counted or not, is accounted for.
+ *
+ * Price feeds' observations are drawn as hollow squares, off the line. When a
+ * feed set the current price, the "now" line would otherwise point at a value
+ * nothing on the chart explains.
  *
  * Values stay in integer cents the whole way through, including the y-axis
  * domain and the tick values. `formatCents` runs in the tick and tooltip
@@ -34,7 +40,8 @@ interface ChartPoint {
   /** Epoch milliseconds — Recharts needs a number for a time scale. */
   t: number;
   priceCents: number;
-  source: PriceSource;
+  /** "Mobile app", or the feed's name. */
+  label: string;
 }
 
 const AXIS_DATE = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" });
@@ -76,7 +83,7 @@ function ChartTooltip({ active, payload }: TooltipRenderProps) {
     <div className="rounded-md border border-rule bg-paper-raised px-3 py-2 text-sm shadow-md">
       <p className="tabular font-medium">{formatCents(point.priceCents)}</p>
       <p className="text-xs text-ink-muted">
-        {TOOLTIP_DATE.format(new Date(point.t))} · {PRICE_SOURCE_LABELS[point.source]}
+        {TOOLTIP_DATE.format(new Date(point.t))} · {point.label}
       </p>
     </div>
   );
@@ -84,10 +91,12 @@ function ChartTooltip({ active, payload }: TooltipRenderProps) {
 
 export default function PriceChartCanvas({
   submissions,
+  observations,
   priceCents,
   reducedMotion,
 }: {
   submissions: readonly Submission[];
+  observations: readonly Observation[];
   priceCents: number | null;
   reducedMotion: boolean;
 }) {
@@ -107,18 +116,30 @@ export default function PriceChartCanvas({
     .map((submission) => ({
       t: new Date(submission.submittedAt).getTime(),
       priceCents: submission.priceCents,
-      source: submission.source,
+      label: PRICE_SOURCE_LABELS[submission.source],
     }))
     .sort((a, b) => a.t - b.t);
 
+  const feedPoints: ChartPoint[] = observations.map((observation) => ({
+    t: new Date(observation.observedAt).getTime(),
+    priceCents: observation.priceCents,
+    label: feedName(observation.feed),
+  }));
+
   if (points.length < 2) return null;
 
-  const domain = axisDomain(points.map((point) => point.priceCents));
+  // Everything drawn, plus the current price, gets the same padding, so the
+  // "now" label never sits on the axis.
+  const domain = axisDomain([
+    ...points.map((point) => point.priceCents),
+    ...feedPoints.map((point) => point.priceCents),
+    ...(priceCents === null ? [] : [priceCents]),
+  ]);
 
   return (
     <div className="h-56 w-full sm:h-72">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart
+        <ComposedChart
           data={points}
           margin={{ top: 8, right: 16, bottom: 4, left: 0 }}
           // Gives the chart keyboard navigation and per-point announcements.
@@ -188,7 +209,19 @@ export default function PriceChartCanvas({
             animationEasing="ease-out"
             onAnimationEnd={() => setHasAnimated(true)}
           />
-        </LineChart>
+
+          {feedPoints.length === 0 ? null : (
+            <Scatter
+              data={feedPoints}
+              dataKey="priceCents"
+              shape="square"
+              fill="var(--color-paper)"
+              stroke="var(--color-ink)"
+              strokeWidth={1.5}
+              isAnimationActive={false}
+            />
+          )}
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );

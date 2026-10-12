@@ -11,6 +11,10 @@
  * only picks stores that have no price at all, from anyone, and leaves at
  * least two of those unpriced so the "no prices yet" state survives as well.
  *
+ * It picks the farthest such stores that still show on the map's 15-mile view
+ * from Coppell. The bulk-logging suite writes prices to the stores nearest
+ * Coppell, so a stale fixture there would be fresh again after one run.
+ *
  * Like the seed, the prices are invented and the script will not run against
  * anything but the emulator.
  */
@@ -23,6 +27,8 @@ import { PRICE_SOURCES } from "../src/types";
 
 /** Coppell, TX: where the browser suites stand. */
 const CENTER = { lat: 32.9546, lng: -96.99 };
+/** Inside the map's 15-mile view, with a margin. */
+const MAX_MILES = 14;
 const COUNT = Number(process.env.SEED_STALE_COUNT ?? 2);
 const KEEP_UNPRICED = 2;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -75,12 +81,13 @@ async function main(): Promise<void> {
     .filter(({ data }) => data.priceCents == null && (data.reportCount ?? 0) === 0 && data.priceFeed == null)
     .filter(({ data }) => typeof data.lat === "number" && typeof data.lng === "number")
     .map(({ id, data }) => ({ id, address: data.address as string | null, miles: milesBetween(CENTER, data as { lat: number; lng: number }) }))
-    .sort((a, b) => a.miles - b.miles);
+    .sort((a, b) => b.miles - a.miles);
+  const inView = unpriced.filter((store) => store.miles <= MAX_MILES);
 
-  const available = Math.max(0, unpriced.length - KEEP_UNPRICED);
-  const chosen = unpriced.slice(0, Math.min(COUNT, available));
+  const available = Math.max(0, inView.length - KEEP_UNPRICED);
+  const chosen = inView.slice(0, Math.min(COUNT, available));
   if (chosen.length === 0) {
-    console.error(`Only ${unpriced.length} unpriced stores on file; keeping them unpriced. Nothing written.`);
+    console.error(`Only ${inView.length} unpriced stores within ${MAX_MILES} miles; keeping them unpriced. Nothing written.`);
     process.exit(1);
   }
 

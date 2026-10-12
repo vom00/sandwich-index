@@ -47,6 +47,15 @@ describe("address composition", () => {
     );
     expect(composeLocality({ city: "Coppell" })).toBe("Coppell");
   });
+
+  // Two Fort Worth-area stores rendered as "2391 North Collins Street, , TX
+  // 76011-2627" because a missing city is undefined, not "".
+  it("leaves no empty slot when the city is missing", () => {
+    expect(composeLocality({ state: "TX", postcode: "76011-2627" })).toBe("TX 76011-2627");
+    expect(
+      composeStreetAddress({ houseNumber: "2391", street: "North Collins Street", state: "TX", postcode: "76011-2627" }),
+    ).toBe("2391 North Collins Street, TX 76011-2627");
+  });
 });
 
 describe("store labels", () => {

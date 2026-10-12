@@ -52,12 +52,12 @@ the owner found none (see `research/price-sources.md`).
 
 | Suite | Count | Runner |
 | --- | --- | --- |
-| `tests/unit` | 172 | `npm test` |
+| `tests/unit` | 174 | `npm test` |
 | `tests/rules` | 37 | `npm run test:emulated` |
 | `tests/integration` | 46 | `npm run test:emulated` |
 | Phase 1 — foundation | 16 | `npm run test:browser` |
 | Phase 3 — map view | 32 | `npm run test:browser` |
-| Phase 4 — store detail and submit | 77 | `npm run test:browser` |
+| Phase 4 — store detail and submit | 80 | `npm run test:browser` |
 | Phase 5 — landing page | 51 | `npm run test:browser` |
 | Phase 6 — hardening | 37 | `npm run test:browser` |
 | Bulk logging — `/log` | 36 | `npm run test:browser` |
@@ -69,7 +69,7 @@ the owner found none (see `research/price-sources.md`).
 | Keyboard navigation | 13 | `npm run test:a11y` |
 | Screen-reader semantics | 45 | `npm run test:a11y` |
 
-650 checks, all passing on 2026-10-12 against `next dev` and the saved
+655 checks, all passing on 2026-10-12 against `next dev` and the saved
 emulator data with all 197 MenuPriceTracker prices loaded; the production
 `next build` compiles all routes clean.
 
@@ -508,7 +508,7 @@ npm run test:emulated
 | Suite | Count | Covers |
 | --- | --- | --- |
 | `tests/rules` | 37 | Range boundaries, float and string prices, backdated timestamps, ledger-skipping, cross-device tampering, ledger deletion, move-gate band edges, read visibility, feed observations readable but never client-writable, and the server-only sync log and Overpass budget. |
-| `tests/unit` | 172 | Set-price reconciliation, the move gate and corroboration bands, delivery exclusion, staleness vs. unmeasured, cents parsing and formatting, area comparison, OSM twin filtering, address composition and the store-label ladder, query-parameter coercion at the API boundary, feed observations in the replay, feed parsing and store matching, MenuPriceTracker page parsing and robots.txt rules, feed date wording, and sync-cell coverage at four latitudes. |
+| `tests/unit` | 174 | Set-price reconciliation, the move gate and corroboration bands, delivery exclusion, staleness vs. unmeasured, cents parsing and formatting, area comparison, OSM twin filtering, address composition and the store-label ladder, query-parameter coercion at the API boundary, feed observations in the replay, feed parsing and store matching, MenuPriceTracker page parsing and robots.txt rules, feed date wording, and sync-cell coverage at four latitudes. |
 | `tests/integration` | 46 | Rollup recomputation, corroboration promotion written through to submission status, idempotency, re-sync not clobbering prices or addresses, geohash proximity, the Overpass sync gate including whole-cell coverage and the radius it reached, the site-wide Overpass budget, feed observations written through to the rollup, the address backfill's cap and retry window, index snapshot including stale exclusion. |
 
 The browser suites attack the same machinery from the outside: Phase 4 submits
@@ -642,11 +642,18 @@ parsers are tested against trimmed copies of real pages
 A feed import also erases two states the test suites need. The seed makes a
 few stores stale on purpose, and when the feed covers them they get a fresh
 price. `npm run seed:stale` puts the state back: it gives an old, invented
-history to the two unpriced stores nearest Coppell, and leaves the other
-unpriced stores alone so "no prices yet" survives too. It never touches a
+history to the two farthest unpriced stores still on the map's 15-mile view
+from Coppell (the bulk-logging suite writes to the nearest ones), and leaves
+the other unpriced stores alone so "no prices yet" survives too. It never touches a
 store that has a price, and like the seed it refuses anything but the
 emulator. Phase 4 now looks up its "long visitor history" and "established
 price" stores at run time, among stores with no feed price.
+
+Run the browser suites against a fresh start of the saved data
+(`--import=.emulator-data` without `--export-on-exit`). Only four stores
+near Coppell are still unpriced, and the bulk-logging suite logs prices to
+them, so a second run in the same session fails phase 3's "no prices yet"
+checks. Before the import about 70 were unpriced and this never came up.
 
 The saved data ages. The visitor prices on the four airport stores phase 4
 uses were last reported between 2026-07-19 and 2026-08-02, so they turn
@@ -1134,6 +1141,12 @@ the project — none of it can be done from a development machine.
    them on its own. That is how 16.3.0 sat on a critical advisory until the
    2026-10-11 audit. The four production findings left after it (Firebase's
    pinned `@grpc/grpc-js`) are explained in `research/audit-log.md`.
+7. **Add a full Content-Security-Policy once the hosts are known.** Every
+   response already sends `frame-ancestors 'none'`, `nosniff`, a referrer
+   policy and a Permissions-Policy that allows geolocation only from the site
+   (`next.config.ts`). Restricting scripts and connections as well needs the
+   production Firebase, App Check and map-tile hosts listed and tested in
+   place, which cannot be done against the emulator.
 
 ### What is verified and what is not
 

@@ -62,6 +62,7 @@ async function findStore(page, state) {
       rich: (s) =>
         s.priceFeed == null && s.priceCents !== null && fresh(s) &&
         s.confirmedCount >= 8 && s.reportCount > s.confirmedCount,
+      mixed: (s) => s.priceFeed != null && s.confirmedCount >= 2,
     }[which];
 
     const hit = (body.stores ?? []).find(matches);
@@ -133,8 +134,10 @@ async function apiStore(page, id) {
       OUTLIER_TARGET = await page.evaluate(async (rich) => {
         const body = await (await fetch('/api/stores?lat=32.9546&lng=-96.99&radiusMiles=40')).json();
         const NINETY_DAYS = 90 * 24 * 60 * 60 * 1000;
+        // A report already held there is fine: section 7 prices its outlier
+        // away from it. Requiring none made each run spoil the next one's.
         const hit = (body.stores ?? []).find((s) =>
-          s.id !== rich && s.priceFeed == null && s.priceCents !== null && s.heldPriceCents == null &&
+          s.id !== rich && s.priceFeed == null && s.priceCents !== null &&
           s.confirmedCount >= 3 && s.pricedAt !== null &&
           Date.now() - new Date(s.pricedAt).getTime() <= NINETY_DAYS);
         return hit ? hit.id : null;
@@ -291,6 +294,39 @@ async function apiStore(page, id) {
       check('one price is not drawn as a trend',
         /One counted price so far/.test(singleText) &&
         await page.locator('.recharts-wrapper').count() === 0, single);
+    }
+
+    // A feed set the price, and visitors' older history sits well above it.
+    // The chart has to show where the "now" line comes from, and the line's
+    // label must not land on the date axis (it did, at the domain's floor).
+    const mixed = await findStore(page, 'mixed');
+    if (mixed === null) {
+      check('a store with a feed price and visitor history exists to test against', false,
+        'no nearby store has both — seed, then import a feed');
+    } else {
+      await goto(page, `/store/${mixed}`);
+      await page.waitForSelector('.recharts-wrapper', { timeout: 15000 });
+      const squares = await page.locator('.recharts-scatter-symbol').count();
+      const feedRows = await page.locator('section', { has: page.getByRole('heading', { name: 'From price feeds' }) })
+        .locator('tbody tr').count();
+      check('feed prices are drawn on the chart, one square each',
+        squares > 0 && squares === feedRows, `${squares} squares, ${feedRows} feed rows on ${mixed}`);
+      const caption = (await page.locator('figure figcaption').filter({ hasText: 'counted prices' }).innerText()).replace(/\s+/g, ' ');
+      check('the caption says what the squares are', /drawn as (a hollow square|hollow squares)/.test(caption), caption.slice(-110));
+      const clash = await page.evaluate(() => {
+        // Recharts 3 hoists the reference line's label into its own layer, so
+        // it is found by its text rather than under the line.
+        const label = [...document.querySelectorAll('.recharts-wrapper text.recharts-label')]
+          .find((text) => text.textContent.startsWith('now ')) ?? null;
+        const ticks = [...document.querySelectorAll('.recharts-xAxis-tick-labels .recharts-cartesian-axis-tick-value')];
+        if (label === null || ticks.length === 0) return 'missing';
+        const l = label.getBoundingClientRect();
+        return ticks.some((tick) => {
+          const t = tick.getBoundingClientRect();
+          return l.left < t.right && t.left < l.right && l.top < t.bottom && t.top < l.bottom;
+        }) ? 'overlaps' : 'clear';
+      });
+      check('the "now" label stays clear of the date axis', clash === 'clear', clash);
     }
 
     // =================================================================

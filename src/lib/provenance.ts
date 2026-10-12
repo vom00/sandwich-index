@@ -13,13 +13,19 @@ import type { Store } from "@/types";
 
 type Provenanced = Pick<Store, "priceFeed" | "confirmedCount" | "pricedAt">;
 
+/**
+ * Visitors' counted prices at a store whose current price came from a feed.
+ * "On file" because they are not behind the number beside them: "from
+ * MenuPriceTracker · 18 visitor prices" read as if 18 people backed the feed's
+ * figure.
+ */
 export function visitorPrices(count: number): string {
-  return count === 1 ? "1 visitor price" : `${count} visitor prices`;
+  return count === 1 ? "1 visitor price on file" : `${count} visitor prices on file`;
 }
 
 /**
  * The short form, for lists and labels: "from MenuPriceTracker",
- * "from MenuPriceTracker · 2 visitor prices", "3 prices", "1 price".
+ * "from MenuPriceTracker · 2 visitor prices on file", "3 prices", "1 price".
  *
  * Visitor-set prices keep their original wording. "3 prices" has always meant
  * three people's receipts, and changing it everywhere to say so would be noise.

@@ -178,6 +178,7 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
         <h2 className="font-display text-2xl">Price history</h2>
         <PriceHistory
           submissions={submissions}
+          observations={observations}
           priceCents={store.priceCents}
         />
       </section>

@@ -49,6 +49,10 @@ export function composeLocality(parts: AddressParts): string | null {
   const city = clean(parts.city);
   const region = [clean(parts.state), clean(parts.postcode)].filter(Boolean).join(" ");
 
-  const composed = [city, region].filter((part) => part !== "").join(", ");
+  // A missing city is undefined, not "", and join() would print it as an
+  // empty slot: "2391 North Collins Street, , TX 76011".
+  const composed = [city, region]
+    .filter((part): part is string => part !== undefined && part !== "")
+    .join(", ");
   return composed === "" ? null : composed;
 }

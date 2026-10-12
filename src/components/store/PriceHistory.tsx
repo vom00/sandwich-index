@@ -3,9 +3,10 @@
 import dynamic from "next/dynamic";
 
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { feedName } from "@/lib/feeds";
 import { canSetPrice } from "@/lib/pricing";
 import { formatCents } from "@/lib/money";
-import type { Submission } from "@/types";
+import type { Observation, Submission } from "@/types";
 
 /**
  * The chart section: a figure, a caption that says the same thing in words, and
@@ -33,9 +34,11 @@ const SPAN_DATE = new Intl.DateTimeFormat("en-US", { month: "long", day: "numeri
 
 export function PriceHistory({
   submissions,
+  observations,
   priceCents,
 }: {
   submissions: readonly Submission[];
+  observations: readonly Observation[];
   priceCents: number | null;
 }) {
   const reducedMotion = usePrefersReducedMotion();
@@ -77,6 +80,7 @@ export function PriceHistory({
     <figure className="mt-4">
       <PriceChartCanvas
         submissions={counted}
+        observations={observations}
         priceCents={priceCents}
         reducedMotion={reducedMotion}
       />
@@ -98,6 +102,17 @@ export function PriceHistory({
         )}{" "}
         Delivery prices and submissions held for review are not plotted; they are
         listed below.
+        {observations.length > 0 ? (
+          <>
+            {" "}
+            {[...new Set(observations.map((observation) => feedName(observation.feed)))].join(" and ")}
+            {"'s "}
+            {observations.length === 1
+              ? "price is drawn as a hollow square"
+              : "prices are drawn as hollow squares"}{" "}
+            and left out of the line and the range.
+          </>
+        ) : null}
       </figcaption>
     </figure>
   );
