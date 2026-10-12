@@ -34,7 +34,7 @@ export function isBlank(raw: string): boolean {
 
 export function readPriceInput(raw: string): PriceInputResult {
   const trimmed = raw.trim();
-  if (trimmed === "") return { ok: false, message: "Enter the price you paid." };
+  if (trimmed === "") return { ok: false, message: "Enter the price you saw." };
 
   const cents = parseDollarsToCents(trimmed);
   if (cents === null) return { ok: false, message: "Dollars and cents only, like 3.19." };

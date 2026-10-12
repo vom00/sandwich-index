@@ -35,7 +35,7 @@ export function Confidence({
           title={
             feed === null
               ? undefined
-              : `Observed by ${feed.name}, ${feed.method}. Not a visitor's report.`
+              : `Listed by ${feed.name}, ${feed.method}. Not a visitor's report.`
           }
         >
           {feed?.name ?? "a price feed"}

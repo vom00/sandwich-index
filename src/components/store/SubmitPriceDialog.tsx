@@ -40,8 +40,8 @@ const ENTER_SECONDS = 0.24;
 const EXIT_SECONDS = 0.19;
 
 const SOURCE_HINTS: Record<PriceSource, string> = {
-  in_store: "Counter or kiosk",
-  drive_thru: "Ordered at the window",
+  in_store: "Counter, kiosk or menu board",
+  drive_thru: "Drive-thru menu or window",
   app: "App menu price, before any deal",
   delivery: "DoorDash, Uber Eats and the like",
 };
@@ -337,10 +337,11 @@ function PriceForm({
 
       <div className="mt-5">
         <label htmlFor={priceId} className="text-sm font-medium">
-          Price on the receipt
+          Price you paid or saw
         </label>
         <p id={priceHintId} className="mt-0.5 text-xs text-ink-subtle">
-          Before tax, and for the sandwich on its own — not a meal.
+          From a receipt, the menu board or the app. Before tax, and for the
+          sandwich on its own — not a meal.
         </p>
 
         <div className="relative mt-1.5">
@@ -386,7 +387,7 @@ function PriceForm({
       </div>
 
       <fieldset className="mt-5">
-        <legend className="text-sm font-medium">How did you buy it?</legend>
+        <legend className="text-sm font-medium">Where was the price?</legend>
         <div className="mt-1.5 grid gap-2 sm:grid-cols-2">
           {PRICE_SOURCES.map((value) => (
             <label

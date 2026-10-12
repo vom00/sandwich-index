@@ -37,8 +37,8 @@ export function SubmissionLog({ submissions }: { submissions: readonly Submissio
   if (submissions.length === 0) {
     return (
       <p className="mt-4 text-ink-muted">
-        No submissions yet. If you have bought one here, you know something this
-        page does not.
+        No submissions yet. If you have seen the price here, you know something
+        this page does not.
       </p>
     );
   }

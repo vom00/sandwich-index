@@ -60,7 +60,7 @@ export async function generateMetadata(
       store.priceCents === null
         ? `No McChicken prices have been submitted for ${where} yet.`
         : store.priceFeed !== null
-          ? `McChicken priced at ${formatCents(store.priceCents)}, as observed by ${feedName(store.priceFeed)}.`
+          ? `McChicken priced at ${formatCents(store.priceCents)}, as listed by ${feedName(store.priceFeed)}.`
           : `McChicken priced at ${formatCents(store.priceCents)}, from ${store.confirmedCount} confirmed reports.`,
   };
 }
@@ -115,7 +115,7 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
         <p className="mt-2 text-sm text-ink-subtle">
           {observations.length === 0
             ? "Location from OpenStreetMap. Prices from whoever walked in and told us."
-            : "Location from OpenStreetMap. Prices from visitors’ receipts and from the price feeds listed below, each under its own name."}
+            : "Location from OpenStreetMap. Prices from visitors and from the price feeds listed below, each under its own name."}
         </p>
       </header>
 

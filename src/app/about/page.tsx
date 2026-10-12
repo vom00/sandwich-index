@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { FEEDS, HAS_LICENSED_FEED } from "@/lib/feeds";
+import { ACTIVE_FEEDS, HAS_ACTIVE_FEED } from "@/lib/feeds";
 import { PRICE_MAX_CENTS, PRICE_MIN_CENTS, formatCents } from "@/lib/money";
 import { BIG_MOVE_PERCENT, CORROBORATION_PERCENT } from "@/lib/pricing";
 import { STALE_AFTER_DAYS } from "@/types";
@@ -28,18 +28,19 @@ export default function AboutPage() {
       </h1>
 
       <p className="mt-6 text-lg leading-relaxed text-ink-muted">
-        {HAS_LICENSED_FEED ? (
+        {HAS_ACTIVE_FEED ? (
           <>
-            Every number on this site is either a receipt from a person who
-            bought the sandwich or a dated record from a price feed, and every
-            one says which. There is no scraping and no official source. That
-            shapes everything about how the data should be read.
+            Every number on this site is either a price a visitor logged, from
+            a receipt, a menu board or the app, or a dated price listed by an
+            outside tracker, and every one says which. There is no official
+            source. That shapes everything about how the data should be read.
           </>
         ) : (
           <>
-            Every number on this site was typed in by a person who bought the
-            sandwich. There is no feed, no scrape, no official source. That
-            shapes everything about how the data should be read.
+            Every number on this site was typed in by a person who saw it on a
+            receipt, a menu board or the app. There is no feed, no scrape, no
+            official source. That shapes everything about how the data should
+            be read.
           </>
         )}
       </p>
@@ -79,9 +80,12 @@ export default function AboutPage() {
             upstream, and we would rather show nothing than invent one.
           </p>
           <p>
-            Prices come from contributors. Each submission records the store,
-            the price in cents, whether it was in store, drive-thru, mobile app,
-            or delivery, and a server-side timestamp.
+            {HAS_ACTIVE_FEED
+              ? "Prices come from two places: contributors, and the outside price feeds listed below. "
+              : "Prices come from contributors. "}
+            Each submission records the store, the price in cents, whether it
+            was in store, drive-thru, mobile app, or delivery, and a server-side
+            timestamp.
           </p>
         </Section>
 
@@ -129,33 +133,36 @@ export default function AboutPage() {
           </p>
         </Section>
 
-        {HAS_LICENSED_FEED ? (
+        {HAS_ACTIVE_FEED ? (
           <Section title="Price feeds">
             <p>
               Some prices come from outside feeds rather than from visitors.
-              Each is shown under the feed&rsquo;s name with the date it was
-              observed, links back to the feed&rsquo;s own page, and is never
-              counted as a visitor&rsquo;s report. A receipt dated after a
-              feed&rsquo;s observation replaces it; a feed&rsquo;s observation
-              can also confirm a report that was being held for a second
-              opinion.
+              Each is shown under the feed&rsquo;s name with a date, links back
+              to the feed&rsquo;s own page for that store, and is never counted
+              as a visitor&rsquo;s report. A visitor&rsquo;s price logged after
+              a feed&rsquo;s replaces it, and a feed&rsquo;s price can also
+              confirm a report that was being held for a second opinion.
             </p>
             <ul className="ml-5 list-disc space-y-2">
-              {Object.values(FEEDS)
-                .filter((feed) => feed.licence !== null)
-                .map((feed) => (
-                  <li key={feed.id}>
-                    <a
-                      href={feed.homepage}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      className="underline decoration-rule underline-offset-2 hover-accent"
-                    >
-                      {feed.name}
-                    </a>
-                    , {feed.method}. Used under: {feed.licence}.
-                  </li>
-                ))}
+              {ACTIVE_FEEDS.map((feed) => (
+                <li key={feed.id}>
+                  <a
+                    href={feed.homepage}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="underline decoration-rule underline-offset-2 hover-accent"
+                  >
+                    {feed.name}
+                  </a>
+                  , {feed.method}.{" "}
+                  {feed.licence !== null
+                    ? `Used under: ${feed.licence}.`
+                    : "Shown without a licence while we ask for one, and removed if the answer is no. Its prices are read from its public store pages, at the pace its robots.txt asks for."}
+                  {feed.dateVerb === "checked"
+                    ? " Its pages give a month rather than a day for each store, so its prices are dated by the day we read them, and say “checked”."
+                    : null}
+                </li>
+              ))}
             </ul>
           </Section>
         ) : null}
@@ -183,7 +190,7 @@ export default function AboutPage() {
           </p>
           <p>
             Nothing on this site talks to a McDonald&rsquo;s server.
-            {HAS_LICENSED_FEED
+            {HAS_ACTIVE_FEED
               ? " A feed’s prices are that feed’s own record; how it gathers them is stated beside its name above."
               : " No data is collected from McDonald’s systems."}
           </p>

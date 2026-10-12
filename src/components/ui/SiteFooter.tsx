@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { HAS_LICENSED_FEED } from "@/lib/feeds";
+import { HAS_ACTIVE_FEED } from "@/lib/feeds";
 
 /**
  * Both notices here are load-bearing, not boilerplate.
@@ -19,9 +19,9 @@ export function SiteFooter() {
         <div className="space-y-3">
           <p className="font-display text-lg">Sandwich Index</p>
           <p className="max-w-sm text-sm leading-relaxed text-ink-muted">
-            {HAS_LICENSED_FEED
-              ? "A record of what one sandwich costs, store by store. Every price here is a receipt from a person who paid it or a dated record from a price feed named beside it."
-              : "A crowdsourced record of what one sandwich costs, store by store. Every price here was submitted by a person who paid it."}
+            {HAS_ACTIVE_FEED
+              ? "A record of what one sandwich costs, store by store. Every price here was logged by a visitor or listed by a price tracker named beside it, with its date."
+              : "A crowdsourced record of what one sandwich costs, store by store. Every price here was submitted by a person who saw it."}
           </p>
         </div>
 

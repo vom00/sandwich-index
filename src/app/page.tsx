@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { CountUpPrice } from "@/components/landing/CountUpPrice";
-import { HAS_LICENSED_FEED } from "@/lib/feeds";
+import { HAS_ACTIVE_FEED } from "@/lib/feeds";
 import { formatCents } from "@/lib/money";
 import { priceAge, provenanceSummary } from "@/lib/provenance";
 import { getIndexSnapshot, type IndexSnapshot } from "@/lib/stores.server";
@@ -55,7 +55,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "Sandwich Index — what a McChicken actually costs",
     description:
       snapshot.spreadCents === null
-        ? `Tracking McChicken prices across ${snapshot.trackedStoreCount} McDonald's locations. ${HAS_LICENSED_FEED ? "Every price either paid by a visitor or observed by a named price feed." : "Every price submitted by somebody who paid it."}`
+        ? `Tracking McChicken prices across ${snapshot.trackedStoreCount} McDonald's locations. ${HAS_ACTIVE_FEED ? "Every price either logged by a visitor or listed by a named price tracker." : "Every price submitted by somebody who saw it."}`
         : `${formatCents(snapshot.spreadCents)} separates the cheapest McChicken in the index from the priciest, across ${snapshot.pricedStoreCount} stores with current prices.`,
   };
 }
@@ -113,9 +113,9 @@ function Hero({ snapshot }: { snapshot: IndexSnapshot }) {
           >
             There are {snapshot.trackedStoreCount} restaurants on file and not one
             price among them yet.{" "}
-            {HAS_LICENSED_FEED
-              ? "The first number on this page will be one somebody paid or a feed recorded, and it will say which."
-              : "The first number on this page will be one that somebody actually paid."}
+            {HAS_ACTIVE_FEED
+              ? "The first number on this page will be one somebody logged or a tracker listed, and it will say which."
+              : "The first number on this page will be one that somebody actually saw."}
           </p>
         </>
       ) : (
@@ -158,8 +158,8 @@ function Hero({ snapshot }: { snapshot: IndexSnapshot }) {
               Find prices near you
             </Link>
             <p className="max-w-md leading-relaxed text-ink-muted">
-              Same sandwich, same week, different franchisee. Nobody publishes
-              this, so it gets built one receipt at a time.
+              Same sandwich, same week, different franchisee. Nothing official
+              publishes this, so it gets built one price at a time.
             </p>
           </div>
         </>
@@ -359,18 +359,25 @@ function Leaderboard({
 
 /* ------------------------------------------------------------------------ */
 
+const FIRST_STEP = HAS_ACTIVE_FEED
+  ? {
+      title: "Somebody sees a McChicken price",
+      body: "on a receipt, a menu board or in the app. Stores nobody has logged yet can show a price from an outside tracker instead, always under the tracker's name and with the date we checked it. Not one figure on this site is estimated.",
+    }
+  : {
+      title: "Somebody sees a McChicken price",
+      body: "on a receipt, a menu board or in the app. That is the whole collection method. Nothing is scraped, no corporate feed is read, and not one figure on this site is estimated.",
+    };
+
 const STEPS = [
-  {
-    title: "Somebody buys a McChicken",
-    body: "and looks at the receipt. That is the whole collection method. Nothing is scraped, no corporate feed is read, and not one figure on this site is estimated.",
-  },
+  FIRST_STEP,
   {
     title: "They log it against one restaurant",
     body: "Once per store per day, in whole cents, somewhere between a dollar and fifteen. Anything more than 40% away from what that store has been running is held for review instead of counted.",
   },
   {
     title: "That store's price updates",
-    body: "Each store shows one price: the newest report that passed the check. A report that would move the price by more than 40% is held until a second person agrees with it, so no single number can swing a store on its own. Delivery prices are recorded and shown but never become the price — the platforms add a markup that has nothing to do with the restaurant.",
+    body: "Each store shows one price: the newest that passed the check, whether a visitor's or a tracker's. A report that would move the price by more than 40% is held until a second person agrees with it, so no single number can swing a store on its own. Delivery prices are recorded and shown but never become the price — the platforms add a markup that has nothing to do with the restaurant.",
   },
 ] as const;
 
@@ -427,7 +434,7 @@ function Contribute({ snapshot }: { snapshot: IndexSnapshot }) {
       <div className="mx-auto grid w-full max-w-[68rem] gap-8 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-12">
         <div className="lg:col-span-7">
           <h2 className="max-w-xl font-display text-3xl leading-tight sm:text-4xl">
-            The index is only ever as good as the last receipt.
+            The index is only ever as good as the last price someone logged.
           </h2>
 
           <p className="mt-5 max-w-lg leading-relaxed text-paper-muted">

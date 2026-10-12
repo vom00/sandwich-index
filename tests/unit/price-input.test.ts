@@ -43,7 +43,7 @@ describe("readPriceInput", () => {
     it("rejects an empty field", () => {
       expect(readPriceInput("")).toEqual({
         ok: false,
-        message: "Enter the price you paid.",
+        message: "Enter the price you saw.",
       });
     });
 

@@ -52,3 +52,6 @@ next-env.d.ts
 /.next-build/
 
 /tests/browser/screenshots/
+
+# Price-feed files fetched on demand. Third-party data, regenerated, never committed.
+/feeds/

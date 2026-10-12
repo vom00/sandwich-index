@@ -28,7 +28,10 @@ in the `parseFeedFile` format, run `npm run import:observations` without
 
 ## 1. Datassential (Price Monitor)
 
-Contact: the sales / contact form at https://datassential.com
+Contact: the form at https://datassential.com/contact-us/. Checked
+2026-10-11: no email address is published, only the form, a demo request
+and phone numbers. Addresses on lead-generation sites are guesses at a
+pattern, so don't use them.
 
 > **Subject:** Licensing store-level menu prices for public display
 >
@@ -58,8 +61,9 @@ Contact: the sales / contact form at https://datassential.com
 
 ## 2. Revenue Management Solutions (Competitor Price Intelligence)
 
-Contact: RMS's sales contact form on its own website. One caveat before
-sending: RMS has done consulting work for McDonald's, so a licence to
+Contact: the message form at https://www.revenuemanage.com/contact. Checked
+2026-10-11: no email address is published there, only the form and regional
+phone numbers. One caveat before sending: RMS has done consulting work for McDonald's, so a licence to
 republish McDonald's store prices may be off the table for them regardless of
 price. Asking costs nothing.
 
@@ -83,17 +87,18 @@ price. Asking costs nothing.
 > [name]
 > Sandwich Index
 
-## 3. MenuPriceTracker (revised 2026-10-11)
+## 3. MenuPriceTracker (revised again 2026-10-11, evening)
 
-Contact: the corrections address on https://menupricetracker.com/about. It is
-obfuscated on the page, so read it in a browser.
+Contact: hello@menupricetracker.com. That is the address the site publishes
+in its own contact data (the schema.org `Organization` block on every page),
+so it isn't a guess.
 
-The August draft called this "the best-verified public source I've found".
-After the 2026-10-11 re-check that is no longer accurate, so this version
-replaces it. The new draft asks the question that check raised: when was each
-store's price actually observed?
+The owner decided on 2026-10-11 to show MenuPriceTracker's prices while this
+request is outstanding (`unlicensedUse` in `src/lib/feeds.ts`). This version
+says so up front and offers to stop. It replaces the earlier draft, which
+asked permission for something the site now plans to do anyway.
 
-> **Subject:** Licensing store-level McChicken prices, with observation dates
+> **Subject:** Using your McChicken prices on Sandwich Index, with credit
 >
 > Hi,
 >
@@ -101,17 +106,18 @@ store's price actually observed?
 > McChicken costs at each McDonald's, store by store. Your per-store pages are
 > the most complete public record of those prices I've found.
 >
-> Would you be open to licensing your store-level McChicken prices for display
-> with attribution, starting with the roughly 276 Dallas-Fort Worth locations?
-> Each price would appear as "from MenuPriceTracker, observed [date]", link to
-> your page for that store, and be replaced when a visitor reports a newer
-> price.
+> The site isn't public yet. When it launches, I plan to show your McChicken
+> price for each store it covers. Each one will say "from MenuPriceTracker",
+> link to your page for that store, and be replaced when a visitor reports a
+> newer price. I read your pages no faster than your robots.txt asks.
 >
-> I'd need the date each store's price was actually observed. Your pages show a
-> few different "last updated" dates, and I can't honestly show a price without
-> knowing when it was seen.
+> I'd much rather do this with your permission. Would you be willing to
+> license your store-level McChicken prices, or simply let me show them with
+> credit? If you'd prefer I didn't use them at all, tell me and I won't.
 >
-> Happy to discuss terms either way.
+> One more question: is there a way to get the date each store's price was
+> observed? Your store pages give a month, so for now I date each price by the
+> day I read your page.
 >
 > Thanks,
 > [name]

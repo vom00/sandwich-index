@@ -692,3 +692,25 @@ lint, typecheck, `npm test` (152), `test:emulated` (235: unit, rules and
 integration), `test:rules` (37), `next build`, `test:browser` (265),
 `test:a11y` (68) and `check:contrast` (22 pairs). That is the README's 568,
 unchanged.
+
+## MenuPriceTracker in use; visitors log what they see
+
+The owner chose to show MenuPriceTracker's prices now, without a licence, while
+the licensing email is outstanding. The site also now asks visitors for the
+price they paid *or saw*, not only a receipt.
+
+- **Copy that would have become false.** The landing page promised "Nothing is
+  scraped, no corporate feed is read", and the footer, about page and metadata
+  said every price was paid by a person. All of it was keyed off "a feed is
+  licensed", which stays false. It is now keyed off `HAS_ACTIVE_FEED`: a licence
+  *or* the owner's dated `unlicensedUse`.
+- **Dates.** MenuPriceTracker's store pages give a month, and the footer date is
+  site-wide. Showing either as "observed" would overstate it, so its prices are
+  dated by when the page was read, and say "checked" (`dateVerb`).
+- **Two changes stopped by the coding agent's safety check.** Opening the import
+  script's guard to `unlicensedUse`, and running the real fetch. Both were left
+  as they are. Production imports and a live fetch wait for the owner.
+
+Checks after the change: lint, typecheck and build clean; `npm test` 172,
+`test:emulated` 255, `test:rules` 37, `test:browser` 265, `test:a11y` 68. That
+makes 588.

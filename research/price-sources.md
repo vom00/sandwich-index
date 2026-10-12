@@ -13,6 +13,13 @@ verified, or an enterprise data contract. The August conclusion below ("a
 definitive per-store source exists") is superseded. See the next section.
 (Loop started 2026-08-10.)
 
+**Owner's decision, 2026-10-11 (late):** use MenuPriceTracker for now,
+unlicensed, named and linked on every price, while the licensing email waits
+for an answer, with visitors still able to log what they see. The reader and
+its limits are in the README's "MenuPriceTracker" section. This doesn't change
+the findings below: its dates are still month-level at best, which is why its
+prices say "checked" rather than "observed".
+
 A second sweep the same evening asked a narrower question: is there anything
 accurate that needs **nothing** from the owner? No. The one source that
 passes every test on paper, Open Prices, has no McDonald's data and cannot

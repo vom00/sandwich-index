@@ -4,7 +4,7 @@ import { relativeAge } from "@/lib/tiers";
 import type { ObservationWithId } from "@/types";
 
 /**
- * Every price a feed has observed for this store, newest first.
+ * Every price a feed has listed for this store, newest first.
  *
  * Its own table, not rows mixed into the visitor log, for the same reason the
  * data is kept apart: a feed's figure is somebody else's dated record of the
@@ -28,22 +28,29 @@ export function ObservationLog({
   const feeds = [...new Set(observations.map((observation) => observation.feed))]
     .map((id) => feedById(id))
     .filter((feed) => feed !== null);
+  // "Checked" when every feed here dates by when we read it, "Observed" when
+  // every one says when it saw the price; "Date" for a mix.
+  const verbs = [...new Set(feeds.map((feed) => feed.dateVerb))];
+  const dateHeading =
+    verbs.length === 1 && verbs[0] !== undefined
+      ? verbs[0].charAt(0).toUpperCase() + verbs[0].slice(1)
+      : "Date";
 
   return (
     <>
       <p className="mt-2 text-sm text-ink-muted">
-        Prices recorded by{" "}
+        Prices listed by{" "}
         {feeds.length === 0
           ? "an outside price feed"
-          : feeds.map((feed) => `${feed.name} (${feed.method})`).join(" and ")}
-        . They are never counted as visitors&rsquo; reports, and a receipt dated
-        after them replaces them.
+          : feeds.map((feed) => `${feed.name}, ${feed.method}`).join(", and by ")}
+        . They are never counted as visitors&rsquo; reports, and a price a
+        visitor logs after them replaces them.
       </p>
 
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[22rem] border-collapse text-left">
           <caption className="sr-only">
-            Every price an outside feed observed for this store, newest first
+            Every price an outside feed listed for this store, newest first
           </caption>
           <thead>
             <tr className="border-b border-rule-strong">
@@ -54,7 +61,7 @@ export function ObservationLog({
                 Feed
               </th>
               <th scope="col" className="py-2 pr-4 text-sm font-medium">
-                Observed
+                {dateHeading}
               </th>
               <th scope="col" className="py-2 text-sm font-medium">
                 Source

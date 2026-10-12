@@ -1,16 +1,24 @@
 /**
  * Price feeds: sources of McChicken prices that are not visitors.
  *
- * A feed is somebody else's observation of what a store charges — a licensed
- * dataset, a vendor export — and every price it supplies is shown with its
- * name and the date it was observed. That labelling is the whole point. A
- * visitor can judge "MenuPriceTracker saw $2.49 in August" for themselves; an
- * unlabelled $2.49 asks them to trust a number nobody can account for.
+ * A feed is somebody else's record of what a store charges — a licensed
+ * dataset, a vendor export, a public tracker — and every price it supplies is
+ * shown with its name and a date. That labelling is the whole point. A visitor
+ * can judge "MenuPriceTracker lists $2.49" for themselves; an unlabelled $2.49
+ * asks them to trust a number nobody can account for.
  *
  * A feed has to be declared here before anything it supplies can be imported,
- * and the declaration has to say what permission we hold to republish it. See
- * research/price-sources.md for why that question is the hard part.
+ * and the declaration has to say on what basis we show it: a licence, or the
+ * owner's dated decision to show it without one. See research/price-sources.md
+ * for why that question is the hard part.
  */
+
+export interface UnlicensedUse {
+  /** ISO date the owner decided this. */
+  decidedOn: string;
+  /** Why, and what would end it. Shown in the import script's output. */
+  note: string;
+}
 
 export interface FeedDefinition {
   /** Stable id, stored on every observation. Never rename one in place. */
@@ -19,18 +27,28 @@ export interface FeedDefinition {
   name: string;
   homepage: string;
   /**
-   * How the feed gets its numbers, as a phrase that completes "Observed by
-   * {name}, {method}" — shown to visitors so they can weigh it.
+   * Where the feed says its numbers come from, as a phrase that completes
+   * "Listed by {name}, {method}" — shown to visitors so they can weigh it.
    */
   method: string;
   /**
-   * The permission held to republish this feed's prices, or null for none.
-   *
-   * Null is not a formality. The import script refuses to write an unlicensed
-   * feed anywhere but the local emulator, so a feed cannot reach real visitors
-   * until someone records here what allows it to.
+   * What the date on this feed's prices means, as the verb in "checked 3 days
+   * ago". "observed" when the feed says when it saw each price; "checked" when
+   * the only honest date is the day we read the feed's page.
    */
+  dateVerb: string;
+  /** The licence held to republish this feed's prices, or null for none. */
   licence: string | null;
+  /**
+   * The owner's decision to show this feed without a licence, or null.
+   *
+   * This turns the site's copy over to describing the feed, so the pages stay
+   * true once its prices are in the database. It does not open the import
+   * script's guard: that still refuses to write any feed without a licence
+   * anywhere but the local emulator. Loosening it for a real Firebase project
+   * is a separate change, to be made on purpose.
+   */
+  unlicensedUse: UnlicensedUse | null;
 }
 
 export const FEEDS: Readonly<Record<string, FeedDefinition>> = {
@@ -38,23 +56,37 @@ export const FEEDS: Readonly<Record<string, FeedDefinition>> = {
     id: "menupricetracker",
     name: "MenuPriceTracker",
     homepage: "https://menupricetracker.com",
-    method: "read from the McDonald's app",
-    // No licence. Its pages are usable as a one-store spot-check; republishing
-    // them in bulk is not ours to decide. The inquiry email is drafted in
-    // research/price-sources.md.
+    method: "which says it reads them from the McDonald's app",
+    // Its store pages give a month ("last verified October 2026"), never a
+    // day, so the import dates each price by when we read the page.
+    dateVerb: "checked",
     licence: null,
+    unlicensedUse: {
+      decidedOn: "2026-10-11",
+      note:
+        "Owner's decision: show MenuPriceTracker's prices, named and linked, while the " +
+        "licensing request in research/feed-outreach.md is outstanding. Stop if they say no.",
+    },
   },
 };
 
+/** Whether the site shows this feed: licensed, or used by the owner's decision. */
+export function isFeedActive(feed: FeedDefinition): boolean {
+  return feed.licence !== null || feed.unlicensedUse !== null;
+}
+
 /**
- * True once any feed is licensed, and so able to reach real visitors.
+ * True once any feed is in use.
  *
- * The site's copy promises that every price was paid by the person who
- * submitted it. That promise holds exactly as long as no feed can be imported
- * to production, so the copy is keyed off this rather than off somebody
- * remembering to edit three files on the day a licence arrives.
+ * Until then the site's copy promises that every price was submitted by a
+ * person who saw it. That promise stops being true the day a feed's prices go
+ * in, so the copy is keyed off this rather than off somebody remembering to
+ * edit five files on that day.
  */
-export const HAS_LICENSED_FEED = Object.values(FEEDS).some((feed) => feed.licence !== null);
+export const HAS_ACTIVE_FEED = Object.values(FEEDS).some(isFeedActive);
+
+/** The feeds in use, for copy that names them. */
+export const ACTIVE_FEEDS: readonly FeedDefinition[] = Object.values(FEEDS).filter(isFeedActive);
 
 export function feedById(id: string): FeedDefinition | null {
   return Object.hasOwn(FEEDS, id) ? (FEEDS[id] ?? null) : null;
@@ -63,4 +95,9 @@ export function feedById(id: string): FeedDefinition | null {
 /** For display. An observation from a feed since removed still needs a name. */
 export function feedName(id: string): string {
   return feedById(id)?.name ?? "a price feed";
+}
+
+/** The verb for a feed's dates: "checked", "observed". */
+export function feedDateVerb(id: string): string {
+  return feedById(id)?.dateVerb ?? "observed";
 }

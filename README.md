@@ -5,18 +5,19 @@ A price index for the McChicken, store by store.
 McDonald's locations in the US are mostly franchisee-owned, and franchisees set
 their own menu prices. Two stores four miles apart can differ by more than a
 dollar for an identical sandwich. Nobody publishes that data. This builds it
-from two kinds of evidence, always labelled apart: prices visitors paid and
-logged, and dated observations from outside price feeds. No feed is licensed
-yet, so in production today every price is a visitor's. See
-[Price feeds](#price-feeds).
+from two kinds of evidence, always labelled apart: prices visitors logged from
+a receipt, a menu board or the app, and dated prices from outside price feeds.
+One feed is in use: MenuPriceTracker, shown under its own name with a link to
+its page, by the owner's decision of 2026-10-11 while a licensing request is
+outstanding. See [Price feeds](#price-feeds).
 
 > Sandwich Index is not affiliated with, endorsed by, or sponsored by
 > McDonald's Corporation. "McDonald's" and "McChicken" are trademarks of
 > McDonald's Corporation, used here only to describe the product being tracked.
 >
 > **Nothing in this codebase makes a request to a McDonald's-owned domain.**
-> Store locations come from OpenStreetMap; prices come from contributors and,
-> once one is licensed, from price feeds named beside every figure they supply.
+> Store locations come from OpenStreetMap; prices come from contributors and
+> from price feeds named beside every figure they supply.
 
 ---
 
@@ -30,20 +31,27 @@ yet, so in production today every price is a visitor's. See
 | 4 | Store detail: price history chart, comparison strip, full log, submit modal | Done |
 | 5 | Landing page: live hero figure, leaderboards, editorial treatment | Done |
 | 6 | Polish: motion sweep, axe audit, error/empty states, offline | Done |
-| 7 | Price feeds: provenance, feed registry, import pipeline, labelled UI | Built; no feed licensed |
+| 7 | Price feeds: provenance, feed registry, import pipeline, labelled UI, MenuPriceTracker reader | Built; MenuPriceTracker in use, unlicensed |
 
-All seven phases are built. Two items are open, and both belong to the owner:
-choosing and licensing a price feed (see [Price feeds](#price-feeds)), and
-[Deployment](#deployment). No code can close either one. A licence needs a
-signature, and deployment needs a Firebase project and credentials. On
-2026-10-11, a search for an accurate price source that needs nothing from the
-owner found none (see `research/price-sources.md`).
+All seven phases are built. Three items are open:
+
+- **A licence for MenuPriceTracker**, or its answer. The request is drafted in
+  `research/feed-outreach.md`. It needs a reply nobody here can write.
+- **[Deployment](#deployment)** needs a Firebase project and credentials.
+- **Production imports of MenuPriceTracker.** The import script still refuses
+  to write an unlicensed feed anywhere but the local emulator. Opening that
+  guard to the owner's recorded decision was attempted on 2026-10-11 and
+  stopped by the coding agent's safety check, so it waits for the owner. See
+  [MenuPriceTracker](#menupricetracker).
+
+On 2026-10-11, a search for an accurate price source that needs nothing from
+the owner found none (see `research/price-sources.md`).
 
 ### Test results
 
 | Suite | Count | Runner |
 | --- | --- | --- |
-| `tests/unit` | 152 | `npm test` |
+| `tests/unit` | 172 | `npm test` |
 | `tests/rules` | 37 | `npm run test:emulated` |
 | `tests/integration` | 46 | `npm run test:emulated` |
 | Phase 1 — foundation | 16 | `npm run test:browser` |
@@ -58,7 +66,7 @@ owner found none (see `research/price-sources.md`).
 | Keyboard navigation | 13 | `npm run test:a11y` |
 | Screen-reader semantics | 45 | `npm run test:a11y` |
 
-568 checks, all passing with price feeds in the model (2026-10-11) against
+588 checks, all passing with MenuPriceTracker in use (2026-10-11) against
 `next dev`; the production `next build` compiles all routes clean.
 
 The last three are accessibility sweeps added after the phase suites, each
@@ -496,7 +504,7 @@ npm run test:emulated
 | Suite | Count | Covers |
 | --- | --- | --- |
 | `tests/rules` | 37 | Range boundaries, float and string prices, backdated timestamps, ledger-skipping, cross-device tampering, ledger deletion, move-gate band edges, read visibility, feed observations readable but never client-writable, and the server-only sync log and Overpass budget. |
-| `tests/unit` | 152 | Set-price reconciliation, the move gate and corroboration bands, delivery exclusion, staleness vs. unmeasured, cents parsing and formatting, area comparison, OSM twin filtering, address composition and the store-label ladder, query-parameter coercion at the API boundary, feed observations in the replay, feed parsing and store matching, and sync-cell coverage at four latitudes. |
+| `tests/unit` | 172 | Set-price reconciliation, the move gate and corroboration bands, delivery exclusion, staleness vs. unmeasured, cents parsing and formatting, area comparison, OSM twin filtering, address composition and the store-label ladder, query-parameter coercion at the API boundary, feed observations in the replay, feed parsing and store matching, MenuPriceTracker page parsing and robots.txt rules, feed date wording, and sync-cell coverage at four latitudes. |
 | `tests/integration` | 46 | Rollup recomputation, corroboration promotion written through to submission status, idempotency, re-sync not clobbering prices or addresses, geohash proximity, the Overpass sync gate including whole-cell coverage and the radius it reached, the site-wide Overpass budget, feed observations written through to the rollup, the address backfill's cap and retry window, index snapshot including stale exclusion. |
 
 The browser suites attack the same machinery from the outside: Phase 4 submits
@@ -534,9 +542,10 @@ logs one. The owner asked for accurate prices that don't depend on that.
   a McChicken, so no importer was written for it.
 
 So the app takes feed data the one way it can take it honestly, as a labelled,
-dated observation. Which feed fills it is left to whoever can sign a licence.
-Drafts for those emails, and what each reply has to settle, are in
-`research/feed-outreach.md`.
+dated observation. On 2026-10-11 the owner chose MenuPriceTracker for now, in
+use without a licence while one is requested (see
+[MenuPriceTracker](#menupricetracker)). Drafts for the licensing emails, and
+what each reply has to settle, are in `research/feed-outreach.md`.
 
 ### How a feed price behaves
 
@@ -551,15 +560,17 @@ Drafts for those emails, and what each reply has to settle, are in
   visitor would have done.
 - **Observations never count toward `confirmedCount`.** "3 prices" still means
   three people.
-- **Staleness is the same 90 days**, measured from when the feed observed the
-  price, not when it was imported.
+- **Staleness is the same 90 days**, measured from the feed price's date, not
+  from when it was imported.
 
 Every surface that shows a price says where it came from. The store page reads
-"from MenuPriceTracker · observed 2 months ago" with a link to the feed's own
-page, and lists every observation in a table of its own. Site copy that promises
-"every price was paid by a person" is keyed off `HAS_LICENSED_FEED` in
-`src/lib/feeds.ts`, so it changes by itself the day a licence is recorded,
-rather than on the day somebody remembers.
+"from MenuPriceTracker · checked 2 days ago" with a link to the feed's own
+page, and lists every feed price in a table of its own. The verb is the feed's
+`dateVerb`: "observed" for a feed that dates each price itself, "checked" for
+one, like MenuPriceTracker, whose only honest date is the day we read its page.
+Site copy that would otherwise promise "every price was submitted by a person
+who saw it" is keyed off `HAS_ACTIVE_FEED` in `src/lib/feeds.ts`, so it
+changes by itself when a feed goes in or out of use.
 
 ### Importing a feed
 
@@ -576,14 +587,51 @@ is rejected rather than guessed at.
 
 **An unlicensed feed never leaves the emulator.** Feeds are declared in
 `src/lib/feeds.ts` with a `licence` field, and while it is null `--write`
-refuses anything that is not the local emulator. MenuPriceTracker is declared
-with no licence: its four sampled prices import into the emulator for
-development, and nowhere else.
+refuses anything that is not the local emulator. That includes
+MenuPriceTracker: its `unlicensedUse` changes what the site says, not what
+this script will write.
 
 To add a real feed: get the licence; declare the feed with its name, method and
 licence; export its data in the `parseFeedFile` format, with an observation
 date on every row; dry-run; spot-check the matches against real receipts; then
 write.
+
+### MenuPriceTracker
+
+In use by the owner's decision of 2026-10-11, recorded as `unlicensedUse` in
+`src/lib/feeds.ts`, while the licensing email in `research/feed-outreach.md`
+waits for an answer. If they say no, set `unlicensedUse` to null and the
+site's copy reverts by itself; delete the observations to remove the prices.
+
+```bash
+npm run fetch:menupricetracker
+```
+
+```bash
+npm run import:observations -- --feed menupricetracker --file feeds/menupricetracker-YYYY-MM-DD.json --write
+```
+
+The fetch reads the stores in whichever Firestore the environment points at,
+then reads MenuPriceTracker's public pages for them. It follows the site's
+robots.txt: it skips disallowed paths and waits the crawl-delay it asks of
+unnamed bots (10 seconds), never less than 10. It fetches one city page per
+city we have stores in, and then only the store pages whose street number and
+city match one of ours, so about one request per store. Prices come from each
+store page's schema.org data, where the item reads exactly "McChicken — $2.49".
+A meal or a Spicy McChicken never counts. Output goes to `feeds/`, which is
+gitignored, because it is their data, not ours to commit.
+
+The site gives each store a month ("last verified October 2026"), never a day,
+and its footer's "Last updated" date is site-wide. So each price is dated by
+the moment its page was read, and the UI says "checked", not "observed". The
+month the site claims is kept in the file as `listedAs`. Visitors can always
+log their own price, and a newer visitor price replaces the feed's.
+
+Not yet run for real: on 2026-10-11 the coding agent's safety check stopped
+the first fetch, so only the four August samples in
+`research/tracker-samples.json` have been imported, into the emulator. The
+parsers are tested against trimmed copies of real pages
+(`tests/unit/menupricetracker.test.ts`).
 
 ---
 

@@ -7,7 +7,7 @@
  * the two to make is the wrong one.
  */
 
-import { feedName } from "@/lib/feeds";
+import { feedDateVerb, feedName } from "@/lib/feeds";
 import { relativeAge } from "@/lib/tiers";
 import type { Store } from "@/types";
 
@@ -33,11 +33,12 @@ export function provenanceSummary(store: Provenanced): string {
 }
 
 /**
- * How old the price is, with the right verb. A feed *observed* a price; a
- * visitor *confirmed* one. The difference is the difference between somebody
- * else's record and somebody standing at the counter.
+ * How old the price is, with the right verb. A feed *observed* a price, or was
+ * *checked* on a day when it gives none of its own; a visitor *confirmed* one.
+ * The difference is the difference between somebody else's record and somebody
+ * standing at the counter.
  */
 export function priceAge(store: Provenanced, visitorVerb = "last confirmed"): string {
-  const verb = store.priceFeed !== null ? "observed" : visitorVerb;
+  const verb = store.priceFeed !== null ? feedDateVerb(store.priceFeed) : visitorVerb;
   return `${verb} ${relativeAge(store.pricedAt)}`;
 }

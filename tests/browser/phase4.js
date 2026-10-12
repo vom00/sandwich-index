@@ -350,7 +350,7 @@ async function apiStore(page, id) {
       ['abc', /Dollars and cents only/],
       ['0.50', /under \$1\.00/],
       ['99.99', /over \$15\.00/],
-      ['', /Enter the price you paid/],
+      ['', /Enter the price you saw/],
     ];
 
     for (const [value, pattern] of cases) {
