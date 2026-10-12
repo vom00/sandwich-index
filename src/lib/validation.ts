@@ -17,6 +17,11 @@ export const storeIdSchema = z
   .string()
   .regex(/^(node|way|relation)-\d+$/, "Not a valid store id");
 
+/** McDonald's US store numbers are 3 to 5 digits ("Restaurant #4412"). */
+export const restaurantNumberSchema = z
+  .string()
+  .regex(/^\d{3,5}$/, "Not a valid restaurant number");
+
 export const priceCentsSchema = z
   .number()
   .int("Price must be a whole number of cents")

@@ -115,6 +115,8 @@ function toStore(id: string, data: FirebaseFirestore.DocumentData): StoreWithId 
     name: typeof data["name"] === "string" ? data["name"] : "McDonald's",
     address: typeof data["address"] === "string" ? data["address"] : null,
     locality: typeof data["locality"] === "string" ? data["locality"] : null,
+    restaurantNumber:
+      typeof data["restaurantNumber"] === "string" ? data["restaurantNumber"] : null,
     lat: Number(data["lat"]),
     lng: Number(data["lng"]),
     geohash: typeof data["geohash"] === "string" ? data["geohash"] : "",
@@ -216,6 +218,7 @@ export async function upsertStores(
           ...osmFields,
           address: store.address,
           locality: store.locality,
+          restaurantNumber: null,
           addressCheckedAt: null,
           reportCount: 0,
           confirmedCount: 0,
@@ -276,6 +279,25 @@ export async function getStore(
   const snapshot = await db.collection(STORES_COLLECTION).doc(storeId).get();
   if (!snapshot.exists) return null;
   return toStore(snapshot.id, snapshot.data() ?? {});
+}
+
+/**
+ * The store with this McDonald's restaurant number, or null. Null too when two
+ * stores claim it, which the import refuses to write but an old snapshot
+ * could still hold; a wrong store is worse than none.
+ */
+export async function getStoreByRestaurantNumber(
+  restaurantNumber: string,
+  db: Firestore = getAdminDb(),
+): Promise<StoreWithId | null> {
+  const snapshot = await db
+    .collection(STORES_COLLECTION)
+    .where("restaurantNumber", "==", restaurantNumber)
+    .limit(2)
+    .get();
+  if (snapshot.size !== 1) return null;
+  const doc = snapshot.docs[0]!;
+  return toStore(doc.id, doc.data());
 }
 
 export async function getSubmissionsForStore(

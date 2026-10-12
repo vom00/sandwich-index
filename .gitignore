@@ -55,3 +55,6 @@ next-env.d.ts
 
 # Price-feed files fetched on demand. Third-party data, regenerated, never committed.
 /feeds/
+
+# OCR engine and model, copied from node_modules by scripts/copy-ocr-assets.mjs
+/public/ocr/

@@ -34,6 +34,12 @@ nearly effortless. See "Third sweep" below.
 
 ## 2026-10-12, third sweep: building something that reads exact prices
 
+**Built the same day**: the reader (1) and the store-number crosswalk (2) are
+in the app; see the README, "Reading a price from a photo". Measuring
+MenuPriceTracker (3) needs real receipts to arrive first. The crosswalk used
+the 2026-09-26 run (21.5 MB, 13,664 US locations): the 2026-10-03 run linked
+below was cut short at 11 MB and about half the US.
+
 ### Rechecked first
 
 - **McDonald's web ordering exists now, but it's delivery.** Since 13 August

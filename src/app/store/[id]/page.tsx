@@ -168,6 +168,8 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
         <SubmitPriceButton
           storeId={store.id}
           storeLabel={label.text}
+          storeAddress={store.address}
+          restaurantNumber={store.restaurantNumber}
           hasPrices={store.reportCount > 0}
         />
       </div>

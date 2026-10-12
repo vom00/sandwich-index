@@ -828,3 +828,45 @@ each for a stated reason.
 Checks after the audit: lint, typecheck and build clean; `npm test` 174,
 `test:emulated` 257, `test:rules` 37, `test:browser` 330, `test:a11y` 68,
 `check:contrast` 22 pairs. That makes the README's 655.
+
+## Reading prices from photos, and test fixtures that keep (2026-10-12)
+
+Built after the third research sweep (`research/price-sources.md`).
+
+- **The photo reader.** "Read the price from a photo" on the store page's form
+  reads a receipt or an app screenshot on the visitor's own device
+  (tesseract.js 7.0.0, self-hosted under `/ocr/`) and fills in the price for
+  them to check. It refuses, and says why, a photo from another store, a
+  receipt more than 7 days old, and one with only a meal or a Spicy McChicken.
+  The browser suite (`tests/browser/receipt.js`, 19 checks) also proves no
+  request carries the photo and the engine loads from this site only. A read
+  took about 550 ms in headless Edge, engine download included.
+- **Store numbers.** `import:store-numbers` matched 220 of 235 stores to All
+  The Places' McDonald's locations (CC0). The 2026-10-03 run's file was
+  truncated mid-array at 11 MB and about half the US, so the 2026-09-26 run
+  was used; the importer reads line by line so a truncated file can't crash
+  it, and the README says to check the size.
+- **Fixtures that keep.** `seed:fixtures` replaces `seed:stale` and runs
+  before every `test:browser`: it keeps two stale stores in view and tops up
+  visitor-priced stores aged 30 to 89 days with one report at their current
+  price. On its first run it caught the four airport stores at 70 to 84 days,
+  days before they would have broken phase 4. The bulk-logging suite now
+  stands in Waco (13 stores synced), so it no longer uses up the unpriced
+  stores phase 3 needs. The browser suite now passes twice in a row.
+- **One near-miss in the new suite.** Its first version logged a price at the
+  nearest numbered store, which was unpriced, so it would have consumed the
+  same fixture the logging suite used to. It now picks a priced store and
+  logs that store's own price.
+- **Overpass** refused the Waco sync three times over about half an hour
+  (overpass-api.de 406 and 504, private.coffee 500, mail.ru timeout), then
+  answered normally. No retry loop was used.
+- **MenuPriceTracker's licensing email bounced** (`550 5.7.1 Relaying denied`
+  from their Mailgun MX). The README and `feed-outreach.md` no longer say a
+  reply is pending.
+
+**Open:** real-photo accuracy. Every image so far is a mock-up; the parser
+should be tuned on the first real receipts.
+
+Checks: lint, typecheck and build clean; `npm test` 189, `test:emulated`
+272, `test:rules` 37, `test:browser` 349 (twice in a row), `test:a11y` 68,
+`check:contrast` 22 pairs. That makes the README's 689.

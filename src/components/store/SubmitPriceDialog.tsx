@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
+import { ReadFromPhoto } from "@/components/store/ReadFromPhoto";
 import { formatCents } from "@/lib/money";
 import { readPriceInput } from "@/lib/price-input";
 import { submitPrice, type SubmitFailureReason } from "@/lib/submissions";
@@ -74,11 +75,16 @@ export function SubmitPriceDialog({
   onClose,
   storeId,
   storeLabel,
+  storeAddress,
+  restaurantNumber,
 }: {
   open: boolean;
   onClose: () => void;
   storeId: string;
   storeLabel: string;
+  /** For checking that a photo is from this store. */
+  storeAddress: string | null;
+  restaurantNumber: string | null;
 }) {
   const router = useRouter();
   const reducedMotion = useReducedMotion() ?? false;
@@ -235,6 +241,13 @@ export function SubmitPriceDialog({
                       formIds={{ priceId, priceHintId, priceErrorId }}
                       priceInputRef={priceInputRef}
                       storeLabel={storeLabel}
+                      storeAddress={storeAddress}
+                      restaurantNumber={restaurantNumber}
+                      onPhotoFound={({ priceCents, kind }) => {
+                        setPriceInput((priceCents / 100).toFixed(2));
+                        setPriceError(null);
+                        if (kind === "app") setSource("app");
+                      }}
                       priceInput={priceInput}
                       priceError={priceError}
                       source={source}
@@ -270,6 +283,9 @@ function PriceForm({
   formIds,
   priceInputRef,
   storeLabel,
+  storeAddress,
+  restaurantNumber,
+  onPhotoFound,
   priceInput,
   priceError,
   source,
@@ -284,6 +300,9 @@ function PriceForm({
   formIds: { priceId: string; priceHintId: string; priceErrorId: string };
   priceInputRef: React.RefObject<HTMLInputElement | null>;
   storeLabel: string;
+  storeAddress: string | null;
+  restaurantNumber: string | null;
+  onPhotoFound: (found: { priceCents: number; kind: "receipt" | "app" }) => void;
   priceInput: string;
   priceError: string | null;
   source: PriceSource;
@@ -334,6 +353,13 @@ function PriceForm({
           {storeLabel}
         </p>
       </div>
+
+      <ReadFromPhoto
+        storeAddress={storeAddress}
+        restaurantNumber={restaurantNumber}
+        disabled={submitting}
+        onFound={onPhotoFound}
+      />
 
       <div className="mt-5">
         <label htmlFor={priceId} className="text-sm font-medium">

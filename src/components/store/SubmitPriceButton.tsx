@@ -19,10 +19,14 @@ import { SubmitPriceDialog } from "@/components/store/SubmitPriceDialog";
 export function SubmitPriceButton({
   storeId,
   storeLabel,
+  storeAddress,
+  restaurantNumber,
   hasPrices,
 }: {
   storeId: string;
   storeLabel: string;
+  storeAddress: string | null;
+  restaurantNumber: string | null;
   hasPrices: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -43,6 +47,8 @@ export function SubmitPriceButton({
         onClose={() => setOpen(false)}
         storeId={storeId}
         storeLabel={storeLabel}
+        storeAddress={storeAddress}
+        restaurantNumber={restaurantNumber}
       />
     </>
   );

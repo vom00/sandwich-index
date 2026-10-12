@@ -33,11 +33,13 @@ outstanding. See [Price feeds](#price-feeds).
 | 6 | Polish: motion sweep, axe audit, error/empty states, offline | Done |
 | 7 | Price feeds: provenance, feed registry, import pipeline, labelled UI, MenuPriceTracker reader | Built; MenuPriceTracker in use, unlicensed |
 | 8 | Design pass: three clay 3D scenes on the landing page, a site header, copy edit across the site | Done |
+| 9 | Reading a price from a photo: on-device OCR of receipts and app screenshots, store numbers | Built; tested on mock photos only |
 
-All eight phases are built. Three items are open:
+All nine phases are built. Three items are open:
 
-- **A licence for MenuPriceTracker**, or its answer. The request is drafted in
-  `research/feed-outreach.md`. It needs a reply nobody here can write.
+- **A licence for MenuPriceTracker**, or its answer. The request bounced on
+  2026-10-12: their mail server refuses all inbound mail, and the site lists
+  no other contact (`research/feed-outreach.md`). Nobody there has seen it.
 - **[Deployment](#deployment)** needs a Firebase project and credentials.
 - **Production imports of MenuPriceTracker.** The import script still refuses
   to write an unlicensed feed anywhere but the local emulator. Opening that
@@ -52,7 +54,7 @@ the owner found none (see `research/price-sources.md`).
 
 | Suite | Count | Runner |
 | --- | --- | --- |
-| `tests/unit` | 174 | `npm test` |
+| `tests/unit` | 189 | `npm test` |
 | `tests/rules` | 37 | `npm run test:emulated` |
 | `tests/integration` | 46 | `npm run test:emulated` |
 | Phase 1 — foundation | 16 | `npm run test:browser` |
@@ -65,12 +67,14 @@ the owner found none (see `research/price-sources.md`).
 | Stale-load race on `/map` | 7 | `npm run test:browser` |
 | Clay scenes on `/` | 30 | `npm run test:browser` |
 | Navigation — the site header | 32 | `npm run test:browser` |
+| Photo reader — receipts and app screenshots | 19 | `npm run test:browser` |
 | Tap targets — every route, 2 viewports | 10 | `npm run test:a11y` |
 | Keyboard navigation | 13 | `npm run test:a11y` |
 | Screen-reader semantics | 45 | `npm run test:a11y` |
 
-655 checks, all passing on 2026-10-12 against `next dev` and the saved
-emulator data with all 197 MenuPriceTracker prices loaded; the production
+689 checks, all passing on 2026-10-12 against `next dev` and the saved
+emulator data with all 197 MenuPriceTracker prices loaded; the browser suite
+passes twice in a row in one session; the production
 `next build` compiles all routes clean.
 
 The last three are accessibility sweeps added after the phase suites, each
@@ -508,7 +512,7 @@ npm run test:emulated
 | Suite | Count | Covers |
 | --- | --- | --- |
 | `tests/rules` | 37 | Range boundaries, float and string prices, backdated timestamps, ledger-skipping, cross-device tampering, ledger deletion, move-gate band edges, read visibility, feed observations readable but never client-writable, and the server-only sync log and Overpass budget. |
-| `tests/unit` | 174 | Set-price reconciliation, the move gate and corroboration bands, delivery exclusion, staleness vs. unmeasured, cents parsing and formatting, area comparison, OSM twin filtering, address composition and the store-label ladder, query-parameter coercion at the API boundary, feed observations in the replay, feed parsing and store matching, MenuPriceTracker page parsing and robots.txt rules, feed date wording, and sync-cell coverage at four latitudes. |
+| `tests/unit` | 189 | Set-price reconciliation, the move gate and corroboration bands, delivery exclusion, staleness vs. unmeasured, cents parsing and formatting, area comparison, OSM twin filtering, address composition and the store-label ladder, query-parameter coercion at the API boundary, feed observations in the replay, feed parsing and store matching, MenuPriceTracker page parsing and robots.txt rules, feed date wording, reading receipts and app screenshots (the plain McChicken only, per-unit price, OCR's colon-for-point), checking a photo's store by restaurant or street number, receipt age, and sync-cell coverage at four latitudes. |
 | `tests/integration` | 46 | Rollup recomputation, corroboration promotion written through to submission status, idempotency, re-sync not clobbering prices or addresses, geohash proximity, the Overpass sync gate including whole-cell coverage and the radius it reached, the site-wide Overpass budget, feed observations written through to the rollup, the address backfill's cap and retry window, index snapshot including stale exclusion. |
 
 The browser suites attack the same machinery from the outside: Phase 4 submits
@@ -640,26 +644,73 @@ doesn't list (mostly airport terminals) keep whatever visitors reported. The
 parsers are tested against trimmed copies of real pages
 (`tests/unit/menupricetracker.test.ts`).
 
-A feed import also erases two states the test suites need. The seed makes a
-few stores stale on purpose, and when the feed covers them they get a fresh
-price. `npm run seed:stale` puts the state back: it gives an old, invented
-history to the two farthest unpriced stores still on the map's 15-mile view
-from Coppell (the bulk-logging suite writes to the nearest ones), and leaves
-the other unpriced stores alone so "no prices yet" survives too. It never touches a
-store that has a price, and like the seed it refuses anything but the
-emulator. Phase 4 now looks up its "long visitor history" and "established
-price" stores at run time, among stores with no feed price.
+A feed import also erases states the test suites need, and the saved data
+ages. `npm run seed:fixtures` keeps both in shape, and runs by itself before
+`npm run test:browser`. It is idempotent and emulator-only, and every price
+it writes is invented, like the seed's:
 
-Run the browser suites against a fresh start of the saved data
-(`--import=.emulator-data` without `--export-on-exit`). Only four stores
-near Coppell are still unpriced, and the bulk-logging suite logs prices to
-them, so a second run in the same session fails phase 3's "no prices yet"
-checks. Before the import about 70 were unpriced and this never came up.
+- **Stale.** If fewer than two stores within 14 miles of Coppell are stale,
+  it gives an old history to the farthest unpriced stores still on the map's
+  15-mile view, leaving at least two unpriced. It never touches a priced store.
+- **Fresh.** A visitor-priced store (no feed) whose price is 30 to 89 days old
+  gets one more report at its current price, dated in the last three days, so
+  the "long visitor history" fixtures never turn stale. The price doesn't
+  change. On 2026-10-12 that caught the four airport stores at 70 to 84 days.
 
-The saved data ages. The visitor prices on the four airport stores phase 4
-uses were last reported between 2026-07-19 and 2026-08-02, so they turn
-stale between 2026-10-17 and 2026-10-31, after which phase 4 says it has no
-fixture. Re-seed, then re-import, when that happens.
+Phase 4 looks up its "long visitor history" and "established price" stores at
+run time, among stores with no feed price. The bulk-logging suite runs in
+**Waco**, about 100 miles from Coppell: `/log` lists unpriced stores first,
+so wherever it stands it logs prices to the nearest unpriced ones, and in
+Coppell those were the stores phase 3 needs unpriced. The saved data holds 13
+Waco stores for it, none on MenuPriceTracker. With that, the browser suite
+passes twice in a row in one session, which it didn't before.
+
+## Reading a price from a photo
+
+The store page's "Log a price" form has a **Read the price from a photo**
+button. A visitor picks a photo of their receipt, or a screenshot of the
+McChicken in the McDonald's app with their store selected, and the form fills
+in the price for them to check. Those are the two places an exact price
+exists: a receipt is what that store charged that day, and the app is what
+MenuPriceTracker says it copies. Researched and spiked on 2026-10-12; see
+`research/price-sources.md`, "Third sweep".
+
+- **On the device.** [tesseract.js](https://www.npmjs.com/package/tesseract.js)
+  7.0.0 reads the photo in a Web Worker (`src/lib/ocr.ts`). The photo is
+  never uploaded; only the price the person then logs is sent, exactly as if
+  typed, so card digits and order numbers stay on their phone. The browser
+  suite checks that no request carries the photo.
+- **Loaded on first use, from this site.** `scripts/copy-ocr-assets.mjs` runs
+  before `dev` and `build` and copies the worker, the three LSTM engine
+  builds (a browser fetches one, about 3.9 MB) and the 2.95 MB English model
+  into `public/ocr/`, which is gitignored. None of it is in a page bundle:
+  the store page gains a 6 KB chunk that loads when the button is pressed.
+- **The parser** (`src/lib/receipt.ts`) takes only the plain McChicken: a
+  Spicy McChicken, a meal or a biscuit is refused by name, "2 McChicken 5.98"
+  is $2.99 each, and a decimal point OCR read as a colon is accepted.
+- **It fills in nothing**, and says why, when the photo is from another store
+  (with a link to that store's page when the number is on file), when a
+  receipt is more than 7 days old (a report is stamped with today's date by
+  the security rules, so an old receipt would be recorded as today's price),
+  or when only a meal or a Spicy McChicken is on it. Otherwise the person
+  still checks the price and presses the button, and every rule a typed price
+  meets still applies.
+- **Store numbers.** Every receipt prints "McDonald's Restaurant #" and a
+  number. `npm run import:store-numbers -- --file <mcdonalds.geojson>`
+  matches All The Places' McDonald's locations (CC0, from the company's own
+  store locator; download `output/mcdonalds.geojson` from the latest
+  complete run at https://data.alltheplaces.xyz, about 21 MB; the 2026-10-03
+  run was cut short at 11 MB) to our stores: one location within 150 m with
+  the same street number, or within 60 m when either has none, and never one
+  number for two stores. 220 of 235 stores have one in the saved data. Without
+  a number, the check falls back to the street number. `GET
+  /api/stores/by-number/[number]` finds the store for the link.
+
+**Not yet proven on real photos.** The spike and the browser suite use mock
+receipts and a mock app screen, because no freely licensed photo of a US
+McDonald's receipt exists. The item-line wording and the app layout are
+inferred. The first real receipts will show how it does on curled, faded or
+glary photos; until then it only ever fills in a box the person checks.
 
 ---
 

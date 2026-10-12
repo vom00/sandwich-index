@@ -89,6 +89,34 @@ export default function AboutPage() {
           </p>
         </Section>
 
+        <Section title="Reading a price from a photo">
+          <p>
+            The form on each store&rsquo;s page can read the price from a photo
+            of your receipt, or from a screenshot of the McChicken in the
+            McDonald&rsquo;s app. Your browser does the reading; the photo is
+            never uploaded, to this site or anyone else. Only the price you then
+            log is sent, exactly as if you had typed it, so the card digits and
+            order number on a receipt stay on your phone.
+          </p>
+          <p>
+            It fills in the price for you to check, and nothing is logged until
+            you press the button. It fills in nothing if the photo is from a
+            different store, if the receipt is more than a week old (a price is
+            recorded as today&rsquo;s), or if all it shows is a meal or a Spicy
+            McChicken. Stores are matched by the restaurant number every receipt
+            prints, using McDonald&rsquo;s locations as published by{" "}
+            <a
+              className="underline decoration-rule underline-offset-2 hover-accent"
+              href="https://www.alltheplaces.xyz/"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              All The Places
+            </a>{" "}
+            under CC0.
+          </p>
+        </Section>
+
         <Section title="How submissions are checked">
           <p>
             Crowdsourced data attracts bad entries, some careless and some

@@ -19,7 +19,15 @@ const AXE_SOURCE = fs.readFileSync(
   'utf8',
 );
 
-const COPPELL = { latitude: 32.9546, longitude: -96.99 };
+/*
+ * Waco, not Coppell. /log lists unpriced stores first, so every run logs
+ * prices to the unpriced stores nearest wherever it stands. Standing in
+ * Coppell, that used up the very stores phase 3 and phase 4 need to find with
+ * no price, and a second run in one session failed them. Waco is about 100
+ * miles from Coppell: no 15-mile view overlaps, and the snapshot holds its
+ * stores without any feed price.
+ */
+const RUN_AREA = { latitude: 31.5493, longitude: -97.1467 };
 
 const results = [];
 function check(name, passed, detail = '') {
@@ -97,7 +105,7 @@ async function coverage(page) {
     const context = await browser.newContext({
       viewport: { width: 1280, height: 1000 },
       permissions: ['geolocation'],
-      geolocation: COPPELL,
+      geolocation: RUN_AREA,
     });
 
     const consoleErrors = [];
@@ -395,7 +403,7 @@ async function coverage(page) {
     const quiet = await browser.newContext({
       viewport: { width: 1280, height: 1000 },
       permissions: ['geolocation'],
-      geolocation: COPPELL,
+      geolocation: RUN_AREA,
       reducedMotion: 'reduce',
     });
     const quietPage = await openRun(quiet);

@@ -57,6 +57,14 @@ export interface Store {
    * formatting.
    */
   locality: string | null;
+  /**
+   * McDonald's own store number, the one every receipt prints as
+   * "McDonald's Restaurant #4412". From All The Places (CC0), which reads it
+   * from the company's store locator; see `scripts/import-store-numbers.ts`.
+   * Null until that import has matched the store, which it does only when one
+   * location sits within 150 m and the street numbers agree.
+   */
+  restaurantNumber: string | null;
   lat: number;
   lng: number;
   geohash: string;

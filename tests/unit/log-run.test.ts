@@ -24,6 +24,7 @@ function store(overrides: Partial<StoreWithId> & { id: string }): StoreWithId {
     // a test that cares about addresses says so.
     address: "100 Main St",
     locality: null,
+    restaurantNumber: null,
     lat: 32.9,
     lng: -97.0,
     geohash: "9vff",

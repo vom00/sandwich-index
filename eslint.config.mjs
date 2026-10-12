@@ -13,6 +13,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     ".next-build/**",
+    // Minified OCR engine copied from node_modules (scripts/copy-ocr-assets.mjs).
+    "public/ocr/**",
   ]),
   {
     /*
