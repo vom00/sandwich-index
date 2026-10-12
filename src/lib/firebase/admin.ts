@@ -17,6 +17,8 @@ import "server-only";
 import { applicationDefault, cert, getApp, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
+import { describeKey, normalizeCredentials } from "@/lib/firebase/private-key";
+
 const projectId = process.env.FIREBASE_PROJECT_ID ?? "demo-sandwich-index";
 const useEmulator = process.env.FIRESTORE_EMULATOR_HOST !== undefined;
 
@@ -65,14 +67,17 @@ function createApp(): App {
     return initializeApp({ credential: applicationDefault(), projectId });
   }
 
-  return initializeApp({
-    credential: cert({
-      projectId,
-      clientEmail,
-      // Env vars flatten newlines; the PEM parser needs them back.
-      privateKey: privateKey.replace(/\\n/g, "\n"),
-    }),
-  });
+  // Pasting the key into a dashboard mangles it in predictable ways (quotes,
+  // escaped newlines, the whole JSON file); see lib/firebase/private-key.
+  const repaired = normalizeCredentials(clientEmail, privateKey);
+  try {
+    return initializeApp({ credential: cert({ projectId, ...repaired }) });
+  } catch (error) {
+    // Say what shape the value had, never what it contained, so a bad paste
+    // can be diagnosed from the logs without the key appearing in them.
+    console.error("[firebase-admin] FIREBASE_PRIVATE_KEY could not be parsed", describeKey(privateKey));
+    throw error;
+  }
 }
 
 export function getAdminDb(): Firestore {
