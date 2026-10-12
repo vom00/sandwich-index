@@ -1181,10 +1181,10 @@ that reads Firestore renders on request, so the build needs no credentials.
 
 **Still to do, in order:**
 
-1. Create the Firestore database and deploy the rules and indexes:
-   `npx firebase deploy --only firestore --project prod`. The database has to
-   be created first (`firestore:databases:create "(default)" --location nam5`
-   failed until the Firestore API is enabled; the deploy enables it).
+1. ~~Create the Firestore database and deploy the rules and indexes~~ — done
+   2026-10-12 with `npx firebase deploy --only firestore --project prod`,
+   which enabled the Firestore API and created `(default)` itself. Rerun it
+   whenever `firestore.rules` or `firestore.indexes.json` changes.
 2. Turn on Anonymous sign-in: Firebase console → Authentication → Sign-in
    method. No CLI command does this.
 3. In the Firebase console, generate a service account key (Project settings →
