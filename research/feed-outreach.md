@@ -34,22 +34,22 @@ Contact: the sales / contact form at https://datassential.com
 >
 > Hello,
 >
-> I run Sandwich Index, a small, free, non-commercial site that shows what a
-> McDonald's McChicken costs at each individual US restaurant. Franchisees set
-> their own prices, and the variation between neighbouring stores is the point
-> of the site.
+> I run Sandwich Index, a free site that shows what a McDonald's McChicken
+> costs at each US restaurant. It's a small, non-commercial project.
+> Franchisees set their own prices, and the variation between neighbouring
+> stores is the point of the site.
 >
 > I understand Price Monitor captures location-specific menus for major chains
-> each month. Before anything else: do you license store-level prices for
-> **public display** on a website, with attribution? If so, I'd like to know:
+> each month. My first question is whether you license store-level prices for
+> public display on a website, with attribution. If you do, I'd like to know:
 >
 > - whether your coverage includes the McChicken at individual US McDonald's
->   locations (Dallas–Fort Worth first, then nationally);
-> - whether each store's price carries the date it was observed;
-> - what attribution you'd require, and the delivery format (file or API);
-> - what that would cost for a non-commercial project.
+>   locations (Dallas-Fort Worth first, then nationally)
+> - whether each store's price carries the date it was observed
+> - what attribution you'd require, and whether you deliver by file or API
+> - what it would cost for a non-commercial project
 >
-> Every price on the site is shown with its source and date, and would be
+> The site shows every price with its source and date, so yours would be
 > credited to Datassential by name.
 >
 > Thank you,
@@ -68,17 +68,16 @@ price. Asking costs nothing.
 > Hello,
 >
 > I run Sandwich Index, a free, non-commercial site that tracks the price of
-> a McDonald's McChicken restaurant by restaurant across the US, shown to the
-> public with its source and date.
+> a McDonald's McChicken restaurant by restaurant across the US. Each price is
+> shown publicly with its source and date.
 >
 > Is store-level data from Competitor Price Intelligence ever licensed for
-> public display, with attribution? If it is, I'd like to know whether it
-> covers the McChicken at individual US McDonald's locations, whether each
-> price carries its own observation date, and what terms and pricing would
-> apply to a non-commercial project.
+> public display, with attribution? If so, I'd like to know whether it covers
+> the McChicken at individual US McDonald's locations, whether each price
+> carries its own observation date, and what terms and pricing would apply to
+> a non-commercial project.
 >
-> If public display isn't something you offer, a short "no" would be very
-> helpful too.
+> If public display isn't something you offer, a short "no" would help me too.
 >
 > Thank you,
 > [name]
@@ -102,15 +101,15 @@ store's price actually observed?
 > McChicken costs at each McDonald's, store by store. Your per-store pages are
 > the most complete public record of those prices I've found.
 >
-> Would you be open to licensing your store-level McChicken prices, starting
-> with the ~276 Dallas–Fort Worth locations, for display with attribution?
-> Each price would be shown as "from MenuPriceTracker, observed [date]", with a
-> link to your page for that store, and replaced when a visitor reports a
-> newer price.
+> Would you be open to licensing your store-level McChicken prices for display
+> with attribution, starting with the roughly 276 Dallas-Fort Worth locations?
+> Each price would appear as "from MenuPriceTracker, observed [date]", link to
+> your page for that store, and be replaced when a visitor reports a newer
+> price.
 >
-> One requirement on our side: the date each store's price was actually
-> observed. Your pages show a few different "last updated" dates, and a price
-> shown without the date it was seen isn't something I can present honestly.
+> I'd need the date each store's price was actually observed. Your pages show a
+> few different "last updated" dates, and I can't honestly show a price without
+> knowing when it was seen.
 >
 > Happy to discuss terms either way.
 >
