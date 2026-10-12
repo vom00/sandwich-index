@@ -101,15 +101,19 @@ async function checkCredential(clientEmail: string, privateKey: string): Promise
     );
     const certs = response.ok ? ((await response.json()) as Record<string, string>) : {};
     const ours = createPublicKey(privateKey).export({ type: "spki", format: "der" });
-    const keyIsLive = Object.values(certs).some((pem) =>
-      new X509Certificate(pem).publicKey.export({ type: "spki", format: "der" }).equals(ours),
-    );
+    // Key IDs are labels, not secrets: the console lists them beside each key,
+    // so naming the one in use tells the owner which others can be deleted.
+    const keyInUse =
+      Object.entries(certs).find(([, pem]) =>
+        new X509Certificate(pem).publicKey.export({ type: "spki", format: "der" }).equals(ours),
+      )?.[0] ?? null;
     console.info("[firebase-admin] credential check", {
       emailProject,
       emailMatchesProject: emailProject === projectId,
       accountFound: response.ok,
-      liveKeys: Object.keys(certs).length,
-      keyIsLive,
+      liveKeyIds: Object.keys(certs),
+      keyInUse,
+      keyIsLive: keyInUse !== null,
     });
   } catch (error) {
     console.warn("[firebase-admin] credential check could not run", (error as Error).message);
