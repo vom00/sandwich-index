@@ -1,12 +1,15 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { milesToMeters } from "@/lib/geohash";
+import { INDEX_SNAPSHOT_TAG } from "@/lib/index-snapshot.server";
 import { OverpassError, fetchNearbyStores } from "@/lib/overpass";
 import { reverseGeocode } from "@/lib/reverse-geocode";
 import {
   backfillFeedObservations,
   backfillMissingAddresses,
   backfillRestaurantNumbers,
+  getStoresNear,
   syncAreaIfStale,
 } from "@/lib/stores.server";
 import { nearbyQuerySchema } from "@/lib/validation";
@@ -66,6 +69,17 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
+    // The backfills below share one read of the area. Each used to make its
+    // own (four reads of the area per sync), and on Firestore's free tier
+    // (50,000 reads a day) reads per map visit decide how many visitors the
+    // site can serve.
+    let known: Awaited<ReturnType<typeof getStoresNear>> | undefined;
+    try {
+      known = await getStoresNear({ lat, lng }, radiusMeters);
+    } catch (error) {
+      console.error("[api/stores/sync] area read for backfills failed", error);
+    }
+
     // Best effort by design. An address we could not look up is a cosmetic
     // gap; failing the whole sync over it would throw away the store list too.
     let addresses = { attempted: 0, resolved: 0, remaining: 0 };
@@ -74,6 +88,9 @@ export async function POST(request: Request): Promise<NextResponse> {
         { lat, lng },
         radiusMeters,
         (store) => reverseGeocode(store.lat, store.lng),
+        undefined,
+        undefined,
+        known,
       );
     } catch (error) {
       console.error("[api/stores/sync] address backfill failed", error);
@@ -83,20 +100,23 @@ export async function POST(request: Request): Promise<NextResponse> {
     // just as optional. A store without one still works everywhere.
     let numbers = { assigned: 0 };
     try {
-      numbers = await backfillRestaurantNumbers({ lat, lng }, radiusMeters);
+      numbers = await backfillRestaurantNumbers({ lat, lng }, radiusMeters, undefined, undefined, known);
     } catch (error) {
       console.error("[api/stores/sync] restaurant-number backfill failed", error);
     }
 
-    // Feed prices shipped with the server (lib/feeds, stores.server). After
-    // the address backfill on purpose: feed rows match on street number and
-    // city, so a store needs its address before it can be matched.
+    // Feed prices shipped with the server (lib/feeds, stores.server). Rows
+    // match on street number and city, so a store whose address was only
+    // just looked up above is matched on the next sync, from the next read.
     let feedPrices = { recorded: 0, recomputed: 0 };
     try {
-      feedPrices = await backfillFeedObservations({ lat, lng }, radiusMeters);
+      feedPrices = await backfillFeedObservations({ lat, lng }, radiusMeters, undefined, undefined, undefined, known);
     } catch (error) {
       console.error("[api/stores/sync] feed backfill failed", error);
     }
+
+    // New stores or new prices change the landing page's figures.
+    if (result.created > 0 || feedPrices.recorded > 0) revalidateTag(INDEX_SNAPSHOT_TAG, "max");
 
     return NextResponse.json({ ...result, addresses, numbers, feedPrices });
   } catch (error) {

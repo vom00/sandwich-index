@@ -1,5 +1,7 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
+import { INDEX_SNAPSHOT_TAG } from "@/lib/index-snapshot.server";
 import { recomputeStoreRollup } from "@/lib/stores.server";
 import { storeIdSchema } from "@/lib/validation";
 
@@ -35,6 +37,10 @@ export async function POST(
     if (rollup === null) {
       return NextResponse.json({ error: "Store not found" }, { status: 404 });
     }
+
+    // A price may have changed, so the landing page's cached figures are
+    // marked stale; the next visit rebuilds them in the background.
+    revalidateTag(INDEX_SNAPSHOT_TAG, "max");
 
     return NextResponse.json({ storeId: parsed.data, rollup });
   } catch (error) {

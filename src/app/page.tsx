@@ -6,7 +6,8 @@ import { ClayScene } from "@/components/landing/scenes/ClayScene";
 import { HAS_ACTIVE_FEED } from "@/lib/feeds";
 import { formatCents } from "@/lib/money";
 import { priceAge, provenanceSummary } from "@/lib/provenance";
-import { getIndexSnapshot, type IndexSnapshot } from "@/lib/stores.server";
+import { getCachedIndexSnapshot } from "@/lib/index-snapshot.server";
+import { type IndexSnapshot } from "@/lib/stores.server";
 import { storeLabelText } from "@/lib/store-label";
 import type { StoreWithId } from "@/types";
 
@@ -50,7 +51,7 @@ export const dynamic = "force-dynamic";
 const LEADER_LIMIT = 3;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const snapshot = await getIndexSnapshot(undefined, LEADER_LIMIT);
+  const snapshot = await getCachedIndexSnapshot(LEADER_LIMIT);
 
   return {
     title: "Sandwich Index — what a McChicken actually costs",
@@ -62,7 +63,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const snapshot = await getIndexSnapshot(undefined, LEADER_LIMIT);
+  const snapshot = await getCachedIndexSnapshot(LEADER_LIMIT);
 
   return (
     <main id="main">

@@ -155,7 +155,10 @@ export function MapExperience() {
           // Refetch for new stores, and for addresses the backfill just filled
           // in — a row that silently stops saying "no address on file" is the
           // visible half of that work.
-          const changed = result.created > 0 || (result.addresses?.resolved ?? 0) > 0;
+          const changed =
+            result.created > 0 ||
+            (result.addresses?.resolved ?? 0) > 0 ||
+            (result.feedPrices?.recorded ?? 0) > 0;
           if (changed) {
             const refreshed = await fetchStores(position);
             if (isCurrent()) setStores(refreshed);

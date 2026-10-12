@@ -637,11 +637,12 @@ export async function syncAreaIfStale(
     lastSynced !== null && Date.now() - new Date(lastSynced).getTime() < SYNC_TTL_MS;
 
   if (fresh && coveredMeters >= coverage.radiusMeters) {
-    const knownStores = await getStoresNear(center, radiusMeters, db);
+    // What the cell's last sync found, from the log just read. Reading the
+    // area again only to count it cost a full read per map visit.
     return {
       cached: true,
       deferred: false,
-      found: knownStores.length,
+      found: typeof existing?.["storeCount"] === "number" ? existing["storeCount"] : 0,
       created: 0,
       updated: 0,
       lastSyncedAt: lastSynced,
@@ -731,8 +732,10 @@ export async function backfillRestaurantNumbers(
   radiusMeters: number,
   db: Firestore = getAdminDb(),
   index: NumberIndex = restaurantNumberIndex(),
+  /** The stores around `center`, when the caller has already read them. */
+  known?: readonly StoreWithId[],
 ): Promise<{ assigned: number }> {
-  const nearby = await getStoresNear(center, radiusMeters, db);
+  const nearby = known ?? (await getStoresNear(center, radiusMeters, db));
   const held = new Set(nearby.map((store) => store.restaurantNumber).filter((n) => n !== null));
   const picks = chooseNumbers(nearby, index);
 
@@ -787,11 +790,13 @@ export async function backfillFeedObservations(
   db: Firestore = getAdminDb(),
   feeds: readonly BundledFeed[] = BUNDLED_FEEDS,
   now: Date = new Date(),
+  /** The stores around `center`, when the caller has already read them. */
+  known?: readonly StoreWithId[],
 ): Promise<{ recorded: number; recomputed: number }> {
   const active = feeds.filter(({ feed }) => isFeedActive(feed));
   if (active.length === 0) return { recorded: 0, recomputed: 0 };
 
-  const nearby = await getStoresNear(center, radiusMeters, db);
+  const nearby = known ?? (await getStoresNear(center, radiusMeters, db));
   const byId = new Map(nearby.map((store) => [store.id, store]));
   const planned = new Map<string, ObservationInput>();
   const conflicted = new Set<string>();
@@ -850,8 +855,10 @@ export async function backfillMissingAddresses(
   resolve: (store: StoreWithId) => Promise<ResolvedAddress | null>,
   db: Firestore = getAdminDb(),
   now: Date = new Date(),
+  /** The stores around `center`, when the caller has already read them. */
+  known?: readonly StoreWithId[],
 ): Promise<AddressBackfillResult> {
-  const nearby = await getStoresNear(center, radiusMeters, db);
+  const nearby = known ?? (await getStoresNear(center, radiusMeters, db));
 
   const candidates = nearby.filter((store) => {
     if (store.address !== null) return false;
