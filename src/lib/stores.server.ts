@@ -12,6 +12,7 @@ import "server-only";
 import { Timestamp, type Firestore } from "firebase-admin/firestore";
 
 import {
+  OBSERVATIONS_COLLECTION,
   STORES_COLLECTION,
   SUBMISSIONS_COLLECTION,
   getAdminDb,
@@ -22,6 +23,7 @@ import {
   type AreaComparison,
 } from "@/lib/comparison";
 import {
+  cellCoverage,
   encodeGeohash,
   filterByRadius,
   geohashQueryBounds,
@@ -29,12 +31,18 @@ import {
   sortByDistance,
   type LatLng,
 } from "@/lib/geohash";
-import { reconcile, type PriceCandidate, type StoreRollup } from "@/lib/pricing";
+import {
+  reconcile,
+  type ObservedPrice,
+  type PriceCandidate,
+  type StoreRollup,
+} from "@/lib/pricing";
 import type { OverpassStore } from "@/lib/overpass";
+import { observationId } from "@/lib/feed-match";
 import { dropTwinStores } from "@/lib/store-twins";
 import type { ResolvedAddress } from "@/lib/reverse-geocode";
 import { displayStateFor } from "@/lib/tiers";
-import type { Store, StoreWithId, SubmissionWithId } from "@/types";
+import type { ObservationWithId, Store, StoreWithId, SubmissionWithId } from "@/types";
 
 /** Firestore batches cap at 500 operations. */
 const BATCH_LIMIT = 450;
@@ -52,10 +60,31 @@ const SYNC_LOG_COLLECTION = "syncLog";
 const SYNC_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
- * Precision 4 cells are roughly 39km x 20km — comparable to a 15-mile search
- * radius, so one cell key sensibly represents "this area was just synced".
+ * The unit of "this area was synced": a precision-4 geohash cell, roughly
+ * 20 x 33 km at DFW's latitude.
+ *
+ * The cell is what gets remembered, not what gets fetched. A cell is smaller
+ * than a 15-mile search circle, so fetching around whoever happened to ask
+ * first would leave the rest of the cell's visitors with gaps; `cellCoverage`
+ * widens each fetch so one sync serves the whole cell.
  */
 const SYNC_CELL_PRECISION = 4;
+
+/** One document. Server-only — the rules name no such collection, so clients get nothing. */
+const OVERPASS_BUDGET_DOC = "syncBudget/overpass";
+
+/**
+ * How many Overpass queries the whole site may make per window.
+ *
+ * The sync route is unauthenticated, and the freshness gate only stops repeat
+ * queries for the *same* cell. Without a site-wide ceiling, anyone could post a
+ * fresh cell's coordinates every second and turn this server into an amplifier
+ * aimed at donated infrastructure. Real visitors trigger one query per newly
+ * visited cell per week, so 60 an hour is far above genuine demand and far
+ * below anything Overpass's operators would notice.
+ */
+export const OVERPASS_BUDGET_PER_WINDOW = 60;
+export const OVERPASS_BUDGET_WINDOW_MS = 60 * 60 * 1000;
 
 /**
  * A `stores` document exactly as Firestore holds it.
@@ -96,7 +125,23 @@ function toStore(id: string, data: FirebaseFirestore.DocumentData): StoreWithId 
     heldPriceCents:
       typeof data["heldPriceCents"] === "number" ? data["heldPriceCents"] : null,
     pricedAt: timestampToIso(data["pricedAt"]),
+    priceFeed: typeof data["priceFeed"] === "string" ? data["priceFeed"] : null,
     lastSyncedAt: timestampToIso(data["lastSyncedAt"]) ?? new Date(0).toISOString(),
+  };
+}
+
+function toObservation(
+  id: string,
+  data: FirebaseFirestore.DocumentData,
+): ObservationWithId {
+  return {
+    id,
+    storeId: String(data["storeId"]),
+    priceCents: Number(data["priceCents"]),
+    observedAt: timestampToIso(data["observedAt"]) ?? new Date(0).toISOString(),
+    feed: String(data["feed"]),
+    sourceUrl: typeof data["sourceUrl"] === "string" ? data["sourceUrl"] : null,
+    importedAt: timestampToIso(data["importedAt"]) ?? new Date(0).toISOString(),
   };
 }
 
@@ -177,6 +222,7 @@ export async function upsertStores(
           priceCents: null,
           heldPriceCents: null,
           pricedAt: null,
+          priceFeed: null,
         } satisfies StoreDocument);
         created += 1;
       }
@@ -246,6 +292,21 @@ export async function getSubmissionsForStore(
     .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
 }
 
+/** Feed observations for one store, newest first. */
+export async function getObservationsForStore(
+  storeId: string,
+  db: Firestore = getAdminDb(),
+): Promise<ObservationWithId[]> {
+  const snapshot = await db
+    .collection(OBSERVATIONS_COLLECTION)
+    .where("storeId", "==", storeId)
+    .get();
+
+  return snapshot.docs
+    .map((document) => toObservation(document.id, document.data()))
+    .sort((a, b) => b.observedAt.localeCompare(a.observedAt));
+}
+
 /**
  * Compare one store's price against the stores around it.
  *
@@ -298,15 +359,23 @@ export async function recomputeStoreRollup(
   const storeSnapshot = await storeRef.get();
   if (!storeSnapshot.exists) return null;
 
-  const submissions = await getSubmissionsForStore(storeId, db);
+  const [submissions, observations] = await Promise.all([
+    getSubmissionsForStore(storeId, db),
+    getObservationsForStore(storeId, db),
+  ]);
   const candidates: PriceCandidate[] = submissions.map((submission) => ({
     priceCents: submission.priceCents,
     source: submission.source,
     status: submission.status,
     submittedAt: submission.submittedAt,
   }));
+  const observed: ObservedPrice[] = observations.map((observation) => ({
+    priceCents: observation.priceCents,
+    observedAt: observation.observedAt,
+    feed: observation.feed,
+  }));
 
-  const { rollup, changed } = reconcile(candidates);
+  const { rollup, changed } = reconcile(candidates, observed);
 
   /*
    * Status corrections and the rollup go in one batch.
@@ -345,7 +414,8 @@ export async function recomputeStoreRollup(
     stored.confirmedCount === rollup.confirmedCount &&
     stored.priceCents === rollup.priceCents &&
     stored.heldPriceCents === rollup.heldPriceCents &&
-    stored.pricedAt === rollup.pricedAt;
+    stored.pricedAt === rollup.pricedAt &&
+    stored.priceFeed === rollup.priceFeed;
 
   if (unchanged) return rollup;
 
@@ -364,6 +434,7 @@ export async function recomputeStoreRollup(
     heldPriceCents: rollup.heldPriceCents,
     pricedAt:
       rollup.pricedAt === null ? null : Timestamp.fromDate(new Date(rollup.pricedAt)),
+    priceFeed: rollup.priceFeed,
   });
 
   await batch.commit();
@@ -371,17 +442,152 @@ export async function recomputeStoreRollup(
   return rollup;
 }
 
+/** One feed observation to record, already matched to a store. */
+export interface ObservationInput {
+  storeId: string;
+  priceCents: number;
+  /** ISO 8601. */
+  observedAt: string;
+  feed: string;
+  sourceUrl: string | null;
+}
+
+export interface RecordObservationsResult {
+  /** Observations that did not exist before this call. */
+  written: number;
+  /** Observations already on file — the same feed, store and day. */
+  alreadyRecorded: number;
+  /** Stores whose rollup was recomputed because something new arrived. */
+  recomputed: number;
+}
+
+/**
+ * Write feed observations, then recompute the stores they touch.
+ *
+ * Idempotent by construction: an observation's id is its feed, store and day,
+ * so importing the same file twice finds everything already on file and writes
+ * nothing. An observation that already exists is left exactly as it is,
+ * `importedAt` included — re-running an import must not make old data look
+ * newly arrived.
+ *
+ * Callers are responsible for licensing. This trusts that the feed may be
+ * written here; `scripts/import-observations.ts` is where that is checked.
+ */
+export async function recordObservations(
+  inputs: readonly ObservationInput[],
+  db: Firestore = getAdminDb(),
+): Promise<RecordObservationsResult> {
+  if (inputs.length === 0) return { written: 0, alreadyRecorded: 0, recomputed: 0 };
+
+  const collection = db.collection(OBSERVATIONS_COLLECTION);
+  const refs = inputs.map((input) =>
+    collection.doc(observationId(input.feed, input.storeId, input.observedAt)),
+  );
+  const existing = await db.getAll(...refs);
+  const onFile = new Set(existing.filter((snap) => snap.exists).map((snap) => snap.id));
+
+  const fresh = inputs.filter((_, index) => !onFile.has(refs[index]?.id ?? ""));
+  const importedAt = Timestamp.now();
+
+  for (let offset = 0; offset < fresh.length; offset += BATCH_LIMIT) {
+    const batch = db.batch();
+    for (const input of fresh.slice(offset, offset + BATCH_LIMIT)) {
+      batch.set(collection.doc(observationId(input.feed, input.storeId, input.observedAt)), {
+        storeId: input.storeId,
+        priceCents: input.priceCents,
+        observedAt: Timestamp.fromDate(new Date(input.observedAt)),
+        feed: input.feed,
+        sourceUrl: input.sourceUrl,
+        importedAt,
+      });
+    }
+    await batch.commit();
+  }
+
+  const touched = [...new Set(fresh.map((input) => input.storeId))];
+  for (const storeId of touched) {
+    await recomputeStoreRollup(storeId, db);
+  }
+
+  return {
+    written: fresh.length,
+    alreadyRecorded: inputs.length - fresh.length,
+    recomputed: touched.length,
+  };
+}
+
 export interface SyncResult {
   /** True when the area was already fresh and Overpass was not contacted. */
   cached: boolean;
+  /**
+   * True when the area needed a sync but the site-wide Overpass budget was
+   * spent. Nothing was fetched; what the database already holds is all there is.
+   */
+  deferred: boolean;
+  /** Milliseconds until the budget refills. Present only when `deferred`. */
+  retryAfterMs?: number;
+  /**
+   * Stores in the area this call answered for: the caller's circle when cached
+   * or deferred, the whole fetched cell coverage after a real sync.
+   */
   found: number;
   created: number;
   updated: number;
-  lastSyncedAt: string;
+  /** ISO 8601, or null when the cell has never been synced. */
+  lastSyncedAt: string | null;
+}
+
+/** Fetches every store within a circle. In production, Overpass. */
+export type StoreFetcher = (
+  center: LatLng,
+  radiusMeters: number,
+) => Promise<readonly OverpassStore[]>;
+
+/**
+ * Spend one query from the site-wide Overpass budget, or report that none is
+ * left. Transactional, so two syncs racing for the last query cannot both win.
+ *
+ * A query is spent whether or not Overpass then answers — a failed request
+ * still landed on someone else's server.
+ */
+async function reserveOverpassQuery(
+  db: Firestore,
+  now: number = Date.now(),
+): Promise<{ allowed: true } | { allowed: false; retryAfterMs: number }> {
+  const ref = db.doc(OVERPASS_BUDGET_DOC);
+
+  return db.runTransaction(async (transaction) => {
+    const data = (await transaction.get(ref)).data();
+    const windowStart =
+      data?.["windowStart"] instanceof Timestamp ? data["windowStart"].toMillis() : 0;
+    const used = typeof data?.["used"] === "number" ? data["used"] : 0;
+
+    if (now - windowStart >= OVERPASS_BUDGET_WINDOW_MS) {
+      transaction.set(ref, { windowStart: Timestamp.fromMillis(now), used: 1 });
+      return { allowed: true } as const;
+    }
+
+    if (used < OVERPASS_BUDGET_PER_WINDOW) {
+      transaction.set(ref, { windowStart: Timestamp.fromMillis(windowStart), used: used + 1 });
+      return { allowed: true } as const;
+    }
+
+    return {
+      allowed: false,
+      retryAfterMs: windowStart + OVERPASS_BUDGET_WINDOW_MS - now,
+    } as const;
+  });
 }
 
 /**
  * Reconcile an area against OpenStreetMap, but only if it is stale.
+ *
+ * Freshness is tracked per geohash cell, and a cell only counts as fresh if
+ * its last sync reached at least as far as this request needs. That second
+ * condition is not pedantry: without it, one request with a tiny radius would
+ * mark a whole 20 x 33 km cell as synced for a week while fetching almost
+ * nothing. A log entry written before coverage was recorded says nothing about
+ * how far it reached, so it counts as covering nothing and re-syncs once.
  *
  * The fetcher is injected rather than imported so this stays testable without
  * reaching the network, and so the Overpass dependency lives at the route
@@ -390,19 +596,25 @@ export interface SyncResult {
 export async function syncAreaIfStale(
   center: LatLng,
   radiusMeters: number,
-  fetcher: () => Promise<readonly OverpassStore[]>,
+  fetcher: StoreFetcher,
   db: Firestore = getAdminDb(),
 ): Promise<SyncResult> {
   const cellKey = encodeGeohash(center, SYNC_CELL_PRECISION);
+  const coverage = cellCoverage(cellKey, radiusMeters);
   const syncRef = db.collection(SYNC_LOG_COLLECTION).doc(cellKey);
-  const existing = await syncRef.get();
+  const existing = (await syncRef.get()).data();
 
-  const lastSynced = existing.exists ? timestampToIso(existing.data()?.["lastSyncedAt"]) : null;
+  const lastSynced = existing ? timestampToIso(existing["lastSyncedAt"]) : null;
+  const coveredMeters =
+    typeof existing?.["coverageMeters"] === "number" ? existing["coverageMeters"] : 0;
+  const fresh =
+    lastSynced !== null && Date.now() - new Date(lastSynced).getTime() < SYNC_TTL_MS;
 
-  if (lastSynced !== null && Date.now() - new Date(lastSynced).getTime() < SYNC_TTL_MS) {
+  if (fresh && coveredMeters >= coverage.radiusMeters) {
     const knownStores = await getStoresNear(center, radiusMeters, db);
     return {
       cached: true,
+      deferred: false,
       found: knownStores.length,
       created: 0,
       updated: 0,
@@ -410,12 +622,26 @@ export async function syncAreaIfStale(
     };
   }
 
-  const stores = await fetcher();
+  const budget = await reserveOverpassQuery(db);
+  if (!budget.allowed) {
+    const knownStores = await getStoresNear(center, radiusMeters, db);
+    return {
+      cached: false,
+      deferred: true,
+      retryAfterMs: budget.retryAfterMs,
+      found: knownStores.length,
+      created: 0,
+      updated: 0,
+      lastSyncedAt: lastSynced,
+    };
+  }
+
+  const stores = await fetcher(coverage.center, coverage.radiusMeters);
 
   // OSM often maps one restaurant as both a node and a way. Twins are
   // filtered against what this area already holds, so a re-mapped location
   // upstream cannot arrive as a second store next to the first.
-  const known = await getStoresNear(center, radiusMeters, db);
+  const known = await getStoresNear(coverage.center, coverage.radiusMeters, db);
   const { kept, droppedIds } = dropTwinStores(stores, known);
   if (droppedIds.length > 0) {
     console.warn("[stores.sync] dropped OSM twin(s):", droppedIds.join(", "));
@@ -424,10 +650,16 @@ export async function syncAreaIfStale(
   const { created, updated } = await upsertStores(kept, db);
 
   const now = Timestamp.now();
-  await syncRef.set({ cellKey, lastSyncedAt: now, storeCount: kept.length });
+  await syncRef.set({
+    cellKey,
+    lastSyncedAt: now,
+    storeCount: kept.length,
+    coverageMeters: coverage.radiusMeters,
+  });
 
   return {
     cached: false,
+    deferred: false,
     found: kept.length,
     created,
     updated,

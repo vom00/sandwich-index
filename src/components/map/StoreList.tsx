@@ -104,6 +104,7 @@ export function StoreList({
                   <Confidence
                     sampleCount={store.confirmedCount}
                     totalCount={store.reportCount}
+                    priceFeed={store.priceFeed}
                   />
                 </div>
               </div>

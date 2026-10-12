@@ -9,8 +9,9 @@ import { Confidence } from "@/components/ui/Confidence";
 import { Sparkline } from "@/components/ui/Sparkline";
 import { StoreStateBadge } from "@/components/ui/StoreStateBadge";
 import { formatCents } from "@/lib/money";
+import { priceAge } from "@/lib/provenance";
 import { storeLabel, storeLabelText } from "@/lib/store-label";
-import { displayStateFor, relativeAge } from "@/lib/tiers";
+import { displayStateFor } from "@/lib/tiers";
 import type { StoreWithId, Submission } from "@/types";
 
 /**
@@ -145,10 +146,11 @@ export function StoreSheet({
             <Confidence
               sampleCount={store.confirmedCount}
               totalCount={store.reportCount}
+              priceFeed={store.priceFeed}
             />
             {store.pricedAt !== null ? (
               <span className="text-xs text-ink-subtle">
-                last updated {relativeAge(store.pricedAt)}
+                {priceAge(store, "last updated")}
               </span>
             ) : null}
           </div>

@@ -9,18 +9,23 @@
  */
 
 import { Timestamp } from "firebase-admin/firestore";
+import ngeohash from "ngeohash";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
 import { getAdminDb } from "@/lib/firebase/admin";
-import { milesToMeters } from "@/lib/geohash";
+import { distanceMeters, milesToMeters, type LatLng } from "@/lib/geohash";
 import type { OverpassStore } from "@/lib/overpass";
 import {
+  OVERPASS_BUDGET_PER_WINDOW,
+  OVERPASS_BUDGET_WINDOW_MS,
   backfillMissingAddresses,
   getIndexSnapshot,
+  getObservationsForStore,
   getStore,
   getStoresNear,
   getSubmissionsForStore,
   recomputeStoreRollup,
+  recordObservations,
   syncAreaIfStale,
   upsertStores,
 } from "@/lib/stores.server";
@@ -559,6 +564,224 @@ describe("Overpass sync gate", () => {
     expect(calls).toBe(1);
     expect(second.cached).toBe(true);
     expect(second.found).toBe(1);
+  });
+
+  it("fetches enough to serve the whole cell, whoever asks first", async () => {
+    // Visitors at opposite corners of one precision-4 cell are ~38 km apart.
+    // A sync centred on the first of them covered ~11% of the second one's
+    // 15-mile circle, and the gate then told the second visitor the area was
+    // fresh.
+    const cell = encodeGeohash(COPPELL, 4);
+    const [minLat, minLng, maxLat, maxLng] = ngeohash.decode_bbox(cell);
+    const southWest = { lat: minLat + 0.001, lng: minLng + 0.001 };
+    const northEast = { lat: maxLat - 0.001, lng: maxLng - 0.001 };
+    const radius = milesToMeters(15);
+
+    const fetched: Array<{ center: LatLng; radiusMeters: number }> = [];
+    const fetcher = async (center: LatLng, radiusMeters: number) => {
+      fetched.push({ center, radiusMeters });
+      return [];
+    };
+
+    await syncAreaIfStale(southWest, radius, fetcher, db);
+    const second = await syncAreaIfStale(northEast, radius, fetcher, db);
+
+    expect(fetched).toHaveLength(1);
+    expect(second.cached).toBe(true);
+
+    // Each visitor's whole search circle sits inside the circle that was fetched.
+    const [{ center, radiusMeters }] = fetched as [{ center: LatLng; radiusMeters: number }];
+    for (const visitor of [southWest, northEast]) {
+      expect(distanceMeters(visitor, center) + radius).toBeLessThanOrEqual(radiusMeters);
+    }
+  });
+
+  it("re-syncs when asked to reach further than the last sync did", async () => {
+    // Otherwise one request with a tiny radius marks a 20 x 33 km cell as
+    // synced for a week while fetching almost nothing.
+    let calls = 0;
+    const fetcher = async () => {
+      calls += 1;
+      return [];
+    };
+
+    await syncAreaIfStale(COPPELL, milesToMeters(0.1), fetcher, db);
+    const wider = await syncAreaIfStale(COPPELL, milesToMeters(15), fetcher, db);
+
+    expect(calls).toBe(2);
+    expect(wider.cached).toBe(false);
+  });
+
+  it("does not re-sync for a request the last sync already reached", async () => {
+    let calls = 0;
+    const fetcher = async () => {
+      calls += 1;
+      return [];
+    };
+
+    await syncAreaIfStale(COPPELL, milesToMeters(15), fetcher, db);
+    const narrower = await syncAreaIfStale(COPPELL, milesToMeters(5), fetcher, db);
+
+    expect(calls).toBe(1);
+    expect(narrower.cached).toBe(true);
+  });
+
+  it("treats a log entry with no recorded reach as covering nothing", async () => {
+    // Entries written before coverage was tracked: fresh by date, but nothing
+    // says how far they fetched, so the honest reading is "not far enough".
+    const cell = encodeGeohash(COPPELL, 4);
+    await db
+      .collection("syncLog")
+      .doc(cell)
+      .set({ cellKey: cell, lastSyncedAt: Timestamp.now(), storeCount: 3 });
+
+    let calls = 0;
+    const fetcher = async () => {
+      calls += 1;
+      return [];
+    };
+    const result = await syncAreaIfStale(COPPELL, milesToMeters(15), fetcher, db);
+
+    expect(calls).toBe(1);
+    expect(result.cached).toBe(false);
+  });
+});
+
+describe("feed observations", () => {
+  const observation = (storeId: string, priceCents: number, daysAgo: number) => ({
+    storeId,
+    priceCents,
+    observedAt: new Date(Date.now() - daysAgo * DAY_MS).toISOString(),
+    feed: "menupricetracker",
+    sourceUrl: "https://menupricetracker.com/mcdonalds/texas/coppell/813-macarthur-blvd",
+  });
+
+  it("prices an unreported store and records which feed did it", async () => {
+    await upsertStores([store("node-1", COPPELL)], db);
+
+    const result = await recordObservations([observation("node-1", 249, 30)], db);
+    const priced = await getStore("node-1", db);
+
+    expect(result).toEqual({ written: 1, alreadyRecorded: 0, recomputed: 1 });
+    expect(priced?.priceCents).toBe(249);
+    expect(priced?.priceFeed).toBe("menupricetracker");
+    // Nobody vouched for it. The visitor counts must still say so.
+    expect(priced?.confirmedCount).toBe(0);
+    expect(priced?.reportCount).toBe(0);
+  });
+
+  it("is idempotent, and does not make old data look newly imported", async () => {
+    await upsertStores([store("node-1", COPPELL)], db);
+    await recordObservations([observation("node-1", 249, 30)], db);
+    const [first] = await getObservationsForStore("node-1", db);
+
+    const again = await recordObservations([observation("node-1", 249, 30)], db);
+    const all = await getObservationsForStore("node-1", db);
+
+    expect(again).toEqual({ written: 0, alreadyRecorded: 1, recomputed: 0 });
+    expect(all).toHaveLength(1);
+    expect(all[0]?.importedAt).toBe(first?.importedAt);
+  });
+
+  it("gives way to a newer visitor report, and the label follows", async () => {
+    await upsertStores([store("node-1", COPPELL)], db);
+    await recordObservations([observation("node-1", 249, 30)], db);
+
+    await addSubmission("node-1", 259, { daysAgo: 2 });
+    await recomputeStoreRollup("node-1", db);
+    const after = await getStore("node-1", db);
+
+    expect(after?.priceCents).toBe(259);
+    expect(after?.priceFeed).toBeNull();
+    expect(after?.confirmedCount).toBe(1);
+  });
+
+  it("promotes a held visitor report that the feed corroborates", async () => {
+    await upsertStores([store("node-1", COPPELL)], db);
+    await addSubmission("node-1", 249, { daysAgo: 40 });
+    await addSubmission("node-1", 449, { daysAgo: 20, status: "pending" });
+    await recomputeStoreRollup("node-1", db);
+    expect((await getStore("node-1", db))?.heldPriceCents).toBe(449);
+
+    await recordObservations([observation("node-1", 455, 10)], db);
+    const after = await getStore("node-1", db);
+    const log = await getSubmissionsForStore("node-1", db);
+
+    expect(after?.priceCents).toBe(455);
+    expect(after?.heldPriceCents).toBeNull();
+    expect(after?.confirmedCount).toBe(2);
+    // The promotion lands on the submission itself, not just in the rollup.
+    expect(log.find((submission) => submission.priceCents === 449)?.status).toBe("accepted");
+  });
+
+  it("keeps a feed-set price through an OSM re-sync", async () => {
+    await upsertStores([store("node-1", COPPELL)], db);
+    await recordObservations([observation("node-1", 249, 30)], db);
+
+    await upsertStores([store("node-1", COPPELL, { address: "813 S MacArthur Blvd" })], db);
+    const after = await getStore("node-1", db);
+
+    expect(after?.priceCents).toBe(249);
+    expect(after?.priceFeed).toBe("menupricetracker");
+  });
+});
+
+describe("Overpass budget", () => {
+  const budgetRef = () => db.doc("syncBudget/overpass");
+
+  it("stops calling Overpass once the site-wide budget is spent", async () => {
+    await budgetRef().set({ windowStart: Timestamp.now(), used: OVERPASS_BUDGET_PER_WINDOW });
+
+    let calls = 0;
+    const fetcher = async () => {
+      calls += 1;
+      return [store("node-1", COPPELL)];
+    };
+    const result = await syncAreaIfStale(COPPELL, milesToMeters(15), fetcher, db);
+
+    expect(calls).toBe(0);
+    expect(result.deferred).toBe(true);
+    expect(result.created).toBe(0);
+    expect(result.retryAfterMs).toBeGreaterThan(0);
+    expect(result.retryAfterMs).toBeLessThanOrEqual(OVERPASS_BUDGET_WINDOW_MS);
+  });
+
+  it("does not mark a deferred area as synced", async () => {
+    // A deferral fetched nothing, so the next visitor after the refill has to
+    // get a real sync rather than a cached answer.
+    await budgetRef().set({ windowStart: Timestamp.now(), used: OVERPASS_BUDGET_PER_WINDOW });
+    await syncAreaIfStale(COPPELL, milesToMeters(15), async () => [], db);
+
+    const log = await db.collection("syncLog").doc(encodeGeohash(COPPELL, 4)).get();
+    expect(log.exists).toBe(false);
+  });
+
+  it("refills once the window has passed", async () => {
+    await budgetRef().set({
+      windowStart: Timestamp.fromMillis(Date.now() - OVERPASS_BUDGET_WINDOW_MS - 1000),
+      used: OVERPASS_BUDGET_PER_WINDOW,
+    });
+
+    let calls = 0;
+    const fetcher = async () => {
+      calls += 1;
+      return [];
+    };
+    const result = await syncAreaIfStale(COPPELL, milesToMeters(15), fetcher, db);
+
+    expect(calls).toBe(1);
+    expect(result.deferred).toBe(false);
+    expect((await budgetRef().get()).data()?.["used"]).toBe(1);
+  });
+
+  it("spends budget on real queries only, never on cached answers", async () => {
+    const fetcher = async () => [];
+
+    await syncAreaIfStale(COPPELL, milesToMeters(15), fetcher, db);
+    await syncAreaIfStale(COPPELL, milesToMeters(15), fetcher, db); // cached
+    await syncAreaIfStale(AUSTIN, milesToMeters(15), fetcher, db);
+
+    expect((await budgetRef().get()).data()?.["used"]).toBe(2);
   });
 });
 

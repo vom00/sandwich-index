@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { CountUpPrice } from "@/components/landing/CountUpPrice";
+import { HAS_LICENSED_FEED } from "@/lib/feeds";
 import { formatCents } from "@/lib/money";
+import { priceAge, provenanceSummary } from "@/lib/provenance";
 import { getIndexSnapshot, type IndexSnapshot } from "@/lib/stores.server";
 import { storeLabelText } from "@/lib/store-label";
-import { relativeAge } from "@/lib/tiers";
 import type { StoreWithId } from "@/types";
 
 /**
@@ -54,7 +55,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "Sandwich Index — what a McChicken actually costs",
     description:
       snapshot.spreadCents === null
-        ? `Tracking McChicken prices across ${snapshot.trackedStoreCount} McDonald's locations. Every price submitted by somebody who paid it.`
+        ? `Tracking McChicken prices across ${snapshot.trackedStoreCount} McDonald's locations. ${HAS_LICENSED_FEED ? "Every price either paid by a visitor or observed by a named price feed." : "Every price submitted by somebody who paid it."}`
         : `${formatCents(snapshot.spreadCents)} separates the cheapest McChicken in the index from the priciest, across ${snapshot.pricedStoreCount} stores with current prices.`,
   };
 }
@@ -111,8 +112,10 @@ function Hero({ snapshot }: { snapshot: IndexSnapshot }) {
             style={{ animationDelay: "150ms" }}
           >
             There are {snapshot.trackedStoreCount} restaurants on file and not one
-            confirmed price among them. The first number on this page will be one
-            that somebody actually paid.
+            price among them yet.{" "}
+            {HAS_LICENSED_FEED
+              ? "The first number on this page will be one somebody paid or a feed recorded, and it will say which."
+              : "The first number on this page will be one that somebody actually paid."}
           </p>
         </>
       ) : (
@@ -204,8 +207,8 @@ function IntervalBar({
 
       <p className="mt-3 text-sm text-ink-subtle">
         Across {storeCount} {storeCount === 1 ? "store" : "stores"} with a price
-        confirmed in the last three months. Stores whose last report is older than
-        that are left out of this figure.
+        from the last three months. Stores whose latest price is older than that
+        are left out of this figure.
       </p>
     </div>
   );
@@ -290,8 +293,8 @@ function LiveProof({ snapshot }: { snapshot: IndexSnapshot }) {
         <p className="mt-10 text-sm text-ink-subtle">
           {snapshot.staleStoreCount} more{" "}
           {snapshot.staleStoreCount === 1 ? "store has" : "stores have"} a price on
-          file that nobody has confirmed in three months. Those are on the map,
-          marked as such, and kept out of every figure on this page.
+          file more than three months old. Those are on the map, marked as such,
+          and kept out of every figure on this page.
         </p>
       ) : null}
     </section>
@@ -339,9 +342,7 @@ function Leaderboard({
                     fit every address in the dataset. */}
                 <span className="line-clamp-2">{storeLabelText(store)}</span>
                 <span className="block text-xs text-ink-subtle">
-                  {store.confirmedCount}{" "}
-                  {store.confirmedCount === 1 ? "price" : "prices"} · last
-                  confirmed {relativeAge(store.pricedAt)}
+                  {provenanceSummary(store)} · {priceAge(store)}
                 </span>
               </span>
 

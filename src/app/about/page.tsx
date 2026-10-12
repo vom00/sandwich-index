@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { FEEDS, HAS_LICENSED_FEED } from "@/lib/feeds";
 import { PRICE_MAX_CENTS, PRICE_MIN_CENTS, formatCents } from "@/lib/money";
 import { BIG_MOVE_PERCENT, CORROBORATION_PERCENT } from "@/lib/pricing";
 import { STALE_AFTER_DAYS } from "@/types";
@@ -27,9 +28,20 @@ export default function AboutPage() {
       </h1>
 
       <p className="mt-6 text-lg leading-relaxed text-ink-muted">
-        Every number on this site was typed in by a person who bought the
-        sandwich. There is no feed, no scrape, no official source. That shapes
-        everything about how the data should be read.
+        {HAS_LICENSED_FEED ? (
+          <>
+            Every number on this site is either a receipt from a person who
+            bought the sandwich or a dated record from a price feed, and every
+            one says which. There is no scraping and no official source. That
+            shapes everything about how the data should be read.
+          </>
+        ) : (
+          <>
+            Every number on this site was typed in by a person who bought the
+            sandwich. There is no feed, no scrape, no official source. That
+            shapes everything about how the data should be read.
+          </>
+        )}
       </p>
 
       <div className="mt-12 space-y-10">
@@ -117,6 +129,37 @@ export default function AboutPage() {
           </p>
         </Section>
 
+        {HAS_LICENSED_FEED ? (
+          <Section title="Price feeds">
+            <p>
+              Some prices come from outside feeds rather than from visitors.
+              Each is shown under the feed&rsquo;s name with the date it was
+              observed, links back to the feed&rsquo;s own page, and is never
+              counted as a visitor&rsquo;s report. A receipt dated after a
+              feed&rsquo;s observation replaces it; a feed&rsquo;s observation
+              can also confirm a report that was being held for a second
+              opinion.
+            </p>
+            <ul className="ml-5 list-disc space-y-2">
+              {Object.values(FEEDS)
+                .filter((feed) => feed.licence !== null)
+                .map((feed) => (
+                  <li key={feed.id}>
+                    <a
+                      href={feed.homepage}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="underline decoration-rule underline-offset-2 hover-accent"
+                    >
+                      {feed.name}
+                    </a>
+                    , {feed.method}. Used under: {feed.licence}.
+                  </li>
+                ))}
+            </ul>
+          </Section>
+        ) : null}
+
         <Section title="How to read a price">
           <p>
             Every price is shown with the number of submissions behind it. A
@@ -139,8 +182,10 @@ export default function AboutPage() {
             to describe the product being tracked.
           </p>
           <p>
-            No data is collected from McDonald&rsquo;s systems. Nothing on this
-            site talks to a McDonald&rsquo;s server.
+            Nothing on this site talks to a McDonald&rsquo;s server.
+            {HAS_LICENSED_FEED
+              ? " A feed’s prices are that feed’s own record; how it gathers them is stated beside its name above."
+              : " No data is collected from McDonald’s systems."}
           </p>
         </Section>
       </div>

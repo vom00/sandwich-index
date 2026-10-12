@@ -9,6 +9,7 @@ import {
   isStale,
   reconcile,
   statusForSubmission,
+  type ObservedPrice,
   type PriceCandidate,
 } from "@/lib/pricing";
 import { STALE_AFTER_DAYS } from "@/types";
@@ -131,6 +132,7 @@ describe("reconcile — the set price", () => {
       confirmedCount: 0,
       priceCents: null,
       pricedAt: null,
+      priceFeed: null,
       heldPriceCents: null,
     });
   });
@@ -251,6 +253,108 @@ describe("reconcile — holding and corroboration", () => {
     // only the store document.
     const { changed } = reconcile([report(319, 0), report(329, 1)]);
     expect(changed).toEqual([]);
+  });
+});
+
+/** A feed observation at the given minute. */
+function observed(priceCents: number, minute: number, feed = "menupricetracker"): ObservedPrice {
+  return { priceCents, observedAt: at(minute), feed };
+}
+
+describe("reconcile — feed observations", () => {
+  it("prices a store nobody has reported, and says which feed did", () => {
+    const rollup = computeStoreRollup([], [observed(249, 0)]);
+
+    expect(rollup.priceCents).toBe(249);
+    expect(rollup.pricedAt).toBe(at(0));
+    expect(rollup.priceFeed).toBe("menupricetracker");
+  });
+
+  it("never counts an observation as a confirmation", () => {
+    // confirmedCount is how many people the price rests on. A feed is not
+    // people, and counting it would make a store look more vouched-for than it is.
+    const rollup = computeStoreRollup([], [observed(249, 0), observed(259, 10)]);
+
+    expect(rollup.confirmedCount).toBe(0);
+    expect(rollup.reportCount).toBe(0);
+  });
+
+  it("is replaced by a newer visitor report inside the gate", () => {
+    const rollup = computeStoreRollup([report(259, 10)], [observed(249, 0)]);
+
+    expect(rollup.priceCents).toBe(259);
+    expect(rollup.priceFeed).toBeNull();
+    expect(rollup.confirmedCount).toBe(1);
+  });
+
+  it("replaces an older visitor report", () => {
+    // Newest wins in both directions. A snapshot taken after an old receipt is
+    // better evidence of today's price than the receipt is.
+    const rollup = computeStoreRollup([report(259, 0)], [observed(279, 10)]);
+
+    expect(rollup.priceCents).toBe(279);
+    expect(rollup.pricedAt).toBe(at(10));
+    expect(rollup.priceFeed).toBe("menupricetracker");
+    expect(rollup.confirmedCount).toBe(1);
+  });
+
+  it("is never held, however far it moves the price", () => {
+    // The move gate makes one unvouched-for visitor prove a big jump. A feed's
+    // dated record of the menu is not that.
+    const rollup = computeStoreRollup([report(249, 0)], [observed(549, 10)]);
+
+    expect(rollup.priceCents).toBe(549);
+    expect(rollup.heldPriceCents).toBeNull();
+  });
+
+  it("still holds a visitor report that moves too far from an observed price", () => {
+    // The gate protects a feed-set price from one bad report, same as any other.
+    const { rollup, changed } = reconcile([report(899, 10)], [observed(249, 0)]);
+
+    expect(rollup.priceCents).toBe(249);
+    expect(rollup.heldPriceCents).toBe(899);
+    expect(changed).toEqual([{ index: 0, status: "pending" }]);
+  });
+
+  it("corroborates a held report it agrees with, promoting it", () => {
+    // Two visitors agreeing would promote the held report. A feed seeing the
+    // same menu is at least as good a second opinion.
+    const { rollup, changed } = reconcile(
+      [report(249, 0), report(449, 10, { status: "pending" })],
+      [observed(455, 20)],
+    );
+
+    expect(rollup.priceCents).toBe(455);
+    expect(rollup.priceFeed).toBe("menupricetracker");
+    expect(rollup.heldPriceCents).toBeNull();
+    expect(rollup.confirmedCount).toBe(2);
+    expect(changed).toEqual([{ index: 1, status: "accepted" }]);
+  });
+
+  it("drops, but does not promote, a held report it disagrees with", () => {
+    const { rollup, changed } = reconcile(
+      [report(249, 0), report(449, 10, { status: "pending" })],
+      [observed(259, 20)],
+    );
+
+    expect(rollup.priceCents).toBe(259);
+    expect(rollup.heldPriceCents).toBeNull();
+    expect(rollup.confirmedCount).toBe(1);
+    expect(changed).toEqual([]);
+  });
+
+  it("replays to the same answer whatever order the inputs arrive in", () => {
+    const reports = [report(249, 0), report(259, 30)];
+    const observations = [observed(239, 20), observed(255, 10)];
+
+    expect(computeStoreRollup(reports, observations)).toEqual(
+      computeStoreRollup([...reports].reverse(), [...observations].reverse()),
+    );
+  });
+
+  it("leaves a store with no observations exactly as the visitor-only replay did", () => {
+    const reports = [report(319, 0), report(899, 10), report(905, 20)];
+    expect(computeStoreRollup(reports, [])).toEqual(computeStoreRollup(reports));
   });
 });
 

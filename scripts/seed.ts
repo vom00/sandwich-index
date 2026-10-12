@@ -70,13 +70,6 @@ function pick<T>(items: readonly T[]): T {
 }
 
 /**
- * Refuse to touch anything that is not the emulator.
- *
- * Two independent checks, because either one alone has a failure mode: the
- * host variable could point at a real instance, and a demo project id could be
- * paired with a live connection.
- */
-/**
  * Reject a nonsense seed area before it reaches Overpass.
  *
  * A mistyped `SEED_LAT` becomes `NaN`, which Overpass answers with a parse
@@ -108,6 +101,13 @@ function assertSeedArea(): void {
   }
 }
 
+/**
+ * Refuse to touch anything that is not the emulator.
+ *
+ * Two independent checks, because either one alone has a failure mode: the
+ * host variable could point at a real instance, and a demo project id could be
+ * paired with a live connection.
+ */
 function assertEmulator(): void {
   const host = process.env.FIRESTORE_EMULATOR_HOST;
   const projectId = process.env.FIREBASE_PROJECT_ID ?? "";

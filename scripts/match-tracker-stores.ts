@@ -10,20 +10,14 @@
  * not have permission to republish (see research/price-sources.md). Matching
  * them against our stores is verification — importing them would be
  * republication, which is a licensing decision the code refuses to make by
- * simply not having a write path. If permission arrives, the import belongs in
- * its own script with a provenance field, not a flag on this one.
+ * simply not having a write path. That import now exists as its own script,
+ * scripts/import-observations.ts, with provenance on every row and a licence
+ * check that keeps an unlicensed feed inside the emulator. Its dry run is a
+ * superset of this report; this stays as the zero-risk read-only version.
  *
- * Matching strategy, learned from the Lewisville sample: street NAMES alias
- * freely between sources ("Round Grove Road" is "FM 3040", "S Business 121"
- * is "S Hwy 121") and even ZIPs disagree between them, but the street NUMBER
- * + city pair held for **15 of 15** sampled stores with nothing ambiguous.
- * So the join key is (city, street number).
- *
- * It works because two McDonald's in one city almost never share a street
- * number — the number is nearly a key by itself and the city merely scopes
- * it. "Almost never" is why a row matching more than one store is reported
- * as AMBIG for a human instead of being resolved by guessing; at full DFW
- * scale that branch is the one to watch.
+ * Matching is (city, street number), and lives in src/lib/feed-match.ts, which
+ * says why and is unit-tested. This script and the import share it, so they
+ * cannot disagree about which store a row belongs to.
  *
  * Run: npx tsx --conditions=react-server --env-file=.env.local scripts/match-tracker-stores.ts
  */
@@ -31,6 +25,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { matchFeedRow } from "../src/lib/feed-match";
 import { getAdminDb } from "../src/lib/firebase/admin";
 
 interface TrackerRow {
@@ -39,32 +34,6 @@ interface TrackerRow {
   zip: string;
   mcchickenCents: number | null;
   url: string;
-}
-
-interface OurStore {
-  id: string;
-  address: string | null;
-  locality: string | null;
-  priceCents: number | null;
-}
-
-/** "8435 N Beltline Road" → "8435". Null when there is no leading number. */
-function streetNumber(address: string): string | null {
-  const match = /^(\d+)\b/.exec(address.trim());
-  return match?.[1] ?? null;
-}
-
-/** The city segment of "813 South MacArthur Boulevard, Coppell, TX 75019". */
-function cityOf(store: OurStore): string | null {
-  const source = store.address ?? store.locality;
-  if (source === null) return null;
-  const parts = source.split(",").map((part) => part.trim());
-  // "street, city, ST zip" — city is the second-to-last segment.
-  return parts.length >= 2 ? (parts[parts.length - 2] ?? null) : null;
-}
-
-function normalise(value: string): string {
-  return value.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
 async function main(): Promise<void> {
@@ -78,7 +47,7 @@ async function main(): Promise<void> {
 
   const db = getAdminDb();
   const snapshot = await db.collection("stores").get();
-  const stores: OurStore[] = snapshot.docs.map((doc) => {
+  const stores = snapshot.docs.map((doc) => {
     const data = doc.data();
     return {
       id: doc.id,
@@ -93,19 +62,13 @@ async function main(): Promise<void> {
   let missed = 0;
 
   for (const row of rows) {
-    const number = streetNumber(row.address);
-    const city = normalise(row.city);
-
-    const candidates = stores.filter((store) => {
-      const storeCity = cityOf(store);
-      const storeNumber = store.address === null ? null : streetNumber(store.address);
-      return (
-        storeNumber !== null &&
-        storeNumber === number &&
-        storeCity !== null &&
-        normalise(storeCity) === city
-      );
-    });
+    const match = matchFeedRow(row, stores);
+    const candidates =
+      match.kind === "match"
+        ? stores.filter((store) => store.id === match.storeId)
+        : match.kind === "ambiguous"
+          ? stores.filter((store) => match.storeIds.includes(store.id))
+          : [];
 
     const price =
       row.mcchickenCents === null ? "  (no per-store price sampled)" : ` — their McChicken $${(row.mcchickenCents / 100).toFixed(2)}`;

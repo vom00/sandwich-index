@@ -75,16 +75,26 @@ export interface Store {
    */
   confirmedCount: number;
   /**
-   * What this restaurant charges: the most recent accepted report, not an
-   * average of anything. Null when nobody has established it yet.
+   * What this restaurant charges: the most recent accepted report or feed
+   * observation, not an average of anything. Null when nothing has established
+   * it yet.
    *
    * Written exclusively by the Admin SDK via the recompute path. A
    * client-writable price would defeat the move gate entirely, since the gate
    * in firestore.rules tests a new report against this value.
    */
   priceCents: number | null;
-  /** ISO 8601. When `priceCents` was reported. Null when there is no price. */
+  /**
+   * ISO 8601. When `priceCents` was reported or observed. Null when there is no
+   * price.
+   */
   pricedAt: string | null;
+  /**
+   * The feed whose observation set `priceCents` (see `lib/feeds.ts`), or null
+   * when a visitor's report did. Every surface that shows the price shows where
+   * it came from, so this is never optional to render.
+   */
+  priceFeed: string | null;
   /**
    * A report that moved the price too far to apply on its own and is waiting
    * for a second opinion. Null when there is nothing outstanding.
@@ -111,6 +121,32 @@ export interface Submission {
 }
 
 export type SubmissionWithId = Submission & { id: string };
+
+/**
+ * A price a feed observed, as opposed to one a visitor reported.
+ *
+ * Kept apart from `Submission` on purpose. A submission is a person vouching
+ * for a receipt and counts toward a store's confidence; an observation is a
+ * third party's record, shown under its own name and date. Merging them would
+ * either inflate the "N prices" a store rests on or hide where a number came
+ * from — and the second is the thing this project exists not to do.
+ *
+ * Written only by the import script through the Admin SDK.
+ */
+export interface Observation {
+  storeId: string;
+  priceCents: number;
+  /** ISO 8601. When the feed saw this price, which is not when it was imported. */
+  observedAt: string;
+  /** Feed id from `lib/feeds.ts`. */
+  feed: string;
+  /** The feed's own page for this store, when it has one. */
+  sourceUrl: string | null;
+  /** ISO 8601. When the import first wrote this observation. */
+  importedAt: string;
+}
+
+export type ObservationWithId = Observation & { id: string };
 
 /**
  * Private per-device, per-store write ledger backing the 24h rate limit.

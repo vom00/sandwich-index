@@ -8,8 +8,9 @@
  * second is what somebody standing in a car park wants to know, and it is the
  * only one that can be right or wrong in a way a contributor can correct.
  *
- * The rule: **a store's price is its most recent accepted report.** Prices are
- * replaced, never averaged.
+ * The rule: **a store's price is its most recent accepted report, or its most
+ * recent feed observation if that is newer.** Prices are replaced, never
+ * averaged, and the rollup records which kind set it so it can be labelled.
  *
  * What stops one bad report from becoming the price is the same gate as before,
  * repointed: a report that moves the price by more than `BIG_MOVE_PERCENT` is
@@ -102,16 +103,35 @@ export function statusForSubmission(
   return isBigMove(priceCents, currentCents) ? "pending" : "accepted";
 }
 
+/**
+ * A feed's record of what a store charged, as the replay sees it.
+ *
+ * See `Observation` in `@/types` for why these are not submissions.
+ */
+export interface ObservedPrice {
+  priceCents: number;
+  /** ISO 8601. When the feed saw the price. */
+  observedAt: string;
+  /** Feed id, carried through so the rollup can say who set the price. */
+  feed: string;
+}
+
 /** The denormalized pricing fields a store document carries. */
 export interface StoreRollup {
-  /** Every report ever made about this store, whatever its source or status. */
+  /** Every visitor report ever made about this store, whatever its source or status. */
   reportCount: number;
-  /** Reports that were eligible to set the price. The confidence signal. */
+  /**
+   * Visitor reports that were eligible to set the price. The confidence signal.
+   * Feed observations never count here: this number is how many *people* the
+   * price rests on, and a feed is not people.
+   */
   confirmedCount: number;
-  /** What the store charges. Null when nobody has established it. */
+  /** What the store charges. Null when nothing has established it. */
   priceCents: number | null;
-  /** ISO 8601. When the price above was reported. Null when there is none. */
+  /** ISO 8601. When the price above was reported or observed. Null when there is none. */
   pricedAt: string | null;
+  /** The feed that set the price, or null when a visitor report did. */
+  priceFeed: string | null;
   /**
    * A report waiting on corroboration, if there is one outstanding.
    *
@@ -159,16 +179,46 @@ export interface Reconciliation {
  * That last clause is what rescues a store whose first-ever report was a typo:
  * the wrong price cannot be beaten by one correction, but two corrections that
  * agree with each other will always win, no matter how wrong the original was.
+ *
+ * Feed observations join the same timeline, ordered by when the feed saw the
+ * price. An observation is a dated record of what the menu said rather than a
+ * claim waiting on a second opinion, so it is never held: it sets the price
+ * the way a first report does. It can, though, *be* the second opinion. A held
+ * report that the feed then corroborates is promoted, which is exactly what
+ * two agreeing reports would have done. Newest still wins in both directions —
+ * a visitor's receipt from last Tuesday replaces a feed's monthly snapshot,
+ * and a newer snapshot replaces an older receipt.
  */
-export function reconcile(submissions: readonly PriceCandidate[]): Reconciliation {
-  // Oldest first. Ties broken by input order, which is stable.
-  const ordered = submissions
-    .map((submission, index) => ({ submission, index }))
-    .filter(({ submission }) => !PRICE_EXCLUDED_SOURCES.includes(submission.source))
-    .sort((a, b) => a.submission.submittedAt.localeCompare(b.submission.submittedAt));
+export function reconcile(
+  submissions: readonly PriceCandidate[],
+  observations: readonly ObservedPrice[] = [],
+): Reconciliation {
+  type Event =
+    | { kind: "report"; at: string; submission: PriceCandidate; index: number }
+    | { kind: "observation"; at: string; observation: ObservedPrice };
+
+  // Oldest first. Ties broken by input order, which is stable — reports
+  // before observations, since they are listed first.
+  const events: Event[] = [
+    ...submissions
+      .map((submission, index) => ({ submission, index }))
+      .filter(({ submission }) => !PRICE_EXCLUDED_SOURCES.includes(submission.source))
+      .map(({ submission, index }): Event => ({
+        kind: "report",
+        at: submission.submittedAt,
+        submission,
+        index,
+      })),
+    ...observations.map((observation): Event => ({
+      kind: "observation",
+      at: observation.observedAt,
+      observation,
+    })),
+  ].sort((a, b) => a.at.localeCompare(b.at));
 
   let priceCents: number | null = null;
   let pricedAt: string | null = null;
+  let priceFeed: string | null = null;
   let confirmedCount = 0;
 
   /** The outstanding report waiting for a second opinion, if any. */
@@ -179,12 +229,29 @@ export function reconcile(submissions: readonly PriceCandidate[]): Reconciliatio
     if (status !== was) changed.push({ index, status });
   };
 
-  for (const { submission, index } of ordered) {
+  for (const event of events) {
+    if (event.kind === "observation") {
+      const observed = event.observation.priceCents;
+      if (held !== null && corroborates(observed, held.priceCents)) {
+        // The feed saw the price the held report claimed. That is the second
+        // opinion it was waiting for.
+        settle(held.index, "accepted", "pending");
+        confirmedCount += 1;
+      }
+      priceCents = observed;
+      pricedAt = event.at;
+      priceFeed = event.observation.feed;
+      held = null;
+      continue;
+    }
+
+    const { submission, index } = event;
     const { priceCents: reported, status: storedStatus } = submission;
 
     if (priceCents === null || !isBigMove(reported, priceCents)) {
       priceCents = reported;
       pricedAt = submission.submittedAt;
+      priceFeed = null;
       confirmedCount += 1;
       settle(index, "accepted", storedStatus);
       // Anything held is now stale gossip — the price moved for other reasons.
@@ -198,6 +265,7 @@ export function reconcile(submissions: readonly PriceCandidate[]): Reconciliatio
       settle(index, "accepted", storedStatus);
       priceCents = reported;
       pricedAt = submission.submittedAt;
+      priceFeed = null;
       confirmedCount += 2;
       held = null;
       continue;
@@ -213,6 +281,7 @@ export function reconcile(submissions: readonly PriceCandidate[]): Reconciliatio
       confirmedCount,
       priceCents,
       pricedAt,
+      priceFeed,
       heldPriceCents: held?.priceCents ?? null,
     },
     changed,
@@ -222,8 +291,9 @@ export function reconcile(submissions: readonly PriceCandidate[]): Reconciliatio
 /** The rollup alone, for callers that do not care about status corrections. */
 export function computeStoreRollup(
   submissions: readonly PriceCandidate[],
+  observations: readonly ObservedPrice[] = [],
 ): StoreRollup {
-  return reconcile(submissions).rollup;
+  return reconcile(submissions, observations).rollup;
 }
 
 /**

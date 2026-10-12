@@ -470,3 +470,48 @@ describe("submission log visibility", () => {
     await assertFails(getDoc(doc(beta, "rateLimits", `${UID}_${STORE_ID}`)));
   });
 });
+
+describe("server-only bookkeeping", () => {
+  // Neither collection is named in firestore.rules, so both fall through to
+  // Firestore's default deny. That is the intended protection, and it is
+  // invisible in the rules file, so it is pinned here. A client that could
+  // write `syncLog` could mark any area as synced and freeze its store list; one
+  // that could write `syncBudget` could zero the Overpass ceiling and switch the
+  // abuse limit off.
+  for (const path of ["syncLog/9vfs", "syncBudget/overpass"]) {
+    it(`refuses client reads and writes to ${path}`, async () => {
+      const db = authedDb(UID);
+      const [collection, id] = path.split("/") as [string, string];
+
+      await assertFails(getDoc(doc(db, collection, id)));
+      await assertFails(setDoc(doc(db, collection, id), { used: 0 }));
+      await assertFails(getDoc(doc(anonDb(), collection, id)));
+    });
+  }
+});
+
+describe("feed observations", () => {
+  const sample = {
+    storeId: STORE_ID,
+    priceCents: 249,
+    observedAt: Timestamp.now(),
+    feed: "menupricetracker",
+    sourceUrl: null,
+    importedAt: Timestamp.now(),
+  };
+
+  it("are public to read, so a store page can say where its price came from", async () => {
+    await testEnv.withSecurityRulesDisabled(async (admin) => {
+      await setDoc(doc(asModular(admin), "observations", "seeded"), sample);
+    });
+
+    await assertSucceeds(getDoc(doc(anonDb(), "observations", "seeded")));
+  });
+
+  it("cannot be written by a client, signed in or not", async () => {
+    // An observation can set a store's price. A client that could write one
+    // could set any price it liked and skip the move gate on the way.
+    await assertFails(setDoc(doc(authedDb(UID), "observations", "forged"), sample));
+    await assertFails(setDoc(doc(anonDb(), "observations", "forged"), sample));
+  });
+});

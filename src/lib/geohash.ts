@@ -130,6 +130,35 @@ function mergeToRanges(cells: readonly string[]): Array<[string, string]> {
   return ranges;
 }
 
+/**
+ * The circle a sync has to fetch so that every point inside `cell` gets its
+ * whole search radius.
+ *
+ * Centred on the cell rather than on whoever asked, and reaching out by the
+ * radius plus the distance to the cell's farthest corner. Anything less leaves
+ * a gap: a precision-4 cell is roughly 20 x 33 km, so two visitors in the same
+ * cell can stand 38 km apart, and a 15-mile sync centred on the first of them
+ * covers only about 11% of the second one's search area.
+ */
+export function cellCoverage(
+  cell: string,
+  radiusMeters: number,
+): { center: LatLng; radiusMeters: number } {
+  const [minLat, minLng, maxLat, maxLng] = ngeohash.decode_bbox(cell);
+  const center = { lat: (minLat + maxLat) / 2, lng: (minLng + maxLng) / 2 };
+
+  // All four corners, not one: a degree of longitude is shorter on the
+  // poleward edge, so the corners are not equidistant from the centre.
+  const halfDiagonal = Math.max(
+    distanceMeters(center, { lat: minLat, lng: minLng }),
+    distanceMeters(center, { lat: minLat, lng: maxLng }),
+    distanceMeters(center, { lat: maxLat, lng: minLng }),
+    distanceMeters(center, { lat: maxLat, lng: maxLng }),
+  );
+
+  return { center, radiusMeters: radiusMeters + halfDiagonal };
+}
+
 /** Trim prefix-query results down to the true radius. */
 export function filterByRadius<T extends LatLng>(
   items: readonly T[],

@@ -1,4 +1,4 @@
-# Audit log — 2026-08-10 to 2026-08-11 loop session
+# Audit log
 
 What the continuous audit found while the owner was away. Bugs are listed
 with what was actually wrong, because "fixed X" without the failure mode is
@@ -526,3 +526,153 @@ ids 404 rather than 500.
 these schemas have had. It asserts every spelling of blank is refused while a
 genuine `lat=0, lng=0` still parses, since the guard must reject absence, not
 the value. Unit suite 118, total 510.
+
+
+---
+
+# 2026-10-11 — audit after the move to `C:\dev`, then the price-feed build
+
+The project moved out of OneDrive (the old copy no longer exists) and gained a
+git repo: one commit, private remote. A full audit came first. The owner then
+asked for accurate prices that do not depend on visitors, which is the
+research in `price-sources.md` and the provenance build below.
+
+## Security: `next` was pinned to a version with nine advisories
+
+`package.json` pinned `next` to exactly `16.3.0`, the create-next-app default,
+so no routine update ever moved it. `npm audit` listed nine advisories against
+it, one critical: "Unauthenticated Remote Code Execution on Windows-hosted
+servers" (GHSA-p293-qw3h-jr36, fixed in 16.3.3). This machine is Windows, and
+`next dev` binds `0.0.0.0` and `[::]`. It announced itself on the LAN at
+`192.168.75.1:3000` during the audit. Whether that advisory covers dev mode
+was not established, so it was treated as exposed.
+
+Fixed by pinning `16.3.8`, the patch release that clears all nine, rather
+than `16.4.0`, which would also have brought in a minor version's new
+behaviour. `eslint-config-next` was moved to match. `npm audit fix` (no
+`--force`) took the rest of the transitive issues: 46 findings with 2 critical
+became 20 with none. Production dependencies went from 15 to 4.
+
+The four left are one chain. `firebase` pins `@grpc/grpc-js ~1.9.0`, and no
+patched 1.9.x exists. The advisories concern grpc *servers* (mTLS auth context,
+server error messages), and this app is only ever a grpc client; in the
+browser, Firestore does not use grpc at all. Forcing 1.14 under Firebase
+would be an untested override of its internals, so it was left alone, with the
+reason recorded here.
+
+## The sync gate covered a fraction of the area it vouched for
+
+`syncAreaIfStale` keyed freshness on a precision-4 geohash cell, and its
+comment called that "comparable to a 15-mile search radius". It isn't. The
+Coppell cell measures 19.5 x 32.8 km; a 15-mile circle is about 48 km across.
+Two visitors in one cell can stand 37.9 km apart. A sync centred on the first
+of them covers 11.5% of the second visitor's search area. That was computed by
+Monte Carlo and then checked by hand with the circle-intersection formula. The
+gate then told the second visitor the area was fresh for seven days.
+
+Two further problems were in the same function. It ignored the radius, so one
+request with `radiusMiles=0.1` marked a whole cell as synced for a week while
+fetching almost nothing. And nothing limited how many Overpass queries the
+unauthenticated route could cause in total, so posting a new cell's
+coordinates every second would have made this server an amplifier aimed at
+donated infrastructure.
+
+Fixed:
+
+- Each sync now fetches around the cell's centre, out to the radius plus the
+  cell's half-diagonal (`cellCoverage`, 43.2 km for 15 miles at DFW). The unit
+  tests sample random points at four latitudes, including Anchorage and
+  Ushuaia where the corners are least symmetric, to prove every point in the
+  cell gets its whole circle.
+- `syncLog` records `coverageMeters`, and a cell only counts as fresh if its
+  last sync reached at least as far as the request needs. Entries written
+  before this count as covering nothing and re-sync once.
+- A site-wide budget of 60 Overpass queries an hour, kept in a Firestore
+  transaction. Past it, the route answers 429 with `Retry-After`. A query is
+  spent even when Overpass then fails, because the failed request still landed
+  on someone's server.
+
+Verified against real Overpass, not only the tests. The first call hit all
+three mirrors failing (406 / 500 / 504, the flakiness already on record from
+August); it returned 503 and, correctly, did not mark the cell synced. The
+next call, from the opposite corner, synced the whole coverage (222 stores).
+A call from the first corner then got a cached answer.
+
+## The dev snapshot was half-migrated, so every price check failed on a fresh start
+
+`.emulator-data` still held the 15 seeded stores in the *median* model:
+`medianPriceCents`, `priceCount` and `latestPriceCents`, with no set-price
+rollup. Every price-dependent browser check failed against it. The failures
+were in the data, not the app: on a clean start the map showed 83 stores and
+zero prices.
+
+The repair path already existed: `POST /api/stores/{id}/recompute` derives the
+rollup from submissions. Running it on all 15 migrated them cleanly. The new
+set prices sit within a few cents of the old medians, as they should, and one
+store correctly shows a held $8.65 outlier. The dead median fields were
+removed. Two never-priced stores were missing rollup fields altogether, which
+the rules tolerate (`data.get('priceCents', null)`), but they now carry the
+same zeroed fields as every other store.
+
+The snapshot was then exported with `firebase emulators:export` *before* any
+test ran, so it holds the migration and nothing else. The pre-migration copy
+went to the session scratchpad, which does not outlive the session. That is
+acceptable because the migration is derived and repeatable, but it means the
+old snapshot is gone.
+
+## `map-race.js` depended on data the seed never creates
+
+The stale-load race suite from 2026-08-11 used Los Angeles as its second
+location. LA had been synced by hand on 2026-08-10, so the suite passed then
+and timed out on any fresh setup. It was also missing from every npm script
+and from the README's counts, so nothing ran it. It now serves the second
+location as a fixture (real DFW records with new ids, moved to LA), which
+makes "no store from the abandoned location is on screen" a meaningful check.
+It is wired into `test:browser`. A scratch copy was run first to confirm the
+race guard itself still holds: 7/7.
+
+## The leaked emulator is now cleaned up by the project, not by hand
+
+`firebase emulators:exec` on Windows leaves the Firestore Java process on 8085
+after every `test:emulated` and `test:rules` run, and the next run dies with
+"port taken". It leaked three times in this session alone.
+`scripts/stop-test-emulator.mjs` now runs as `pre` and `post` hooks on both
+scripts. It only touches a process that listens on the *test* port read from
+`firebase.itest.json`, so never the dev emulator, and whose command line says
+`cloud-firestore-emulator`. The `pre` hook matters because npm skips `post`
+hooks when tests fail.
+
+## Price feeds: provenance before any feed
+
+Research concluded that no free, automated, per-store, usable source exists
+(see `price-sources.md`). What was built is the part every option needs:
+
+- An `observations` collection, kept apart from `submissions`: public read,
+  Admin SDK write.
+- `priceFeed` on every store.
+- A feed registry with a `licence` field.
+- A replay that merges observations into the set-price timeline. An
+  observation is never held, can corroborate a held report, and never counts
+  toward `confirmedCount`.
+- An import script that dry-runs by default and refuses to write an
+  unlicensed feed anywhere but the emulator.
+- Provenance on every surface that shows a price.
+
+Site copy promising "every price was paid by a person" is keyed off whether
+any feed is licensed.
+
+End to end on the emulator: the August sample file matched 4 of 4 priced rows
+against 222 stores, with nothing ambiguous. A second import wrote nothing,
+and re-imports never refresh `importedAt`. Pointing `--write` at a non-demo
+project id refused before touching the database. Coppell now shows "$2.49 ·
+from MenuPriceTracker · observed 2 months ago", with a link to the source.
+
+## Noticed, not changed
+
+- The seed's synthetic prices average about $3.46 around Coppell, roughly a
+  dollar above the $1.99 to $2.59 MenuPriceTracker reports for the same area.
+  It's synthetic by design, but a dev demo now shows a real feed price as
+  "28% cheaper than the area". Several browser suites pin the seed's values,
+  so recalibrating it is its own change.
+- MenuPriceTracker's trustworthiness went *down* on re-inspection: dates
+  contradict each other across its own pages. See `price-sources.md`.

@@ -42,9 +42,24 @@ export async function POST(request: Request): Promise<NextResponse> {
   const radiusMeters = milesToMeters(radiusMiles);
 
   try {
-    const result = await syncAreaIfStale({ lat, lng }, radiusMeters, () =>
-      fetchNearbyStores(lat, lng, radiusMeters),
+    // The gate decides what circle to fetch — the whole cell's coverage, not
+    // just this caller's — so the fetcher takes its arguments from the gate.
+    const result = await syncAreaIfStale({ lat, lng }, radiusMeters, (center, meters) =>
+      fetchNearbyStores(center.lat, center.lng, meters),
     );
+
+    if (result.deferred) {
+      // The site-wide Overpass budget is spent. The geocoder is donated
+      // infrastructure too, so the backfill waits as well; the map still has
+      // everything already in the database.
+      return NextResponse.json(
+        { error: "Store sync is rate limited right now", ...result },
+        {
+          status: 429,
+          headers: { "Retry-After": String(Math.ceil((result.retryAfterMs ?? 0) / 1000)) },
+        },
+      );
+    }
 
     // Best effort by design. An address we could not look up is a cosmetic
     // gap; failing the whole sync over it would throw away the store list too.

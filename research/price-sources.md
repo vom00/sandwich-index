@@ -5,10 +5,169 @@ at that specific store — a number someone was charged, not a metro median.
 Once the app is deployed, user logging keeps it fresh; this document is about
 where the *initial* accurate number comes from and how to verify it.
 
-Status: **a definitive per-store source exists and is publicly browsable.**
+Status (2026-10-11): **no source is accurate, automated, per-store and usable
+without someone's permission all at once.** The only primary source is the
+McDonald's app, and automated access to it is off the table. Every per-store
+alternative is either somebody's scrape of that app, whose freshness can't be
+verified, or an enterprise data contract. The August conclusion below ("a
+definitive per-store source exists") is superseded. See the next section.
 (Loop started 2026-08-10.)
 
-## The short answer
+## 2026-10-11: getting prices without people submitting them
+
+The owner asked for accurate McChicken prices that do not depend on visitors
+logging what they paid. Every route that came up, graded on four questions:
+is it per store, is it accurate *now*, can it be automated, and can we use it?
+
+| Source | Per store | Current | Automatable | Usable | Verdict |
+|---|---|---|---|---|---|
+| McDonald's app (the primary source) | yes | yes | only by impersonating the app | **no**: signed-in API; terms ban automated extraction | ground truth, but off limits |
+| MenuPriceTracker | yes | **can't tell** | technically | needs a licence | spot-check only until licensed *and* verified |
+| Datassential Price Monitor / RMS Competitor Price Intelligence | yes | monthly | yes, as a delivered feed | enterprise contract; public-display rights unknown | the only clean "buy it" route |
+| McDelivery / DoorDash / Uber Eats menus | yes | yes | blocked (403) | ToS; and the price is wrong | delivery runs ~27% above in-store |
+| Technomic Menu Price Pulse | no (state / metro) | quarterly | feed | enterprise | sanity band only |
+| Apify "McDonald's menu" actors | no (national) | n/a | yes | paid | not per store |
+
+### Why prices matter more now: McDonald's ML pricing engine
+
+Reuters reported on 2026-09-29 that McDonald's runs a machine-learning engine
+that produces an "optimal price" for each item at each of its ~14,000 US
+restaurants. Inputs include local willingness to pay and nearby Wendy's and
+Burger King menu prices. Three franchisees said it has *widened* gaps between
+neighbouring stores. Reuters found a Big Mac at $5.69 at one company-run Fresno
+store and $6.89 two miles away, a 21% gap, without establishing that the engine
+caused it. McDonald's calls it "a tool, not a mandate" and says it does no
+real-time or individual pricing. A nationwide class action filed in Chicago
+(reported 2026-10-06) alleges AI-coordinated pricing; McDonald's denies it.
+([CNBC](https://www.cnbc.com/2026/09/29/inside-mcdonalds-push-ai-price-big-mac.html),
+[Yahoo Finance](https://finance.yahoo.com/technology/ai/articles/mcdonald-ai-pricing-engine-widening-025257931.html),
+[TheNextWeb](https://thenextweb.com/news/mcdonalds-ai-pricing-engine-franchisees-reuters),
+[TheStreet](https://www.thestreet.com/investing/mcdonalds-ai-pricing-franchisees-lawsuit))
+
+Two consequences for this app. Per-store variation is now a documented,
+intended feature of how McDonald's prices, which strengthens the premise. And
+prices can move between monthly snapshots, so every price must carry the date
+it was observed and age visibly. A number with no date is not "accurate".
+
+### The McDonald's app: the right data, the wrong way to get it
+
+It is the only primary source: Reuters itself used it for the Fresno check.
+Everything else per-store is derived from it. But reading it programmatically
+means the app's private API:
+
+- The unofficial wrappers sign in to an account ("required for most methods",
+  [reteps/mcdonalds-api-wrapper](https://github.com/reteps/mcdonalds-api-wrapper)).
+  The one open-source per-store price comparer
+  ([CyrilSLi/mcdonalds-price-tracker](https://github.com/CyrilSLi/mcdonalds-price-tracker))
+  needs request headers captured from the app plus "the latest login refresh
+  request". This is authenticated access, not reading a public page.
+- McDonald's Terms of Use bar using "any unauthorized technology or automated
+  system to access the online services or extract content ... including ...
+  spiders, robots, screen scrapers" (as recorded by
+  [ConductAtlas](https://conductatlas.com/platform/mcdonalds/mcdonalds-terms-of-use/provision/CA-P-050506/prohibition-on-automated-scraping-of-online-services/),
+  document dated 2026-05-05; the
+  [official page](https://www.mcdonalds.com/us/en-us/mcdonalds-app/tcen.html)
+  returns 403 to automated fetches, so it was not read first-hand).
+- The legal line courts have drawn is logged-in versus logged-out.
+  *Meta v. Bright Data* (N.D. Cal., 2024-01-23) found logged-off scraping of
+  public data was not a contract breach. *hiQ* still got in trouble for the
+  accounts it created to scrape logged-in data
+  ([summary](https://www.fbm.com/post/102kqw7/)). An app API behind a sign-in
+  sits on the wrong side of that line, with a ToS the account holder accepted.
+
+Decision: **this project does not build or run an app scraper.** mcbroken
+famously did, for ice cream machines, but it was one person accepting that
+risk on their own account. It is not a sound foundation for a public index.
+That is not legal advice; if the owner ever wants to revisit it, it is a
+question for a lawyer, not for code.
+
+### MenuPriceTracker, re-checked: the dates can't be trusted
+
+Coppell, 813 Macarthur Blvd: McChicken **$2.49**, Big Mac **$5.89**. Both are
+identical to the values recorded from its 2026-08-03 data. The page now says "last verified
+October 2026" and "Last updated: October 5, 2026". Unchanged prices are
+possible. The problem is that the site cannot be read consistently about when
+anything was refreshed:
+
+- The homepage hero says "Last Updated: April 16, 2026", its FAQ says
+  "October 2026", and its footer says "Last updated: 181 days ago" (≈ mid-April).
+- The methodology says prices are "pulled from the McDonald's app" in one
+  place and "collected and aggregated from publicly available sources" in
+  another.
+- Store pages carry templated FAQ text, reviews dated only "N months ago", and
+  claims that contradict the page's own numbers (Big Mac "at or below the
+  national average" next to a breakdown showing it $0.84 above the state's).
+- The /about page still names an editorial lead (Joyce Kim), but the
+  corrections address is obfuscated and no legal entity, API, data download or
+  reuse terms are published.
+
+The per-store numbers may well be real app scrapes. The issue is that a
+"verified" date we can't trust is worse than no date, because it makes a stale
+price look fresh. If the owner licenses this data, the licence has to come with
+the *observation date per store*, and the import must be spot-checked against
+receipts before anything is shown as current. Until then it stays what August
+already said it was: a free cross-check for one store at a time.
+
+### Delivery menus are a different price, not a noisy copy of the same one
+
+McDonald's and DoorDash launched a no-login web ordering site for McDelivery
+on 2025-08-13 (`mcdonalds.order.online`), so per-store menus are technically on
+the open web. But restaurants set delivery prices themselves, and they're
+higher: Gordon Haskett found a Big Mac + QPC + 20 McNuggets at $22.87 in-store
+versus $28.97 on DoorDash and Uber Eats, a **27% premium**
+([Restaurant Business](https://www.restaurantbusinessonline.com/technology/food-delivery-insanely-expensive-consumers-dont-seem-care)).
+The markup varies by franchisee, so it can't be subtracted back out. The storefront
+also answers 403 to automated fetches. The app already excludes delivery
+reports from the index for exactly this reason (`tests/unit` covers it); a
+delivery feed would reintroduce the same error at scale.
+
+### Enterprise menu intelligence: the clean way to buy it
+
+- **Datassential Price Monitor** captures "90,000 location specific major
+  restaurant brand menus each month", delivered as dashboards and downloads.
+  Pricing is enterprise-only
+  ([Datassential](https://datassential.com/resource/datassential-ai-powered-competitive-menu-pricing-food-beverage-companies/)).
+- **RMS Competitor Price Intelligence** benchmarks pricing across up to
+  170,000 QSR and casual locations
+  ([Restaurant Technology News](https://restauranttechnologynews.com/2023/06/revenue-management-solutions-launches-platform-that-gives-restaurant-operators-access-to-menu-price-change-data/)).
+  RMS has done consulting work *for* McDonald's, which may complicate a
+  licence that republishes McDonald's prices.
+- **Technomic** publishes quarterly state / metro indexes and signature-item
+  averages (Big Mac $5.47 in Q4 2024)
+  ([Technomic](https://technomic.com/press-new-pricing-index-report)). Useful as
+  a sanity band, not as store prices.
+
+These vendors sell competitive intelligence to restaurant operators.
+Whether any of them will license per-store prices for *public display* on a
+free site is unknown. That's the first question to ask, before price.
+
+### What was checked and dropped
+
+- **Apify's McDonald's actors**: national menu with nutrition data (via a
+  "DNA API"), no store input, 17 users. Not per store.
+- **PriceListo** (claims 12,827 locations): 403 to automated fetches;
+  method and freshness unknown.
+- **McCheapest**: still defunct (see below).
+
+### What this means for the build
+
+1. The app needs **provenance** before it can take prices from anywhere other
+   than visitors. That means a price with a source, a method, an observation
+   date and a licence note, shown as such in the UI and ageing out like any
+   other price. **Built 2026-10-11**: the `observations` collection, the feed
+   registry in `src/lib/feeds.ts`, `npm run import:observations`, and labels
+   on every surface. See the README's "Price feeds" section. The four priced
+   rows in `tracker-samples.json` match 4/4 against the dev data and import
+   into the emulator only; the script refuses to write an unlicensed feed
+   anywhere else.
+2. Which feed fills it is the owner's decision, because each option costs
+   money, an email, or both: a Datassential / RMS enquiry, the MenuPriceTracker
+   licensing email drafted below, or both.
+3. Visitor logging stays. It isn't the source of truth the owner wants, but
+   it's the only way a monthly feed learns that a price moved last Tuesday,
+   and with an ML engine repricing stores, that will happen.
+
+## The short answer (2026-08-10, superseded above)
 
 1. **The source is MenuPriceTracker** — real per-store McChicken prices,
    app-sourced, monthly, covering 276 DFW restaurants and 9,200+ nationally.
@@ -226,6 +385,10 @@ premise of this site being wishful. Reasonable material for `/about` if the
 owner ever wants a citation.
 
 ## Where this lands (for the owner)
+
+*(Superseded 2026-10-11: the draft below calls this source "best-verified",
+which the October re-check no longer supports. Send the revised version in
+`feed-outreach.md`, which also has drafts for Datassential and RMS.)*
 
 Sampling their pages verified the source is real, fresh, per-store, and
 covers DFW almost 1:1 with our OSM data. Copying all 276 DFW stores' prices

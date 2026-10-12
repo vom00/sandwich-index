@@ -71,3 +71,4 @@ export function getAdminDb(): Firestore {
 export const STORES_COLLECTION = "stores";
 export const SUBMISSIONS_COLLECTION = "submissions";
 export const RATE_LIMITS_COLLECTION = "rateLimits";
+export const OBSERVATIONS_COLLECTION = "observations";

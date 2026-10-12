@@ -2,20 +2,24 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ObservationLog } from "@/components/store/ObservationLog";
 import { PriceComparison } from "@/components/store/PriceComparison";
 import { PriceHistory } from "@/components/store/PriceHistory";
 import { SubmissionLog } from "@/components/store/SubmissionLog";
 import { SubmitPriceButton } from "@/components/store/SubmitPriceButton";
 import { Confidence } from "@/components/ui/Confidence";
 import { StoreStateBadge } from "@/components/ui/StoreStateBadge";
+import { feedName } from "@/lib/feeds";
 import { formatCents } from "@/lib/money";
+import { priceAge } from "@/lib/provenance";
 import {
   getAreaComparison,
+  getObservationsForStore,
   getStore,
   getSubmissionsForStore,
 } from "@/lib/stores.server";
 import { storeLabel, storeLabelText } from "@/lib/store-label";
-import { displayStateFor, relativeAge } from "@/lib/tiers";
+import { displayStateFor } from "@/lib/tiers";
 import { storeIdSchema } from "@/lib/validation";
 
 /**
@@ -55,7 +59,9 @@ export async function generateMetadata(
     description:
       store.priceCents === null
         ? `No McChicken prices have been submitted for ${where} yet.`
-        : `McChicken priced at ${formatCents(store.priceCents)}, from ${store.confirmedCount} confirmed reports.`,
+        : store.priceFeed !== null
+          ? `McChicken priced at ${formatCents(store.priceCents)}, as observed by ${feedName(store.priceFeed)}.`
+          : `McChicken priced at ${formatCents(store.priceCents)}, from ${store.confirmedCount} confirmed reports.`,
   };
 }
 
@@ -65,9 +71,10 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
   const parsed = storeIdSchema.safeParse(id);
   if (!parsed.success) notFound();
 
-  const [store, submissions] = await Promise.all([
+  const [store, submissions, observations] = await Promise.all([
     getStore(parsed.data),
     getSubmissionsForStore(parsed.data),
+    getObservationsForStore(parsed.data),
   ]);
 
   if (store === null) notFound();
@@ -77,6 +84,14 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
 
   const state = displayStateFor(store);
   const label = storeLabel(store);
+
+  // The observation behind a feed-set price, so the figure can link to the
+  // page that vouches for it. The newest one from that feed is the one the
+  // replay used; nothing newer from the feed exists to have replaced it.
+  const behindPrice =
+    store.priceFeed === null
+      ? null
+      : (observations.find((observation) => observation.feed === store.priceFeed) ?? null);
 
   return (
     <main id="main" className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-8 sm:py-14">
@@ -98,7 +113,9 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
           ) : null}
         </h1>
         <p className="mt-2 text-sm text-ink-subtle">
-          Location from OpenStreetMap. Prices from whoever walked in and told us.
+          {observations.length === 0
+            ? "Location from OpenStreetMap. Prices from whoever walked in and told us."
+            : "Location from OpenStreetMap. Prices from visitors’ receipts and from the price feeds listed below, each under its own name."}
         </p>
       </header>
 
@@ -121,11 +138,21 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
                 <Confidence
                   sampleCount={store.confirmedCount}
                   totalCount={store.reportCount}
+                  priceFeed={store.priceFeed}
                 />
                 {store.pricedAt !== null ? (
-                  <span className="text-xs text-ink-subtle">
-                    last confirmed {relativeAge(store.pricedAt)}
-                  </span>
+                  <span className="text-xs text-ink-subtle">{priceAge(store)}</span>
+                ) : null}
+                {behindPrice?.sourceUrl ? (
+                  <a
+                    href={behindPrice.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="hover-accent inline-flex min-h-11 items-center text-xs underline decoration-rule underline-offset-2"
+                  >
+                    Check it at the source
+                    <span className="sr-only"> (opens {feedName(behindPrice.feed)} in a new tab)</span>
+                  </a>
                 ) : null}
               </div>
             </>
@@ -159,6 +186,13 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
         <h2 className="font-display text-2xl">Every report</h2>
         <SubmissionLog submissions={submissions} />
       </section>
+
+      {observations.length > 0 ? (
+        <section className="mt-12 border-t border-rule pt-8">
+          <h2 className="font-display text-2xl">From price feeds</h2>
+          <ObservationLog observations={observations} />
+        </section>
+      ) : null}
     </main>
   );
 }

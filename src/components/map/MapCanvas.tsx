@@ -6,6 +6,7 @@ import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 
 import type { LatLng } from "@/lib/geohash";
 import { formatCents } from "@/lib/money";
+import { provenanceSummary } from "@/lib/provenance";
 import { storeLabelText } from "@/lib/store-label";
 import {
   TIER_PRESENTATION,
@@ -82,7 +83,7 @@ function buildIcon(
       : state === "stale"
         ? `${priceLabel}, price is stale`
         : `${priceLabel}, ${presentation?.label ?? ""}`,
-    `${store.confirmedCount} ${store.confirmedCount === 1 ? "price" : "prices"}`,
+    provenanceSummary(store),
   ];
 
   const width = Math.max(64, priceLabel.length * 10 + 34);

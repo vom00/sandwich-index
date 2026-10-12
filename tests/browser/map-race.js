@@ -10,6 +10,7 @@
  *
  * This drives that exact sequence with the first ZIP's response held open, so it
  * fails against the unguarded version and passes against the generation guard.
+ * Needs only the standard seed: the second location is a fixture (see below).
  *
  * Usage: TARGET_URL=http://localhost:3000 node tests/browser/map-race.js
  */
@@ -43,6 +44,25 @@ async function enterZip(page, zip) {
   const context = await browser.newContext();
   const page = await context.newPage();
 
+  // The seeded emulator only holds DFW stores, and this suite must not depend on
+  // anyone having visited Los Angeles. So the second location is served from a
+  // fixture: real store records from the seed, given new ids and moved to LA.
+  // Distinct ids are what make "no store from the abandoned location is on
+  // screen" a meaningful assertion.
+  const dfw = await (await fetch(`${TARGET}/api/stores?lat=32.9673&lng=-96.9805&radiusMiles=15`)).json();
+  const laFixture = {
+    stores: dfw.stores.slice(0, 12).map((store, i) => ({
+      ...store,
+      id: `node-7700000${i}`,
+      osmId: `node-7700000${i}`,
+      lat: 34.0614 + i * 0.002,
+      lng: -118.2385,
+      address: `${100 + i} Fixture Street, Los Angeles, CA 90012`,
+      locality: 'Los Angeles, CA 90012',
+    })),
+  };
+  laFixture.count = laFixture.stores.length;
+
   // Hold the first /api/stores response open until we release it. Only the
   // first — the replacement load must be allowed to complete normally.
   let releaseFirst;
@@ -51,12 +71,21 @@ async function enterZip(page, zip) {
   let heldUrl = null;
 
   await page.route('**/api/stores?*', async (route) => {
+    const url = route.request().url();
     if (!seenFirst) {
       seenFirst = true;
-      heldUrl = route.request().url();
+      heldUrl = url;
       await firstHeld;
+      return route.continue();
     }
-    await route.continue();
+    if (new URL(url).searchParams.get('lat').startsWith('34.')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(laFixture),
+      });
+    }
+    return route.continue();
   });
 
   // The sync is irrelevant to this race and slow; stub it to a no-op so the

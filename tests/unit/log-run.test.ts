@@ -33,6 +33,7 @@ function store(overrides: Partial<StoreWithId> & { id: string }): StoreWithId {
     priceCents: null,
     heldPriceCents: null,
     pricedAt: null,
+    priceFeed: null,
     lastSyncedAt: NOW.toISOString(),
     ...overrides,
   };

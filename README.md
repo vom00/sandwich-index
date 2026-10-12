@@ -1,18 +1,22 @@
 # Sandwich Index
 
-A crowdsourced price index for the McChicken.
+A price index for the McChicken, store by store.
 
 McDonald's locations in the US are mostly franchisee-owned, and franchisees set
 their own menu prices. Two stores four miles apart can differ by more than a
-dollar for an identical sandwich. Nobody publishes that data. This builds it,
-one submitted price at a time.
+dollar for an identical sandwich. Nobody publishes that data. This builds it
+from two kinds of evidence, always labelled apart: prices visitors paid and
+logged, and dated observations from outside price feeds. No feed is licensed
+yet, so in production today every price is a visitor's. See
+[Price feeds](#price-feeds).
 
 > Sandwich Index is not affiliated with, endorsed by, or sponsored by
 > McDonald's Corporation. "McDonald's" and "McChicken" are trademarks of
 > McDonald's Corporation, used here only to describe the product being tracked.
 >
 > **Nothing in this codebase makes a request to a McDonald's-owned domain.**
-> Store locations come from OpenStreetMap; prices come from contributors.
+> Store locations come from OpenStreetMap; prices come from contributors and,
+> once one is licensed, from price feeds named beside every figure they supply.
 
 ---
 
@@ -26,17 +30,19 @@ one submitted price at a time.
 | 4 | Store detail: price history chart, comparison strip, full log, submit modal | Done |
 | 5 | Landing page: live hero figure, leaderboards, editorial treatment | Done |
 | 6 | Polish: motion sweep, axe audit, error/empty states, offline | Done |
+| 7 | Price feeds: provenance, feed registry, import pipeline, labelled UI | Built; no feed licensed |
 
-All six phases are complete. Deployment is the one open item — see
+All seven phases are built. Two items are open, and both belong to the owner:
+choosing and licensing a price feed (see [Price feeds](#price-feeds)), and
 [Deployment](#deployment).
 
 ### Test results
 
 | Suite | Count | Runner |
 | --- | --- | --- |
-| `tests/unit` | 118 | `npm test` |
-| `tests/rules` | 33 | `npm run test:emulated` |
-| `tests/integration` | 33 | `npm run test:emulated` |
+| `tests/unit` | 152 | `npm test` |
+| `tests/rules` | 37 | `npm run test:emulated` |
+| `tests/integration` | 46 | `npm run test:emulated` |
 | Phase 1 — foundation | 16 | `npm run test:browser` |
 | Phase 3 — map view | 32 | `npm run test:browser` |
 | Phase 4 — store detail and submit | 77 | `npm run test:browser` |
@@ -44,11 +50,12 @@ All six phases are complete. Deployment is the one open item — see
 | Phase 6 — hardening | 37 | `npm run test:browser` |
 | Bulk logging — `/log` | 36 | `npm run test:browser` |
 | Hydration | 9 | `npm run test:browser` |
+| Stale-load race on `/map` | 7 | `npm run test:browser` |
 | Tap targets — every route, 2 viewports | 10 | `npm run test:a11y` |
 | Keyboard navigation | 13 | `npm run test:a11y` |
 | Screen-reader semantics | 45 | `npm run test:a11y` |
 
-510 checks, all passing under the set-price model (2026-08-11) against
+568 checks, all passing with price feeds in the model (2026-10-11) against
 `next dev`; the production `next build` compiles all routes clean.
 
 The last three are accessibility sweeps added after the phase suites, each
@@ -184,11 +191,23 @@ partial dataset. Wait a minute and run it again.
 ### A Windows quirk
 
 The Firestore emulator's Java process does not always die when the CLI shuts it
-down, which makes the next start fail with "port taken". Clear it with:
+down, which makes the next start fail with "port taken". `firebase
+emulators:exec` leaves it behind after *every* run on Windows.
+
+For the test suites this is handled. `test:emulated` and `test:rules` run
+`scripts/stop-test-emulator.mjs` before and after, and it stops only a
+Firestore emulator listening on the test port from `firebase.itest.json`. The
+"before" matters: npm skips `post` hooks when tests fail.
+
+For the dev emulator, clear a leftover by hand:
 
 ```bash
 powershell -Command "Get-CimInstance Win32_Process -Filter \"Name='java.exe'\" | Where-Object { $_.CommandLine -like '*cloud-firestore-emulator*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }"
 ```
+
+That stops **every** Firestore emulator, the running dev one included, and a
+hard kill skips `--export-on-exit`. Anything written since the last export is
+lost. Export first if it matters: `npx firebase emulators:export .emulator-data`.
 
 ---
 
@@ -272,6 +291,7 @@ Document id is the OSM element id prefixed with its type, e.g.
   "priceCents": 319,         // what this store charges. Not an average.
   "heldPriceCents": null,    // a claim awaiting a second opinion
   "pricedAt": "<Timestamp>",
+  "priceFeed": null,         // feed id when a feed set the price; null for a visitor
   "lastSyncedAt": "<Timestamp>"
 }
 ```
@@ -295,8 +315,10 @@ appear to have twelve prices behind it. `confirmedCount` is what gets shown
 next to a price.
 
 **`priceCents` is one number, not a summary.** It is the most recent report
-that passed the move gate — a figure somebody actually saw on a menu board,
-rather than a midpoint nobody was ever charged.
+that passed the move gate, or the most recent feed observation if that is
+newer. Either way it is a figure somebody actually saw on a menu board, not a
+midpoint nobody was ever charged, and `priceFeed` says which kind of evidence
+it is so every surface can label it.
 
 Rollup fields are denormalized so the map and list render from one query, and
 are written **exclusively by the Admin SDK**. Clients cannot write to `stores`
@@ -329,6 +351,27 @@ lives in the private ledger below.
 `status: "rejected"` and `flagCount` are reserved. Nothing in v1 sets them —
 there is no moderation UI yet. They are in the schema so adding one later is not
 a migration.
+
+### `observations/{observationId}`
+
+```jsonc
+{
+  "storeId": "way-30288130",
+  "priceCents": 249,
+  "observedAt": "<Timestamp>",  // when the FEED saw it, not when we imported it
+  "feed": "menupricetracker",   // id from src/lib/feeds.ts
+  "sourceUrl": "https://…",     // the feed's own page for this store, or null
+  "importedAt": "<Timestamp>"   // first import; re-imports never refresh it
+}
+```
+
+A price a feed observed, kept apart from `submissions` because the two are
+different kinds of claim: a submission is a person vouching for a receipt, an
+observation is a third party's record. Merging them would either inflate the
+"N prices" a store rests on or hide where a number came from. Document id is
+`{feed}_{storeId}_{YYYY-MM-DD}`, so importing the same file twice writes nothing
+new. Public read, Admin SDK write only: an observation can set a store's
+price, so a client-writable one would skip the move gate entirely.
 
 ### `rateLimits/{uid}_{storeId}`
 
@@ -445,13 +488,13 @@ abuser would approach them, rather than through the UI:
 npm run test:emulated
 ```
 
-**184 tests across three suites:**
+**235 tests across three suites:**
 
 | Suite | Count | Covers |
 | --- | --- | --- |
-| `tests/rules` | 33 | Range boundaries, float and string prices, backdated timestamps, ledger-skipping, cross-device tampering, ledger deletion, move-gate band edges, read visibility. |
-| `tests/unit` | 118 | Set-price reconciliation, the move gate and corroboration bands, delivery exclusion, staleness vs. unmeasured, cents parsing and formatting, area comparison, OSM twin filtering, address composition and the store-label ladder, and query-parameter coercion at the API boundary. |
-| `tests/integration` | 33 | Rollup recomputation, corroboration promotion written through to submission status, idempotency, re-sync not clobbering prices or addresses, geohash proximity, the Overpass sync gate, the address backfill's cap and retry window, index snapshot including stale exclusion. |
+| `tests/rules` | 37 | Range boundaries, float and string prices, backdated timestamps, ledger-skipping, cross-device tampering, ledger deletion, move-gate band edges, read visibility, feed observations readable but never client-writable, and the server-only sync log and Overpass budget. |
+| `tests/unit` | 152 | Set-price reconciliation, the move gate and corroboration bands, delivery exclusion, staleness vs. unmeasured, cents parsing and formatting, area comparison, OSM twin filtering, address composition and the store-label ladder, query-parameter coercion at the API boundary, feed observations in the replay, feed parsing and store matching, and sync-cell coverage at four latitudes. |
+| `tests/integration` | 46 | Rollup recomputation, corroboration promotion written through to submission status, idempotency, re-sync not clobbering prices or addresses, geohash proximity, the Overpass sync gate including whole-cell coverage and the radius it reached, the site-wide Overpass budget, feed observations written through to the rollup, the address backfill's cap and retry window, index snapshot including stale exclusion. |
 
 The browser suites attack the same machinery from the outside: Phase 4 submits
 a real price and asserts the store's price moved, submits a second one to the
@@ -462,6 +505,77 @@ The unit suite exists specifically to keep `src/lib/pricing.ts` and
 `firestore.rules` in agreement — both implement the same move gate in integer
 math, and both are asserted against the same boundary values (127 cents from a
 319 price is inside the band; 128 is outside).
+
+---
+
+## Price feeds
+
+Visitors' receipts are accurate but slow: a store has no price until somebody
+logs one. The owner asked for accurate prices that don't depend on that.
+`research/price-sources.md` has the full survey (2026-10-11). In short:
+
+- **The only primary source is the McDonald's app**, and reading it
+  automatically means signing in to a private API whose terms bar automated
+  extraction. This project does not do that, and the research explains why it
+  is the wrong side of the line courts have drawn.
+- **Every per-store alternative is secondhand.** It's either somebody else's
+  scrape of that app (MenuPriceTracker, whose freshness dates did not survive
+  inspection) or an enterprise data contract (Datassential Price Monitor, RMS
+  Competitor Price Intelligence).
+- **Delivery menus are not a shortcut.** They run about 27% above in-store
+  prices, and the markup varies by franchisee, so it can't be backed out.
+
+So the app takes feed data the one way it can take it honestly, as a labelled,
+dated observation. Which feed fills it is left to whoever can sign a licence.
+Drafts for those emails, and what each reply has to settle, are in
+`research/feed-outreach.md`.
+
+### How a feed price behaves
+
+- **Newest wins, both ways.** A receipt dated after a feed's observation
+  replaces it, and a newer observation replaces an older receipt.
+- **An observation is never held.** The move gate exists to make one
+  unvouched-for visitor prove a big jump; a feed's dated record of the menu is
+  not that. A *visitor* report that moves a feed-set price by more than 40% is
+  still held, exactly as it would be against a visitor-set price.
+- **An observation can be the second opinion.** If a feed sees the price a held
+  report claimed (within 5%), the report is promoted, as an agreeing second
+  visitor would have done.
+- **Observations never count toward `confirmedCount`.** "3 prices" still means
+  three people.
+- **Staleness is the same 90 days**, measured from when the feed observed the
+  price, not when it was imported.
+
+Every surface that shows a price says where it came from. The store page reads
+"from MenuPriceTracker · observed 2 months ago" with a link to the feed's own
+page, and lists every observation in a table of its own. Site copy that promises
+"every price was paid by a person" is keyed off `HAS_LICENSED_FEED` in
+`src/lib/feeds.ts`, so it changes by itself the day a licence is recorded,
+rather than on the day somebody remembers.
+
+### Importing a feed
+
+```bash
+npm run import:observations -- --feed menupricetracker --file research/tracker-samples.json
+```
+
+A dry run by default. Every row is printed as `MATCH` (with what we show now
+next to what the feed says), `AMBIG`, `MISS`, `SKIP` or `REJECT` before anything
+is written; add `--write` to record. Rows are matched on (street number, city),
+and `src/lib/feed-match.ts` explains why that key and not the street name. An
+undated row, a future date, or a price outside the app's own $1.00–$15.00 range
+is rejected rather than guessed at.
+
+**An unlicensed feed never leaves the emulator.** Feeds are declared in
+`src/lib/feeds.ts` with a `licence` field, and while it is null `--write`
+refuses anything that is not the local emulator. MenuPriceTracker is declared
+with no licence: its four sampled prices import into the emulator for
+development, and nowhere else.
+
+To add a real feed: get the licence; declare the feed with its name, method and
+licence; export its data in the `parseFeedFile` format, with an observation
+date on every row; dry-run; spot-check the matches against real receipts; then
+write.
 
 ---
 
@@ -688,6 +802,25 @@ Three constraints shape the implementation (Phase 2):
   match catches "McDonald Street" and misses renamed franchises.
 - **The query uses `nwr` with `out center`.** Plenty of locations are mapped as
   building ways rather than points.
+- **A sync covers the whole cell, not just the visitor's circle.** Freshness
+  is tracked per precision-4 geohash cell, roughly 20 x 33 km. Fetching a
+  15-mile circle around whoever asked first left a visitor elsewhere in the
+  same cell with up to 89% of their search area never queried, while the gate
+  told them the area was fresh for a week. A sync now fetches around the
+  cell's centre, out to the radius plus the cell's half-diagonal (about 43 km
+  for 15 miles at DFW), and `syncLog` records how far it reached. A cell is
+  fresh only if its last sync reached at least as far as the current request
+  needs, so a request with a tiny radius can no longer mark a whole cell as
+  synced. Log entries from before coverage was recorded count as covering
+  nothing, and re-sync once.
+- **The whole site has an Overpass budget**: 60 queries an hour, counted in a
+  Firestore transaction (`syncBudget/overpass`) and spent only on real
+  queries, never cached answers. Past it, `/api/stores/sync` answers 429 with
+  `Retry-After` and the map shows what is already in the database. The sync
+  route is unauthenticated, so without a ceiling anyone posting a new cell's
+  coordinates every second could turn this server into an amplifier aimed at
+  donated infrastructure. Neither `syncLog` nor `syncBudget` is named in the
+  rules, so clients can neither read nor write them; `tests/rules` pins that.
 
 ### Filling in missing addresses
 
@@ -863,11 +996,16 @@ the project — none of it can be done from a development machine.
 5. **Set `OVERPASS_CONTACT_EMAIL`.** Overpass is donated infrastructure and its
    usage policy asks that requests identify a contact. An unset value ships the
    literal string `unset` in the User-Agent.
+6. **Run `npm audit --omit=dev` and check the `next` pin.** `next`,
+   `react` and `react-dom` are pinned to exact versions, so nothing updates
+   them on its own. That is how 16.3.0 sat on a critical advisory until the
+   2026-10-11 audit. The four production findings left after it (Firebase's
+   pinned `@grpc/grpc-js`) are explained in `research/audit-log.md`.
 
 ### What is verified and what is not
 
-Verified locally: every route builds, all 418 automated checks pass, and the
-production build compiles clean. **Not verified against real Firebase:** index
+Verified locally: every route builds, every automated check listed under
+[Test results](#test-results) passes, and the production build compiles clean. **Not verified against real Firebase:** index
 requirements. The emulator does not enforce them, so the first production
 queries are the first real test — see [Indexes](#indexes) for why the current
 answer is "one composite index and the rest are automatic."

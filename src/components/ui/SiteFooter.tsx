@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { HAS_LICENSED_FEED } from "@/lib/feeds";
+
 /**
  * Both notices here are load-bearing, not boilerplate.
  *
@@ -17,8 +19,9 @@ export function SiteFooter() {
         <div className="space-y-3">
           <p className="font-display text-lg">Sandwich Index</p>
           <p className="max-w-sm text-sm leading-relaxed text-ink-muted">
-            A crowdsourced record of what one sandwich costs, store by store.
-            Every price here was submitted by a person who paid it.
+            {HAS_LICENSED_FEED
+              ? "A record of what one sandwich costs, store by store. Every price here is a receipt from a person who paid it or a dated record from a price feed named beside it."
+              : "A crowdsourced record of what one sandwich costs, store by store. Every price here was submitted by a person who paid it."}
           </p>
         </div>
 
