@@ -13,8 +13,9 @@ import type { NextConfig } from "next";
  */
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
-  // 'wasm-unsafe-eval': the photo reader's OCR engine is WebAssembly.
-  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
+  // 'wasm-unsafe-eval': the photo reader's OCR engine is WebAssembly. Google's
+  // reCAPTCHA loader and its versioned release, for App Check.
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
   // React style attributes and Leaflet's positioning are inline styles.
   "style-src 'self' 'unsafe-inline'",
   // Map tiles; data: for Leaflet's icons; blob: for the photo being read.
@@ -22,12 +23,12 @@ const CONTENT_SECURITY_POLICY = [
   "font-src 'self' data:",
   // Firestore, anonymous sign-in and its token refresh, and App Check; the
   // local emulators when a local production build points at them.
-  "connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://content-firebaseappcheck.googleapis.com" +
+  "connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://content-firebaseappcheck.googleapis.com https://www.google.com/recaptcha/" +
     (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true" ? " http://127.0.0.1:8080 http://127.0.0.1:9099" : ""),
   // tesseract.js starts its worker from a blob: URL.
   "worker-src 'self' blob:",
-  // reCAPTCHA, for App Check once a site key is set.
-  "frame-src https://www.google.com https://recaptcha.google.com",
+  // reCAPTCHA's invisible frame, for App Check.
+  "frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
