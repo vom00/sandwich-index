@@ -1181,10 +1181,10 @@ Development stays emulator-first: `.firebaserc`'s default is still
 | Public config | `deploy/vercel.env`, every value set in Vercel. |
 | Secrets | `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY`, Production only, marked Sensitive, set by hand by the owner. |
 
-**Deploying.** Vercel's production branch is still `main`, which is behind,
-so a production deploy is made by deploying `price-feeds-and-audit-fixes`
-explicitly (Vercel API `create_deployment` with `target: production`). A push
-alone makes a preview, and previews sit behind Vercel's sign-in. Rules and
+**Deploying.** A push to `main` deploys to production; a push to any other
+branch makes a preview, and previews sit behind Vercel's sign-in. (Until
+2026-10-12 the work lived on `price-feeds-and-audit-fixes`, which `main` now
+matches.) Rules and
 indexes go separately: `npx firebase deploy --only firestore --project prod`
 whenever `firestore.rules` or `firestore.indexes.json` changes. A changed
 environment variable needs a redeploy before it takes effect.
