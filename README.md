@@ -254,12 +254,21 @@ lost. Export first if it matters: `npx firebase emulators:export .emulator-data`
 
 ### App Check
 
-App Check is wired and inert. `initAppCheck()` runs on every page load from
-`src/components/ui/FirebaseBoot.tsx` and returns immediately unless
-`NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY` is set — so setting that variable is
-the whole of turning enforcement on, with no code change.
+App Check is wired, and on in production since 2026-10-12. `initAppCheck()`
+runs on every page load from `src/components/ui/FirebaseBoot.tsx` and returns
+immediately unless `NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY` is set. In Vercel
+it is set for Production only, to the reCAPTCHA v3 site key (public; it ships
+in the page). The matching secret key is registered in the Firebase console
+(App Check → Apps), never in this repo or in Vercel. The CSP allows
+reCAPTCHA's scripts, token endpoint and frame.
 
-It is left unset here because a headless browser cannot solve a reCAPTCHA
+Setting the key makes the site *send* App Check tokens; Firestore only
+*requires* them once enforcement is switched on (Firebase console → App
+Check → APIs → Cloud Firestore → Enforce). Watch that page's verified versus
+unverified request counts for a few days before enforcing, so no real
+visitor is locked out. The server's Admin SDK is not affected by enforcement.
+
+It is left unset locally because a headless browser cannot solve a reCAPTCHA
 challenge, so enabling it against the emulator would break every browser test
 and protect nothing. Against a real project, local runs need a debug token:
 
