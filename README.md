@@ -1215,7 +1215,7 @@ of its live published keys. Pasting the entire JSON file into
   against production.
 - A full Content-Security-Policy (pre-flight item 7) and App Check (item 3).
 
-On Firebase App Hosting instead of Vercel, step 3 goes away: the Admin SDK
+On Firebase App Hosting instead of Vercel, the two secrets go away: the Admin SDK
 uses the server's own Google identity when `FIREBASE_CONFIG` or `K_SERVICE`
 is set (`src/lib/firebase/admin.ts`). App Hosting needs the paid Blaze plan.
 
