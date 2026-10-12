@@ -1,8 +1,17 @@
 # Price-feed outreach: drafts to send
 
-Four drafts, in the order they're worth sending. None has been sent. Each
-needs to come from the owner's own address, through the vendor's own contact
-or sales form. No addresses are guessed here.
+Four drafts, in the order they're worth sending. Each needs to come from the
+owner's own address, through the vendor's own contact or sales form. No
+addresses are guessed here.
+
+Status (2026-10-11):
+
+| Draft | Status |
+|---|---|
+| 3. MenuPriceTracker | **Sent** from the owner's Gmail to hello@menupricetracker.com, signed "Sandwich Index", with the owner's approval. Awaiting a reply. |
+| 1. Datassential | **Not sent.** The contact form is behind Google reCAPTCHA. The coding agent stops at bot checks, so the owner has to submit it. |
+| 2. RMS | **Not sent.** The contact form is behind Cloudflare Turnstile. Same reason. |
+| 4. Flickr API key | **Not sent.** The application needs a Flickr sign-in. |
 
 What every reply has to settle before any data is imported (see
 `price-sources.md` for why):
