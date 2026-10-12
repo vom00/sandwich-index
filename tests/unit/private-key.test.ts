@@ -33,6 +33,10 @@ describe("normalizeCredentials", () => {
     "Windows line endings": pem.replace(/\n/g, "\r\n"),
     "one line, spaces where the newlines were": pem.replace(/\n/g, " "),
     "surrounding whitespace": `\n  ${escaped}  \n`,
+    "zero-width spaces and soft hyphens from a copied viewer": pem
+      .split("\n")
+      .map((line, i) => (i % 3 === 1 ? `${line.slice(0, 20)}​${line.slice(20)}­` : line))
+      .join("\n"),
     "the whole service-account file": JSON.stringify({ type: "service_account", private_key: pem, client_email: EMAIL }, null, 2),
   };
 
@@ -61,5 +65,13 @@ describe("describeKey", () => {
     const shape = describeKey(`"${escaped}"`);
     expect(shape).toMatchObject({ hasBegin: true, hasEnd: true, wrappedInQuotes: true, escapedNewlines: true });
     expect(JSON.stringify(shape)).not.toContain(pem.split("\n")[1]);
+    expect(shape.bodyLooksLikeDer).toBe(true);
+    expect(shape.strayCharacters).toEqual([]);
+  });
+
+  it("names invisible characters by code point", () => {
+    const lines = pem.split("\n");
+    lines[2] = `${lines[2]}​`;
+    expect(describeKey(lines.join("\n")).strayCharacters).toEqual(["U+200B"]);
   });
 });
