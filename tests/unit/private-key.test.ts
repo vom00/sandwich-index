@@ -63,9 +63,10 @@ describe("normalizeCredentials", () => {
     expect(parses(normalizeCredentials(EMAIL, damaged).privateKey)).toBe(true);
   });
 
-  it("takes the email from a pasted file when the email field is empty", () => {
+  it("takes the email from a pasted file, since the file's key and email belong together", () => {
     const file = JSON.stringify({ private_key: pem, client_email: EMAIL });
     expect(normalizeCredentials("", file).clientEmail).toBe(EMAIL);
+    expect(normalizeCredentials("someone-else@other.iam.gserviceaccount.com", file).clientEmail).toBe(EMAIL);
   });
 
   it("strips quotes pasted around the email", () => {

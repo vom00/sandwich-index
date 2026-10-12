@@ -14,6 +14,8 @@ import "server-only";
  * error rather than a leaked service account.
  */
 
+import { X509Certificate, createPublicKey } from "node:crypto";
+
 import { applicationDefault, cert, getApp, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
@@ -71,12 +73,46 @@ function createApp(): App {
   // escaped newlines, the whole JSON file); see lib/firebase/private-key.
   const repaired = normalizeCredentials(clientEmail, privateKey);
   try {
-    return initializeApp({ credential: cert({ projectId, ...repaired }) });
+    const app = initializeApp({ credential: cert({ projectId, ...repaired }) });
+    void checkCredential(repaired.clientEmail, repaired.privateKey);
+    return app;
   } catch (error) {
     // Say what shape the value had, never what it contained, so a bad paste
     // can be diagnosed from the logs without the key appearing in them.
     console.error("[firebase-admin] FIREBASE_PRIVATE_KEY could not be parsed", describeKey(privateKey));
     throw error;
+  }
+}
+
+/**
+ * A key that parses can still be refused ("16 UNAUTHENTICATED") when it isn't
+ * one of the service account's live keys: a key from another account's file,
+ * or one deleted in the console after it was pasted. Google publishes each
+ * service account's live public keys, so once per cold start this logs which
+ * project the account belongs to and whether our key is among them. It logs
+ * yes/no answers only, never key material.
+ */
+async function checkCredential(clientEmail: string, privateKey: string): Promise<void> {
+  try {
+    const emailProject = /@([^.]+)\.iam\.gserviceaccount\.com$/.exec(clientEmail)?.[1] ?? null;
+    const response = await fetch(
+      `https://www.googleapis.com/robot/v1/metadata/x509/${encodeURIComponent(clientEmail)}`,
+      { signal: AbortSignal.timeout(5000) },
+    );
+    const certs = response.ok ? ((await response.json()) as Record<string, string>) : {};
+    const ours = createPublicKey(privateKey).export({ type: "spki", format: "der" });
+    const keyIsLive = Object.values(certs).some((pem) =>
+      new X509Certificate(pem).publicKey.export({ type: "spki", format: "der" }).equals(ours),
+    );
+    console.info("[firebase-admin] credential check", {
+      emailProject,
+      emailMatchesProject: emailProject === projectId,
+      accountFound: response.ok,
+      liveKeys: Object.keys(certs).length,
+      keyIsLive,
+    });
+  } catch (error) {
+    console.warn("[firebase-admin] credential check could not run", (error as Error).message);
   }
 }
 

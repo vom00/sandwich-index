@@ -85,8 +85,10 @@ export function normalizeCredentials(
   if (key.startsWith("{")) {
     try {
       const parsed = JSON.parse(key) as { private_key?: unknown; client_email?: unknown };
+      // A file's key and email belong together, so the file's email wins over
+      // whatever is in FIREBASE_CLIENT_EMAIL.
       if (typeof parsed.private_key === "string") key = parsed.private_key;
-      if (typeof parsed.client_email === "string" && email === "") email = parsed.client_email;
+      if (typeof parsed.client_email === "string") email = parsed.client_email;
     } catch {
       // Not valid JSON after all; carry on with the other repairs.
     }
