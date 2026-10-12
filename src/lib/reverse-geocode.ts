@@ -26,6 +26,7 @@ import "server-only";
 
 import { composeLocality, composeStreetAddress } from "@/lib/address";
 import { distanceMeters } from "@/lib/geohash";
+import { siteUrl } from "@/lib/site";
 
 const FETCH_TIMEOUT_MS = 8_000;
 const CACHE_SECONDS = 60 * 60 * 24 * 30;
@@ -66,8 +67,9 @@ interface PhotonFeature {
 }
 
 function userAgent(): string {
-  const contact = process.env.OVERPASS_CONTACT_EMAIL ?? "unset";
-  return `sandwich-index/0.1 (+https://github.com/sandwich-index; ${contact})`;
+  // The site's own address identifies us; a contact address is added when set.
+  const contact = process.env.OVERPASS_CONTACT_EMAIL;
+  return `sandwich-index/0.1 (+${siteUrl()}${contact ? `; ${contact}` : ""})`;
 }
 
 /**

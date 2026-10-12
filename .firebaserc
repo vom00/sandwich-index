@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "demo-sandwich-index"
+    "default": "demo-sandwich-index",
+    "prod": "sandwich-index-app"
   }
 }

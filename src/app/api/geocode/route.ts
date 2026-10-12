@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { zipSchema } from "@/lib/validation";
+import { siteUrl } from "@/lib/site";
 
 /**
  * GET /api/geocode?zip=75019
@@ -30,8 +31,9 @@ interface Located {
 }
 
 function userAgent(): string {
-  const contact = process.env.OVERPASS_CONTACT_EMAIL ?? "unset";
-  return `sandwich-index/0.1 (+https://github.com/sandwich-index; ${contact})`;
+  // The site's own address identifies us; a contact address is added when set.
+  const contact = process.env.OVERPASS_CONTACT_EMAIL;
+  return `sandwich-index/0.1 (+${siteUrl()}${contact ? `; ${contact}` : ""})`;
 }
 
 async function viaZippopotam(zip: string): Promise<Located | null> {

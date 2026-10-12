@@ -246,9 +246,9 @@ lost. Export first if it matters: `npx firebase emulators:export .emulator-data`
 | `FIREBASE_PROJECT_ID` | yes | Admin SDK project id. |
 | `FIRESTORE_EMULATOR_HOST` | dev | Presence of this puts the Admin SDK in emulator mode; no credentials needed. |
 | `FIREBASE_AUTH_EMULATOR_HOST` | dev | Same, for auth. |
-| `FIREBASE_CLIENT_EMAIL` | prod | Service account email. Only when pointing at a real project. |
+| `FIREBASE_CLIENT_EMAIL` | prod | Service account email. Only when pointing at a real project, and not on App Hosting, where the server's own identity is used. |
 | `FIREBASE_PRIVATE_KEY` | prod | Service account key, newlines escaped as `\n`. |
-| `OVERPASS_CONTACT_EMAIL` | yes | Sent in the Overpass `User-Agent`. Overpass is donated infrastructure and asks clients to identify themselves. |
+| `OVERPASS_CONTACT_EMAIL` | no | Added to the Overpass `User-Agent` beside the site URL. Overpass is donated infrastructure and asks clients to identify themselves. |
 | `NEXT_PUBLIC_SITE_URL` | prod | Canonical origin for `robots.txt` and `sitemap.xml`. Falls back to `http://localhost:3000`, so an unset value in production advertises localhost to crawlers. |
 | `NEXT_DIST_DIR` | no | Build output directory. Set it to build while `next dev` is running, so the two do not fight over `.next`. |
 
@@ -1170,8 +1170,33 @@ suites.
 
 ## Deployment
 
-Not yet wired. Development is emulator-first by decision: the app runs entirely
-against the local emulator suite, and no real Firebase project exists yet.
+Half wired. Development stays emulator-first: `.firebaserc`'s default is still
+`demo-sandwich-index`, so nothing local can reach production by accident.
+
+**What exists (2026-10-12):** a Firebase project, `sandwich-index-app` (alias
+`prod`), on the free Spark plan, with a registered web app. Its public config
+is in `deploy/vercel.env`, ready to paste into Vercel. Hosting is Vercel; the
+production build has been run with that config and compiles clean. Every page
+that reads Firestore renders on request, so the build needs no credentials.
+
+**Still to do, in order:**
+
+1. Create the Firestore database and deploy the rules and indexes:
+   `npx firebase deploy --only firestore --project prod`. The database has to
+   be created first (`firestore:databases:create "(default)" --location nam5`
+   failed until the Firestore API is enabled; the deploy enables it).
+2. Turn on Anonymous sign-in: Firebase console → Authentication → Sign-in
+   method. No CLI command does this.
+3. In the Firebase console, generate a service account key (Project settings →
+   Service accounts) and add `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY`
+   to Vercel by hand. They are the only secrets; nothing else in
+   `deploy/vercel.env` is one.
+4. Create the Vercel project, paste `deploy/vercel.env`, deploy, then set
+   `NEXT_PUBLIC_SITE_URL` to the URL Vercel gives and redeploy.
+
+On Firebase App Hosting instead of Vercel, step 3 goes away: the Admin SDK
+uses the server's own Google identity when `FIREBASE_CONFIG` or `K_SERVICE`
+is set (`src/lib/firebase/admin.ts`). App Hosting needs the paid Blaze plan.
 
 **Seed data never ships.** `scripts/seed.ts` (Phase 2) refuses to run against
 anything but the emulator. Deploying synthetic prices would present fabricated
@@ -1199,9 +1224,10 @@ the project — none of it can be done from a development machine.
 4. **Deploy rules and indexes** — `firebase deploy --only firestore` — before
    the first visitor writes anything. The rules are the only thing standing
    between the `submissions` collection and the open internet.
-5. **Set `OVERPASS_CONTACT_EMAIL`.** Overpass is donated infrastructure and its
-   usage policy asks that requests identify a contact. An unset value ships the
-   literal string `unset` in the User-Agent.
+5. **Set `NEXT_PUBLIC_SITE_URL`, and optionally `OVERPASS_CONTACT_EMAIL`.**
+   Overpass is donated infrastructure and its usage policy asks that requests
+   identify themselves. The User-Agent carries the site's URL, plus the
+   contact address when one is set.
 6. **Run `npm audit --omit=dev` and check the `next` pin.** `next`,
    `react` and `react-dom` are pinned to exact versions, so nothing updates
    them on its own. That is how 16.3.0 sat on a critical advisory until the

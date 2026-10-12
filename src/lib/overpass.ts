@@ -18,6 +18,7 @@ import "server-only";
 
 import { composeLocality, composeStreetAddress } from "@/lib/address";
 import { STORE_GEOHASH_PRECISION, encodeGeohash } from "@/lib/geohash";
+import { siteUrl } from "@/lib/site";
 
 /**
  * Wikidata entity for McDonald's. Matching the brand tag rather than the name
@@ -112,8 +113,9 @@ function buildQuery(lat: number, lng: number, radiusMeters: number): string {
 }
 
 function userAgent(): string {
-  const contact = process.env.OVERPASS_CONTACT_EMAIL ?? "unset";
-  return `sandwich-index/0.1 (+https://github.com/sandwich-index; ${contact})`;
+  // The site's own address identifies us; a contact address is added when set.
+  const contact = process.env.OVERPASS_CONTACT_EMAIL;
+  return `sandwich-index/0.1 (+${siteUrl()}${contact ? `; ${contact}` : ""})`;
 }
 
 /**
