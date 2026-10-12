@@ -257,10 +257,15 @@ lost. Export first if it matters: `npx firebase emulators:export .emulator-data`
 App Check is wired, and on in production since 2026-10-12. `initAppCheck()`
 runs on every page load from `src/components/ui/FirebaseBoot.tsx` and returns
 immediately unless `NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY` is set. In Vercel
-it is set for Production only, to the reCAPTCHA v3 site key (public; it ships
-in the page). The matching secret key is registered in the Firebase console
-(App Check → Apps), never in this repo or in Vercel. The CSP allows
-reCAPTCHA's scripts, token endpoint and frame.
+it is set for Production only, to the site key (public; it ships in the
+page). The provider is Fraud Defense (reCAPTCHA Enterprise), the one the
+Firebase console registers now: it no longer accepts new classic reCAPTCHA v3
+keys, and a classic key sent to an Enterprise registration fails with "App
+not registered". `NEXT_PUBLIC_FIREBASE_APPCHECK_PROVIDER=v3` switches back to
+the classic provider for a project registered that way. Secrets stay in the
+Firebase console, never in this repo or in Vercel. The CSP allows
+reCAPTCHA's scripts (including `/recaptcha/enterprise.js`), token endpoint
+and frame.
 
 Setting the key makes the site *send* App Check tokens; Firestore only
 *requires* them once enforcement is switched on (Firebase console → App

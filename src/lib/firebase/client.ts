@@ -102,9 +102,15 @@ export async function initAppCheck(): Promise<void> {
   const siteKey = process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY;
   if (siteKey === undefined || siteKey === "") return;
 
-  const { initializeAppCheck, ReCaptchaV3Provider } = await import("firebase/app-check");
-  initializeAppCheck(getFirebaseApp(), {
-    provider: new ReCaptchaV3Provider(siteKey),
-    isTokenAutoRefreshEnabled: true,
-  });
+  // Fraud Defense (reCAPTCHA Enterprise) is what the Firebase console
+  // registers now; it no longer accepts new classic v3 keys. A classic key can
+  // still be used by setting the provider to "v3".
+  const { initializeAppCheck, ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } = await import(
+    "firebase/app-check"
+  );
+  const provider =
+    process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_PROVIDER === "v3"
+      ? new ReCaptchaV3Provider(siteKey)
+      : new ReCaptchaEnterpriseProvider(siteKey);
+  initializeAppCheck(getFirebaseApp(), { provider, isTokenAutoRefreshEnabled: true });
 }

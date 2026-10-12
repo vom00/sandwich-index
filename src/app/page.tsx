@@ -101,24 +101,33 @@ function Hero({ snapshot }: { snapshot: IndexSnapshot }) {
       </Eyebrow>
 
       {spreadCents === null ? (
-        <>
-          <h1
-            className="reveal mt-7 max-w-3xl font-display text-4xl leading-[1.05] sm:text-6xl"
-            style={{ animationDelay: "70ms" }}
-          >
-            Nothing to report yet.
-          </h1>
-          <p
-            className="reveal mt-6 max-w-xl text-lg leading-relaxed text-ink-muted"
-            style={{ animationDelay: "150ms" }}
-          >
-            There are {snapshot.trackedStoreCount} restaurants on file and not one
-            price among them yet.{" "}
-            {HAS_ACTIVE_FEED
-              ? "The first number on this page will be one somebody logged or a tracker listed, and it will say which."
-              : "The first number on this page will be one that somebody actually saw."}
-          </p>
-        </>
+        // The same grid as the priced hero, so the kitchen scene stays on the
+        // page while there is nothing to measure yet.
+        <div className="mt-7 grid gap-x-10 lg:grid-cols-12 lg:items-center">
+          <div className="lg:col-span-7 lg:row-start-1">
+            <h1
+              className="reveal max-w-3xl font-display text-4xl leading-[1.05] sm:text-6xl"
+              style={{ animationDelay: "70ms" }}
+            >
+              Nothing to report yet.
+            </h1>
+            <p
+              className="reveal mt-6 max-w-xl text-lg leading-relaxed text-ink-muted"
+              style={{ animationDelay: "150ms" }}
+            >
+              There are {snapshot.trackedStoreCount} restaurants on file and not one
+              price among them yet.{" "}
+              {HAS_ACTIVE_FEED
+                ? "The first number on this page will be one somebody logged or a tracker listed, and it will say which."
+                : "The first number on this page will be one that somebody actually saw."}
+            </p>
+          </div>
+          <ClayScene
+            scene="kitchen"
+            caption="One sandwich, made the same way on every line, with a different price at every counter."
+            className="reveal mt-12 lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:mt-0"
+          />
+        </div>
       ) : (
         <>
           {/* One grid for the whole hero. On a wide screen the headline takes
