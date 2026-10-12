@@ -11,6 +11,17 @@ const { privateKey: pem } = generateKeyPairSync("rsa", {
   privateKeyEncoding: { type: "pkcs8", format: "pem" },
   publicKeyEncoding: { type: "spki", format: "pem" },
 });
+// A key whose base64 ends in "=" padding, for the padding-debris cases.
+const padded = (() => {
+  for (;;) {
+    const { privateKey } = generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+      privateKeyEncoding: { type: "pkcs8", format: "pem" },
+      publicKeyEncoding: { type: "spki", format: "pem" },
+    });
+    if (/=\n-----END/.test(privateKey)) return privateKey;
+  }
+})();
 const EMAIL = "firebase-adminsdk-test@example-project.iam.gserviceaccount.com";
 const escaped = pem.replace(/\n/g, "\\n");
 
@@ -46,6 +57,12 @@ describe("normalizeCredentials", () => {
     });
   }
 
+  it("drops a character left after the padding by a newline that lost its backslash", () => {
+    const damaged = padded.replace(/=\n-----END/, "=n\n-----END");
+    expect(parses(damaged)).toBe(false);
+    expect(parses(normalizeCredentials(EMAIL, damaged).privateKey)).toBe(true);
+  });
+
   it("takes the email from a pasted file when the email field is empty", () => {
     const file = JSON.stringify({ private_key: pem, client_email: EMAIL });
     expect(normalizeCredentials("", file).clientEmail).toBe(EMAIL);
@@ -67,6 +84,13 @@ describe("describeKey", () => {
     expect(JSON.stringify(shape)).not.toContain(pem.split("\n")[1]);
     expect(shape.bodyLooksLikeDer).toBe(true);
     expect(shape.strayCharacters).toEqual([]);
+  });
+
+  it("finds the line a character was added to, and debris after the padding", () => {
+    const lines = pem.split("\n");
+    lines[5] = `${lines[5]}A`;
+    expect(describeKey(lines.join("\n")).oddLines).toContain("5:65");
+    expect(describeKey(padded.replace(/=\n-----END/, "=n\n-----END")).charsAfterPadding).toBe(1);
   });
 
   it("names invisible characters by code point", () => {
