@@ -3,7 +3,12 @@ import { NextResponse } from "next/server";
 import { milesToMeters } from "@/lib/geohash";
 import { OverpassError, fetchNearbyStores } from "@/lib/overpass";
 import { reverseGeocode } from "@/lib/reverse-geocode";
-import { backfillMissingAddresses, backfillRestaurantNumbers, syncAreaIfStale } from "@/lib/stores.server";
+import {
+  backfillFeedObservations,
+  backfillMissingAddresses,
+  backfillRestaurantNumbers,
+  syncAreaIfStale,
+} from "@/lib/stores.server";
 import { nearbyQuerySchema } from "@/lib/validation";
 
 /**
@@ -83,7 +88,17 @@ export async function POST(request: Request): Promise<NextResponse> {
       console.error("[api/stores/sync] restaurant-number backfill failed", error);
     }
 
-    return NextResponse.json({ ...result, addresses, numbers });
+    // Feed prices shipped with the server (lib/feeds, stores.server). After
+    // the address backfill on purpose: feed rows match on street number and
+    // city, so a store needs its address before it can be matched.
+    let feedPrices = { recorded: 0, recomputed: 0 };
+    try {
+      feedPrices = await backfillFeedObservations({ lat, lng }, radiusMeters);
+    } catch (error) {
+      console.error("[api/stores/sync] feed backfill failed", error);
+    }
+
+    return NextResponse.json({ ...result, addresses, numbers, feedPrices });
   } catch (error) {
     if (error instanceof OverpassError) {
       // Every mirror failed. This is upstream unavailability, not a bug here,

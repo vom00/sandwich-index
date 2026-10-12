@@ -33,6 +33,13 @@ export interface FeedRow {
   observedAt: string;
   /** The feed's own page for this store, when it has one. */
   sourceUrl: string | null;
+  /**
+   * Our store this row belongs to, when it was linked by location rather than
+   * address: the feed and OpenStreetMap give the same restaurant different
+   * street numbers ("190 Shiloh Rd" and "7201 N President George Bush Hwy").
+   * Set only by a build step that checked the link; see `pinnedOrMatched`.
+   */
+  storeId: string | null;
 }
 
 export interface ParsedFeed {
@@ -62,6 +69,7 @@ const feedFileSchema = z.object({
       observedAt: dateString.optional(),
       url: z.string().url().nullable().optional(),
       sourceUrl: z.string().url().nullable().optional(),
+      storeId: z.string().trim().min(1).max(200).nullable().optional(),
     }),
   ),
 });
@@ -115,6 +123,7 @@ export function parseFeedFile(input: unknown, now: Date = new Date()): ParsedFee
       priceCents: cents,
       observedAt: observedAt.toISOString(),
       sourceUrl: raw.sourceUrl ?? raw.url ?? null,
+      storeId: raw.storeId ?? null,
     });
   });
 
@@ -173,6 +182,24 @@ export function matchFeedRow(
     return { kind: "ambiguous", storeIds: candidates.map((store) => store.id) };
   }
   return { kind: "miss" };
+}
+
+/**
+ * A pinned row goes to its store when that store is among `stores`; any other
+ * row is matched by city and street number. A pin naming a store we don't have
+ * is a miss, never a fallback to the address, so a stale pin can't land on a
+ * neighbour.
+ */
+export function pinnedOrMatched(
+  row: Pick<FeedRow, "address" | "city" | "storeId">,
+  stores: readonly Pick<StoreWithId, "id" | "address" | "locality">[],
+): FeedMatch {
+  if (row.storeId !== null) {
+    return stores.some((store) => store.id === row.storeId)
+      ? { kind: "match", storeId: row.storeId }
+      : { kind: "miss" };
+  }
+  return matchFeedRow(row, stores);
 }
 
 /**

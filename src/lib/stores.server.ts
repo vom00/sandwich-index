@@ -38,12 +38,14 @@ import {
   type StoreRollup,
 } from "@/lib/pricing";
 import type { OverpassStore } from "@/lib/overpass";
-import { observationId } from "@/lib/feed-match";
 import { dropTwinStores } from "@/lib/store-twins";
 import type { ResolvedAddress } from "@/lib/reverse-geocode";
 import { displayStateFor } from "@/lib/tiers";
 import { buildNumberIndex, chooseNumbers, type NumberIndex, type NumberRow } from "@/lib/store-numbers";
 import restaurantNumberRows from "@/data/restaurant-numbers.json";
+import menuPriceTrackerSnapshot from "@/data/feeds/menupricetracker.json";
+import { observationId, parseFeedFile, pinnedOrMatched } from "@/lib/feed-match";
+import { FEEDS, isFeedActive, type FeedDefinition } from "@/lib/feeds";
 import type { ObservationWithId, Store, StoreWithId, SubmissionWithId } from "@/types";
 
 /** Firestore batches cap at 500 operations. */
@@ -749,6 +751,77 @@ export async function backfillRestaurantNumbers(
     await batch.commit();
   }
   return { assigned: updates.length };
+}
+
+/**
+ * Feed snapshots shipped with the server: a feed file (the format
+ * `import:observations` reads) per feed. The import script can't write to
+ * production from a development machine without a service-account key there,
+ * so production gets feed prices the way it gets restaurant numbers: the
+ * server records them, with its own credentials, as areas are synced.
+ */
+export interface BundledFeed {
+  feed: FeedDefinition;
+  file: unknown;
+}
+
+const BUNDLED_FEEDS: readonly BundledFeed[] = [
+  { feed: FEEDS["menupricetracker"]!, file: menuPriceTrackerSnapshot },
+];
+
+/**
+ * Record the bundled feeds' prices for the stores around a point, exactly as
+ * `import:observations --write` would: rows parsed and matched by
+ * `lib/feed-match` (city and street number), one observation per feed, store
+ * and day, then the store's price recomputed from everything on file.
+ *
+ * Only feeds the site may show are applied (`isFeedActive`: a licence, or
+ * the owner's dated decision). A store whose current price is as new as the
+ * row, or newer, is skipped before anything is read, so once an area is up to
+ * date a sync costs no extra reads, and a visitor's newer price is never
+ * second-guessed by an older listing.
+ */
+export async function backfillFeedObservations(
+  center: LatLng,
+  radiusMeters: number,
+  db: Firestore = getAdminDb(),
+  feeds: readonly BundledFeed[] = BUNDLED_FEEDS,
+  now: Date = new Date(),
+): Promise<{ recorded: number; recomputed: number }> {
+  const active = feeds.filter(({ feed }) => isFeedActive(feed));
+  if (active.length === 0) return { recorded: 0, recomputed: 0 };
+
+  const nearby = await getStoresNear(center, radiusMeters, db);
+  const byId = new Map(nearby.map((store) => [store.id, store]));
+  const planned = new Map<string, ObservationInput>();
+  const conflicted = new Set<string>();
+
+  for (const { feed, file } of active) {
+    for (const row of parseFeedFile(file, now).rows) {
+      if (row.priceCents === null) continue;
+      const match = pinnedOrMatched(row, nearby);
+      if (match.kind !== "match") continue;
+      const store = byId.get(match.storeId);
+      if (store === undefined) continue;
+      if (store.pricedAt !== null && store.pricedAt >= row.observedAt) continue;
+
+      // Two rows for one store on one day must agree, or neither is trusted.
+      const id = observationId(feed.id, store.id, row.observedAt);
+      const earlier = planned.get(id);
+      if (earlier !== undefined && earlier.priceCents !== row.priceCents) conflicted.add(id);
+      planned.set(id, {
+        storeId: store.id,
+        priceCents: row.priceCents,
+        observedAt: row.observedAt,
+        feed: feed.id,
+        sourceUrl: row.sourceUrl,
+      });
+    }
+  }
+  for (const id of conflicted) planned.delete(id);
+
+  const result = await recordObservations([...planned.values()], db);
+  return { recorded: result.written, recomputed: result.recomputed };
 }
 
 export interface AddressBackfillResult {

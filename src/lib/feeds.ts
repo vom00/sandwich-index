@@ -45,8 +45,14 @@ export interface FeedDefinition {
    * This turns the site's copy over to describing the feed, so the pages stay
    * true once its prices are in the database. It does not open the import
    * script's guard: that still refuses to write any feed without a licence
-   * anywhere but the local emulator. Loosening it for a real Firebase project
-   * is a separate change, to be made on purpose.
+   * anywhere but the local emulator, so nothing reaches production from a
+   * development machine by accident.
+   *
+   * Production gets an active feed's prices from the snapshot shipped with
+   * the server (`src/data/feeds/`, applied by `backfillFeedObservations` in
+   * `stores.server` as areas sync). That was the purposeful change: the
+   * owner's goal of 2026-10-12 was that every store that can have a price
+   * shows one on the live site.
    */
   unlicensedUse: UnlicensedUse | null;
 }

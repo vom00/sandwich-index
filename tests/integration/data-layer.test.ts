@@ -18,6 +18,7 @@ import type { OverpassStore } from "@/lib/overpass";
 import {
   OVERPASS_BUDGET_PER_WINDOW,
   OVERPASS_BUDGET_WINDOW_MS,
+  backfillFeedObservations,
   backfillMissingAddresses,
   backfillRestaurantNumbers,
   getIndexSnapshot,
@@ -200,6 +201,69 @@ describe("restaurant-number backfill", () => {
     await upsertStores([store("node-1", COPPELL, { address: "125 S Denton Tap Rd" })], db);
     await backfillRestaurantNumbers(COPPELL, milesToMeters(15), db, index);
     expect(await backfillRestaurantNumbers(COPPELL, milesToMeters(15), db, index)).toEqual({ assigned: 0 });
+  });
+});
+
+describe("bundled feed prices", () => {
+  const feed = (active: boolean) => ({
+    id: "testfeed",
+    name: "Test Feed",
+    homepage: "https://example.com",
+    method: "which says it reads the app",
+    dateVerb: "checked",
+    licence: null,
+    unlicensedUse: active ? { decidedOn: "2026-10-12", note: "test" } : null,
+  });
+  const observedAt = new Date(Date.now() - 2 * DAY_MS).toISOString();
+  const file = {
+    rows: [
+      { address: "125 S Denton Tap Rd", city: "Coppell", mcchickenCents: 249, observedAt, url: "https://example.com/125" },
+      { address: "9999 Nowhere Ln", city: "Coppell", mcchickenCents: 199, observedAt },
+    ],
+  };
+
+  it("records a matched store's price, the way the import script would", async () => {
+    await upsertStores([store("node-1", COPPELL, { address: "125 South Denton Tap Road, Coppell, TX 75019" })], db);
+
+    const result = await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(true), file }]);
+    expect(result).toEqual({ recorded: 1, recomputed: 1 });
+    const saved = await getStore("node-1", db);
+    expect(saved?.priceCents).toBe(249);
+    expect(saved?.priceFeed).toBe("testfeed");
+  });
+
+  it("applies nothing from a feed the site may not show", async () => {
+    await upsertStores([store("node-1", COPPELL, { address: "125 South Denton Tap Road, Coppell, TX 75019" })], db);
+    expect(await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(false), file }])).toEqual({
+      recorded: 0,
+      recomputed: 0,
+    });
+    expect((await getStore("node-1", db))?.priceCents).toBeNull();
+  });
+
+  it("writes nothing the second time", async () => {
+    await upsertStores([store("node-1", COPPELL, { address: "125 South Denton Tap Road, Coppell, TX 75019" })], db);
+    await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(true), file }]);
+    expect(await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(true), file }])).toEqual({
+      recorded: 0,
+      recomputed: 0,
+    });
+  });
+
+  it("follows a row pinned to a store whose street number differs", async () => {
+    await upsertStores([store("node-7", COPPELL, { address: "7201 North President George Bush Highway, Garland, TX 75044" })], db);
+    const pinned = { rows: [{ address: "190 Shiloh", city: "Garland", mcchickenCents: 189, observedAt, storeId: "node-7" }] };
+
+    expect((await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(true), file: pinned }])).recorded).toBe(1);
+    expect((await getStore("node-7", db))?.priceCents).toBe(189);
+  });
+
+  it("leaves a store alone when its price is newer than the listing", async () => {
+    await upsertStores([store("node-1", COPPELL, { address: "125 South Denton Tap Road, Coppell, TX 75019" })], db);
+    await db.collection("stores").doc("node-1").update({ priceCents: 289, pricedAt: Timestamp.now(), priceFeed: null });
+
+    expect((await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(true), file }])).recorded).toBe(0);
+    expect((await getStore("node-1", db))?.priceCents).toBe(289);
   });
 });
 

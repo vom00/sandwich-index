@@ -27,7 +27,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
-  matchFeedRow,
+  pinnedOrMatched,
   observationId,
   parseFeedFile,
   type FeedRow,
@@ -152,7 +152,7 @@ async function main(): Promise<void> {
       continue;
     }
 
-    const match = matchFeedRow(row, stores);
+    const match = pinnedOrMatched(row, stores);
     if (match.kind === "ambiguous") {
       tally.ambiguous += 1;
       console.log(`AMBIG   ${describeRow(row)} → ${match.storeIds.join(", ")} — resolve by hand`);

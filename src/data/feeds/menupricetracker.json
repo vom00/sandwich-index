@@ -1,0 +1,1974 @@
+{
+  "feed": "menupricetracker",
+  "source": "https://menupricetracker.com",
+  "note": "Each row is dated by when its page was read. The site gives a month per store, not a day. 197 rows read 2026-10-12 for the stores on file then; the rest read the same evening for stores added since, 8 of them pinned to a store by location (storeId) where MenuPriceTracker and OpenStreetMap give the same restaurant different street numbers.",
+  "rows": [
+    {
+      "address": "3795 Beltline Rd",
+      "city": "Addison",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T04:48:20.315Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/addison/3795-beltline-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "104 Central Expy",
+      "city": "Allen",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T04:48:40.453Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/allen/104-central-expy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "370 E Stacy Rd",
+      "city": "Allen",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T04:48:49.671Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/allen/370-e-stacy-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "815 S Allen Heights Dr",
+      "city": "Allen",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T04:48:59.748Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/allen/815-s-allen-heights-dr",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1226 Fm 407",
+      "city": "Argyle",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T04:49:19.554Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/argyle/1226-fm-407",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "6230 Matlock Rd",
+      "city": "Arlington",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:49:39.745Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/arlington/6230-matlock-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "611 W Abrams St",
+      "city": "Arlington",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T04:49:50.536Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/arlington/611-w-abrams-st",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2575 E Arkansas Ln",
+      "city": "Arlington",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:49:59.813Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/arlington/2575-e-arkansas-ln",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "800 W Pioneer Parkway",
+      "city": "Arlington",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T04:50:09.643Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/arlington/800-w-pioneer-parkway",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4300 S Cooper",
+      "city": "Arlington",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-12T04:50:19.740Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/arlington/4300-s-cooper",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5404 S Cooper",
+      "city": "Arlington",
+      "mcchickenCents": 209,
+      "observedAt": "2026-10-12T04:50:30.187Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/arlington/5404-s-cooper",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "860 E I 20",
+      "city": "Arlington",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T04:50:39.702Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/arlington/860-e-i-20",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3535 Glenshire Drive",
+      "city": "Balch Springs",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:51:00.597Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/balch-springs/3535-glenshire-drive",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3350 Harwood Road",
+      "city": "Bedford",
+      "mcchickenCents": 209,
+      "observedAt": "2026-10-12T04:51:20.112Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/bedford/3350-harwood-road",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2100 Central Park Boulevard",
+      "city": "Bedford",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T04:51:30.685Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/bedford/2100-central-park-boulevard",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1753 S Interstate 35e",
+      "city": "Carrollton",
+      "mcchickenCents": 209,
+      "observedAt": "2026-10-12T04:51:49.847Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/carrollton/1753-s-interstate-35e",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2151 N Josey Ln",
+      "city": "Carrollton",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T04:51:59.826Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/carrollton/2151-n-josey-ln",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1050 W Frankford",
+      "city": "Carrollton",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:52:09.759Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/carrollton/1050-w-frankford",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4125 Josey Ln",
+      "city": "Carrollton",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T04:52:19.791Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/carrollton/4125-josey-ln",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4805 N Josey Lane",
+      "city": "Carrollton",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T04:52:30.545Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/carrollton/4805-n-josey-lane",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "201 Fm 1382",
+      "city": "Cedar Hill",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-12T04:52:50.244Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/cedar-hill/201-fm-1382",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4565 S Preston Rd",
+      "city": "Celina",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T04:53:09.764Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/celina/4565-s-preston-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "994 S Preston Rd",
+      "city": "Celina",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T04:53:19.885Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/celina/994-s-preston-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5609 Colleyville Blvd",
+      "city": "Colleyville",
+      "mcchickenCents": 209,
+      "observedAt": "2026-10-12T04:53:39.869Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/colleyville/5609-colleyville-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "813 Macarthur Blvd",
+      "city": "Coppell",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T04:53:59.939Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/coppell/813-macarthur-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "11201 Us Hwy 380",
+      "city": "Cross Roads",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T04:54:19.861Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/cross-roads/11201-us-hwy-380",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1717 W Mockingbird Ln",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:54:39.981Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/1717-w-mockingbird-ln",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2215 S Buckner Blvd",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:54:50.603Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/2215-s-buckner-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1000 Commerce St",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:54:59.921Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/1000-commerce-st",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "632 S Rl Thornton Fwy",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:55:09.924Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/632-s-rl-thornton-fwy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4151 N Central Expy",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:55:20.072Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/4151-n-central-expy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5403 Ross Ave",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:55:29.946Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/5403-ross-ave",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5960 Greenville Ave",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:55:39.915Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/5960-greenville-ave",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "650 N Riverfront Blvd",
+      "city": "Dallas",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T04:55:49.944Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/650-n-riverfront-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "705 W Jefferson",
+      "city": "Dallas",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-12T04:56:00.458Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/705-w-jefferson",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5722 W Lovers Ln",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:56:09.918Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/5722-w-lovers-ln",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3310 Al Lipscomb Way",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:56:20.080Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/3310-al-lipscomb-way",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2747 Fort Worth Ave",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:56:30.002Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/2747-fort-worth-ave",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4223 W Illinois",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:56:39.990Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/4223-w-illinois",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4330 Dallas Ft Worth Turnpike",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:56:50.048Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/4330-dallas-ft-worth-turnpike",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "450 Merrifield Rd",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:57:00.058Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/450-merrifield-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3026 Hampton Rd",
+      "city": "Dallas",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-12T04:57:10.152Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/3026-hampton-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "10320 Lake June Road",
+      "city": "Dallas",
+      "mcchickenCents": 169,
+      "observedAt": "2026-10-12T04:57:20.596Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/10320-lake-june-road",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8055 S Loop 12",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:57:30.161Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/8055-s-loop-12",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "9403 Garland Road",
+      "city": "Dallas",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T04:57:40.097Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/9403-garland-road",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4439 Lemmon Ave",
+      "city": "Dallas",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T04:57:50.066Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/4439-lemmon-ave",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3520 Storey Ln",
+      "city": "Dallas",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T04:58:00.265Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/3520-storey-ln",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5337 E Grand Ave",
+      "city": "Dallas",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-12T04:58:10.201Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/5337-e-grand-ave",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "310 W Kiest",
+      "city": "Dallas",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T04:58:20.130Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/310-w-kiest",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2551 Gus Thomasson Rd",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:58:29.977Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/2551-gus-thomasson-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8117 E Rl Thornton Fwy",
+      "city": "Dallas",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T04:58:40.007Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/8117-e-rl-thornton-fwy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2475 Royal Ln",
+      "city": "Dallas",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T04:58:50.085Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/2475-royal-ln",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3750 Forest Ln",
+      "city": "Dallas",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T04:59:00.160Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/3750-forest-ln",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "10720 Preston Rd",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:59:10.736Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/10720-preston-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5934 Abrams Rd",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:59:20.662Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/5934-abrams-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "6950 Greenville Ave",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:59:30.156Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/6950-greenville-ave",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "125 W Camp Wisdom",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T04:59:40.108Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/125-w-camp-wisdom",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8435 S Hampton",
+      "city": "Dallas",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T04:59:50.138Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/8435-s-hampton",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2407 S Hampton Rd",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:00:06.218Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/2407-s-hampton-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2570 W Redbird Ln",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:00:15.124Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/2570-w-redbird-ln",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "10695 E Northwest Hwy",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:00:20.248Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/10695-e-northwest-hwy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "13040 Coit Rd",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:00:30.177Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/13040-coit-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "13105 Montfort Dr",
+      "city": "Dallas",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:00:40.316Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/13105-montfort-dr",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "14770 Preston Rd",
+      "city": "Dallas",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T05:00:50.114Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/14770-preston-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8333 S Lancaster Rd",
+      "city": "Dallas",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-12T05:01:01.355Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/8333-s-lancaster-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "11102 Central Expy",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:01:10.222Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/11102-central-expy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "11749 Plano Rd",
+      "city": "Dallas",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:01:20.313Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/11749-plano-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "11820 Abrams Road",
+      "city": "Dallas",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:01:30.185Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/11820-abrams-road",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8606 Skillman St",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:01:40.273Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/8606-skillman-st",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3802 Gaston Ave",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:01:51.268Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/3802-gaston-ave",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "7233 John W. Carpenter Freeway",
+      "city": "Dallas",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-12T05:02:00.393Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/7233-john-w-carpenter-freeway",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8390 N Stemmons",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:02:10.328Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/8390-n-stemmons",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "7007 Wheatland",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:02:20.971Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/7007-wheatland",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "17250 Preston Rd",
+      "city": "Dallas",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:02:30.989Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/17250-preston-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "17606 Midway Rd",
+      "city": "Dallas",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:02:40.305Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/17606-midway-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "306 W University Dr",
+      "city": "Denton",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:03:01.249Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/denton/306-w-university-dr",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2120 Loop 288",
+      "city": "Denton",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:03:10.353Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/denton/2120-loop-288",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "735 Fort Worth Dr",
+      "city": "Denton",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:03:20.325Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/denton/735-fort-worth-dr",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2930 W University",
+      "city": "Denton",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:03:31.019Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/denton/2930-w-university",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3981 N Loop 288",
+      "city": "Denton",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:03:40.854Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/denton/3981-n-loop-288",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5016 Teasley Lane",
+      "city": "Denton",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:03:50.473Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/denton/5016-teasley-lane",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "804 N Hampton Rd",
+      "city": "Desoto",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:04:10.753Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/desoto/804-n-hampton-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "909 N Beckley Ave",
+      "city": "Desoto",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:04:20.475Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/desoto/909-n-beckley-ave",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "120 W I-20",
+      "city": "Duncanville",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:04:50.286Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/duncanville/120-w-i-20",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "806 S Cockrell Hill Rd",
+      "city": "Duncanville",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:05:01.137Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/duncanville/806-s-cockrell-hill-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "105 Spur 350",
+      "city": "Euless",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:05:20.482Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/euless/105-spur-350",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "13950 Midway Rd",
+      "city": "Farmers Branch",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:05:40.971Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/farmers-branch/13950-midway-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2899 Valley View Lane",
+      "city": "Farmers Branch",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:05:50.387Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/farmers-branch/2899-valley-view-lane",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2109 Long Prairie Rd",
+      "city": "Flower Mound",
+      "mcchickenCents": 259,
+      "observedAt": "2026-10-12T05:06:10.673Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/flower-mound/2109-long-prairie-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3601 Fm 407",
+      "city": "Flower Mound",
+      "mcchickenCents": 259,
+      "observedAt": "2026-10-12T05:06:20.493Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/flower-mound/3601-fm-407",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "102 E Us Hwy 80",
+      "city": "Forney",
+      "mcchickenCents": 209,
+      "observedAt": "2026-10-12T05:06:40.564Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/forney/102-e-us-hwy-80",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1420 Eastchase Pky",
+      "city": "Fort Worth",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:07:00.951Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/1420-eastchase-pky",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2250 E Loop 820",
+      "city": "Fort Worth",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:07:10.571Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/2250-e-loop-820",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4420 Western Center Blvd",
+      "city": "Fort Worth",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:07:20.394Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/4420-western-center-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "14100 Centre Station Drive",
+      "city": "Fort Worth",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T05:07:30.389Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/14100-centre-station-drive",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "15957 N Freeway",
+      "city": "Fort Worth",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T05:07:40.788Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/15957-n-freeway",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "12540 No Beach St",
+      "city": "Fort Worth",
+      "mcchickenCents": 259,
+      "observedAt": "2026-10-12T05:07:50.507Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/12540-no-beach-st",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3250 Heritage Trace Parkway",
+      "city": "Fort Worth",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:08:00.474Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/3250-heritage-trace-parkway",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4360 Legacy Dr",
+      "city": "Frisco",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:08:20.505Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/frisco/4360-legacy-dr",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5555 Fm 423",
+      "city": "Frisco",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:08:30.540Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/frisco/5555-fm-423",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5615 Eldorado Prkwy",
+      "city": "Frisco",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:08:40.474Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/frisco/5615-eldorado-prkwy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8888 Teel Parkway",
+      "city": "Frisco",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:08:50.712Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/frisco/8888-teel-parkway",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8970 Preston Rd",
+      "city": "Frisco",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:09:00.543Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/frisco/8970-preston-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "16125 Eldorado",
+      "city": "Frisco",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:09:10.578Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/frisco/16125-eldorado",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "6225 Custer Road",
+      "city": "Frisco",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:09:20.615Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/frisco/6225-custer-road",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "119 E Buckingham",
+      "city": "Garland",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:09:40.584Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/garland/119-e-buckingham",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3310 Lavon Dr",
+      "city": "Garland",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-12T05:09:50.617Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/garland/3310-lavon-dr",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "509 I 30 W",
+      "city": "Garland",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:10:00.532Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/garland/509-i-30-w",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1110 W Centerville",
+      "city": "Garland",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:10:10.456Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/garland/1110-w-centerville",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3205 S Garland",
+      "city": "Garland",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:10:20.563Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/garland/3205-s-garland",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3285 Broadway Blvd",
+      "city": "Garland",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:10:30.638Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/garland/3285-broadway-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1404 W Walnut",
+      "city": "Garland",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:10:40.587Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/garland/1404-w-walnut",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2810 Ne Green Oaks",
+      "city": "Grand Prairie",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:11:00.631Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/grand-prairie/2810-ne-green-oaks",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "813 E Main",
+      "city": "Grand Prairie",
+      "mcchickenCents": 149,
+      "observedAt": "2026-10-12T05:11:10.602Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/grand-prairie/813-e-main",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "102 W Hwy 303",
+      "city": "Grand Prairie",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-12T05:11:21.299Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/grand-prairie/102-w-hwy-303",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3902 S Great Sw Pky",
+      "city": "Grand Prairie",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-12T05:11:30.551Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/grand-prairie/3902-s-great-sw-pky",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "308 Westchase Dr",
+      "city": "Grand Prairie",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-12T05:11:40.513Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/grand-prairie/308-westchase-dr",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3031 W Camp Wisdom Road",
+      "city": "Grand Prairie",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-12T05:11:50.645Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/grand-prairie/3031-w-camp-wisdom-road",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "101 E Tx-114",
+      "city": "Grapevine",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:12:10.595Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/grapevine/101-e-tx-114",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5345 William D Tate",
+      "city": "Grapevine",
+      "mcchickenCents": 209,
+      "observedAt": "2026-10-12T05:12:20.684Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/grapevine/5345-william-d-tate",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5641 E Belknap",
+      "city": "Haltom City",
+      "mcchickenCents": 179,
+      "observedAt": "2026-10-12T05:12:41.171Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/haltom-city/5641-e-belknap",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8300 S Stemmons Freeway",
+      "city": "Hickory Creek",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:13:01.691Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/hickory-creek/8300-s-stemmons-freeway",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1401 W Pipeline Rd",
+      "city": "Hurst",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:13:20.737Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/hurst/1401-w-pipeline-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "201 E Pipeline Rd",
+      "city": "Hurst",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:13:30.709Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/hurst/201-e-pipeline-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "450 Grapevine Hwy",
+      "city": "Hurst",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:13:40.808Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/hurst/450-grapevine-hwy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "769 Airport Freeway",
+      "city": "Hurst",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:13:50.722Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/hurst/769-airport-freeway",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "108 N I-45",
+      "city": "Hutchins",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:14:11.370Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/hutchins/108-n-i-45",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4098 Beltline Rd",
+      "city": "Irving",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-12T05:14:30.881Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/irving/4098-beltline-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4959 N O'Connor Road",
+      "city": "Irving",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:14:40.712Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/irving/4959-n-o-connor-road",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5220 N Mac Arthur Dr",
+      "city": "Irving",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:14:50.773Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/irving/5220-n-mac-arthur-dr",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "302 W Irving Blvd",
+      "city": "Irving",
+      "mcchickenCents": 209,
+      "observedAt": "2026-10-12T05:15:00.769Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/irving/302-w-irving-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "950 S. Beltline Rd.",
+      "city": "Irving",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:15:10.872Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/irving/950-s-beltline-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1308 E Airport Fwy",
+      "city": "Irving",
+      "mcchickenCents": 159,
+      "observedAt": "2026-10-12T05:15:20.747Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/irving/1308-e-airport-fwy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2410 N Story Rd",
+      "city": "Irving",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-12T05:15:30.816Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/irving/2410-n-story-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4202 W Airport Fwy",
+      "city": "Irving",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-12T05:15:40.818Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/irving/4202-w-airport-fwy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "750 W Lbj Fwy",
+      "city": "Irving",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:15:50.722Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/irving/750-w-lbj-fwy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8435 N Beltline Road",
+      "city": "Irving",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T05:16:00.769Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/irving/8435-n-beltline-road",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2001 Rufe Snow Dr",
+      "city": "Keller",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:16:20.868Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/keller/2001-rufe-snow-dr",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "989 E Price",
+      "city": "Keller",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:16:30.848Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/keller/989-e-price",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1463 W Pleasant Run Rd",
+      "city": "Lancaster",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:16:50.783Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/lancaster/1463-w-pleasant-run-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "501 E Fm 3040",
+      "city": "Lewisville",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T05:17:11.440Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/lewisville/501-e-fm-3040",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4640 State Highway 121",
+      "city": "Lewisville",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:17:20.963Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/lewisville/4640-state-highway-121",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1107 W Fm3040",
+      "city": "Lewisville",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T05:17:30.896Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/lewisville/1107-w-fm3040",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1201 W Fm 407",
+      "city": "Lewisville",
+      "mcchickenCents": 259,
+      "observedAt": "2026-10-12T05:17:40.931Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/lewisville/1201-w-fm-407",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1598 W Main St",
+      "city": "Lewisville",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T05:17:50.860Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/lewisville/1598-w-main-st",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2301 S Hwy 121",
+      "city": "Lewisville",
+      "mcchickenCents": 259,
+      "observedAt": "2026-10-12T05:18:01.002Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/lewisville/2301-s-hwy-121",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "765 W Main St",
+      "city": "Lewisville",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:18:10.937Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/lewisville/765-w-main-st",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2670 Fm 423",
+      "city": "Little Elm",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T05:18:31.686Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/little-elm/2670-fm-423",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1810 W University",
+      "city": "Mckinney",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:18:51.592Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mckinney/1810-w-university",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "240 W Eldorado Pkwy",
+      "city": "Mckinney",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:19:01.005Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mckinney/240-w-eldorado-pkwy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3200 Eldorado",
+      "city": "Mckinney",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:19:10.938Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mckinney/3200-eldorado",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "402 N Central Expy",
+      "city": "Mckinney",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:19:21.028Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mckinney/402-n-central-expy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "6750 W Virginia Pky",
+      "city": "Mckinney",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:19:30.931Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mckinney/6750-w-virginia-pky",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5251 University Dr.",
+      "city": "Mckinney",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-12T05:19:40.966Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mckinney/5251-university-dr",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1444 S Beltline Rd",
+      "city": "Mesquite",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:20:01.114Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mesquite/1444-s-beltline-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1817 N Beltline Rd",
+      "city": "Mesquite",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:20:11.018Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mesquite/1817-n-beltline-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2012 Scyene Rd",
+      "city": "Mesquite",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:20:20.985Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mesquite/2012-scyene-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1531 Towneast Blvd",
+      "city": "Mesquite",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:20:31.016Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mesquite/1531-towneast-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "18751 Ih 635",
+      "city": "Mesquite",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:20:41.050Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mesquite/18751-ih-635",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4450 Gus Thomasson Rd",
+      "city": "Mesquite",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:20:51.070Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mesquite/4450-gus-thomasson-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2700 Faithon P Lucas Sr Blvd",
+      "city": "Mesquite",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:21:01.738Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mesquite/2700-faithon-p-lucas-sr-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "114 East Fm 544",
+      "city": "Murphy",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:21:21.311Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/murphy/114-east-fm-544",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5140 Rufe Snow",
+      "city": "North Richland Hills",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:21:41.266Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/north-richland-hills/5140-rufe-snow",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "7451 Davis Blvd",
+      "city": "North Richland Hills",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:21:52.375Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/north-richland-hills/7451-davis-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8549 Davis Blvd",
+      "city": "North Richland Hills",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:22:01.233Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/north-richland-hills/8549-davis-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2422 W Pioneer Pky",
+      "city": "Pantego",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:22:21.100Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/pantego/2422-w-pioneer-pky",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3957 Legacy Dr",
+      "city": "Plano",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:22:41.066Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/plano/3957-legacy-dr",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4005 W Parker Rd",
+      "city": "Plano",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:22:51.308Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/plano/4005-w-parker-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "6201 Independence Pky",
+      "city": "Plano",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:23:01.233Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/plano/6201-independence-pky",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "701 W Spring Creek",
+      "city": "Plano",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:23:11.194Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/plano/701-w-spring-creek",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5004 State Hwy 121",
+      "city": "Plano",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:23:21.823Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/plano/5004-state-hwy-121",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2205 Mcdermott Rd",
+      "city": "Plano",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:23:31.224Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/plano/2205-mcdermott-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2100 W 15th St",
+      "city": "Plano",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:23:41.278Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/plano/2100-w-15th-st",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "400 Jupiter Rd",
+      "city": "Plano",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:23:51.416Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/plano/400-jupiter-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "605 E 15th St",
+      "city": "Plano",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:24:01.213Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/plano/605-e-15th-st",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "216 Coit Rd",
+      "city": "Plano",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:24:11.251Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/plano/216-coit-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4925 W Park Blvd",
+      "city": "Plano",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:24:21.223Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/plano/4925-w-park-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "6001 W Parker Rd",
+      "city": "Plano",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T05:24:31.252Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/plano/6001-w-parker-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "6220 W Park Blvd",
+      "city": "Plano",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:24:41.159Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/plano/6220-w-park-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "103 E Princeton Dr",
+      "city": "Princeton",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:25:01.150Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/princeton/103-e-princeton-dr",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4500 W. University Dr.",
+      "city": "Prosper",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:25:21.323Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/prosper/4500-w-university-dr",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "105 S Coit Rd",
+      "city": "Richardson",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:25:42.180Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/richardson/105-s-coit-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "120 S Central Expressway",
+      "city": "Richardson",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:25:51.329Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/richardson/120-s-central-expressway",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "170 W Campbell Rd",
+      "city": "Richardson",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:26:01.320Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/richardson/170-w-campbell-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1251 E Belt Line Rd",
+      "city": "Richardson",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:26:11.349Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/richardson/1251-e-belt-line-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "550 Centennial Blvd",
+      "city": "Richardson",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T05:26:21.332Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/richardson/550-centennial-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "7305 Airport Freeway",
+      "city": "Richland Hills",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:26:41.538Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/richland-hills/7305-airport-freeway",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1100 N Highway 377",
+      "city": "Roanoke",
+      "mcchickenCents": 259,
+      "observedAt": "2026-10-12T05:27:02.509Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/roanoke/1100-n-highway-377",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4901 S Goliad",
+      "city": "Rockwall",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:27:21.440Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/rockwall/4901-s-goliad",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3066 N Goliad Street",
+      "city": "Rockwall",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:27:31.477Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/rockwall/3066-n-goliad-street",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "610 E I 30",
+      "city": "Rockwall",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:27:41.358Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/rockwall/610-e-i-30",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3505 Lakeview Parkway",
+      "city": "Rowlett",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:28:02.771Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/rowlett/3505-lakeview-parkway",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8503 Lakeview Parkway",
+      "city": "Rowlett",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:28:11.411Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/rowlett/8503-lakeview-parkway",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5230 Hwy 78",
+      "city": "Sachse",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T05:28:32.277Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/sachse/5230-hwy-78",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "225 N Kimball",
+      "city": "Southlake",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:28:51.460Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/southlake/225-n-kimball",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "7040 Denton Hwy",
+      "city": "Watauga",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:29:11.474Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/watauga/7040-denton-hwy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "415 S Hwy 78",
+      "city": "Wylie",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T05:29:32.306Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/wylie/415-s-hwy-78",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1704 W Randol Mill Rd",
+      "city": "Arlington",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T21:53:34.555Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/arlington/1704-w-randol-mill-rd",
+      "listedAs": "last verified October 2026",
+      "storeId": "way-659537275"
+    },
+    {
+      "address": "11217 Garland Rd",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T21:53:45.102Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/11217-garland-rd",
+      "listedAs": "last verified October 2026",
+      "storeId": "node-7141583768"
+    },
+    {
+      "address": "5700 Forest Bend Drive",
+      "city": "Arlington",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T21:53:53.983Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/arlington/5700-forest-bend-drive",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "190 Shiloh",
+      "city": "Garland",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-12T21:54:14.932Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/garland/190-shiloh",
+      "listedAs": "last verified October 2026",
+      "storeId": "way-671637633"
+    },
+    {
+      "address": "4841 W Sublett Rd",
+      "city": "Arlington",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T21:54:33.938Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/arlington/4841-w-sublett-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4101 E Lancaster Ave",
+      "city": "Fort Worth",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T21:54:44.084Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/4101-e-lancaster-ave",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1250 N Holland Road",
+      "city": "Mansfield",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T21:55:15.721Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mansfield/1250-n-holland-road",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3901 Airport Freeway",
+      "city": "Fort Worth",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T21:55:23.975Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/3901-airport-freeway",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1298 West Mansfield Hwy",
+      "city": "Kennedale",
+      "mcchickenCents": 179,
+      "observedAt": "2026-10-12T21:55:53.843Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/kennedale/1298-west-mansfield-hwy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2451 Meacham Boulevard",
+      "city": "Fort Worth",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T21:56:03.955Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/2451-meacham-boulevard",
+      "listedAs": "last verified October 2026",
+      "storeId": "way-497725077"
+    },
+    {
+      "address": "1001 Hwy 287 N",
+      "city": "Mansfield",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T21:56:14.042Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mansfield/1001-hwy-287-n",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3000 E Berry Street",
+      "city": "Fort Worth",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-12T21:56:25.051Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/3000-e-berry-street",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2400 Alliance Gateway Freeway",
+      "city": "Fort Worth",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T21:56:33.904Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/2400-alliance-gateway-freeway",
+      "listedAs": "last verified October 2026",
+      "storeId": "node-12288679288"
+    },
+    {
+      "address": "3200 Se Loop 820",
+      "city": "Forest Hill",
+      "mcchickenCents": 209,
+      "observedAt": "2026-10-12T21:56:54.037Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/forest-hill/3200-se-loop-820",
+      "listedAs": "last verified October 2026",
+      "storeId": "way-713757770"
+    },
+    {
+      "address": "109 Harris Avenue",
+      "city": "Red Oak",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T21:57:14.247Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/red-oak/109-harris-avenue",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1808 S Beltline Rd",
+      "city": "Dallas",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T21:57:24.447Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/dallas/1808-s-beltline-rd",
+      "listedAs": "last verified October 2026",
+      "storeId": "way-471155147"
+    },
+    {
+      "address": "1310 Us Hwy 287 E",
+      "city": "Midlothian",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T21:57:45.231Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/midlothian/1310-us-hwy-287-e",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2230 Fm 663",
+      "city": "Midlothian",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T21:57:54.043Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/midlothian/2230-fm-663",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "100 N Hwy 175",
+      "city": "Seagoville",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T21:58:14.211Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/seagoville/100-n-hwy-175",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "60 Fm 1641",
+      "city": "Forney",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T21:58:34.282Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/forney/60-fm-1641",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1207 N Hwy 77",
+      "city": "Waxahachie",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-12T21:58:54.147Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/waxahachie/1207-n-hwy-77",
+      "listedAs": "last verified October 2026",
+      "storeId": "way-511847091"
+    },
+    {
+      "address": "181 N Fm148",
+      "city": "Crandall",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T21:59:24.256Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/crandall/181-n-fm148",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3041 Western Center",
+      "city": "Fort Worth",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T22:01:09.520Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/3041-western-center",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1664 Basswood Blvd.",
+      "city": "Fort Worth",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T22:01:20.051Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/1664-basswood-blvd",
+      "listedAs": "last verified October 2026",
+      "storeId": "node-13892483494"
+    },
+    {
+      "address": "5321 Blue Mound Rd",
+      "city": "Saginaw",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T22:01:39.423Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/saginaw/5321-blue-mound-rd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2832 N Main St",
+      "city": "Fort Worth",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T22:01:49.449Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/2832-n-main-st",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1500 S MAIN ST (Hospital)",
+      "city": "Fort Worth",
+      "mcchickenCents": 179,
+      "observedAt": "2026-10-12T22:02:00.617Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/1500-s-main-st-hospital",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "9945 Blue Mound Rd.",
+      "city": "Fort Worth",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T22:02:09.535Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/9945-blue-mound-rd",
+      "listedAs": "last verified October 2026",
+      "storeId": "node-12288678851"
+    },
+    {
+      "address": "700 E Berry St",
+      "city": "Fort Worth",
+      "mcchickenCents": 179,
+      "observedAt": "2026-10-12T22:02:20.800Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/700-e-berry-st",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4800 South Fwy",
+      "city": "Fort Worth",
+      "mcchickenCents": 179,
+      "observedAt": "2026-10-12T22:02:31.361Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/4800-south-fwy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1165 N Saginaw Blvd",
+      "city": "Saginaw",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T22:02:39.485Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/saginaw/1165-n-saginaw-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3601 Camp Bowie Blvd",
+      "city": "Fort Worth",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T22:02:51.126Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/3601-camp-bowie-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2248 Jacksboro Hwy",
+      "city": "Fort Worth",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T22:02:59.495Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/2248-jacksboro-hwy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3012 W Berry Street",
+      "city": "Fort Worth",
+      "mcchickenCents": 179,
+      "observedAt": "2026-10-12T22:03:10.146Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/3012-w-berry-street",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "8651 S Freeway",
+      "city": "Fort Worth",
+      "mcchickenCents": 179,
+      "observedAt": "2026-10-12T22:03:19.401Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/8651-s-freeway",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3300 Hulen St",
+      "city": "Fort Worth",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T22:03:29.632Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/3300-hulen-st",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1908 W. Everman Pkwy",
+      "city": "Fort Worth",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-12T22:03:41.175Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/1908-w-everman-pkwy",
+      "listedAs": "last verified October 2026",
+      "storeId": "node-12292589593"
+    },
+    {
+      "address": "8551 Boat Club Rd #121",
+      "city": "Fort Worth",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-12T22:03:49.672Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/8551-boat-club-rd-121",
+      "listedAs": "last verified October 2026",
+      "storeId": "node-12288686332"
+    },
+    {
+      "address": "6356 Jacksboro Hwy",
+      "city": "Fort Worth",
+      "mcchickenCents": 219,
+      "observedAt": "2026-10-12T22:04:00.836Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/6356-jacksboro-hwy",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3500 Alta Mesa Blvd",
+      "city": "Fort Worth",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-12T22:04:20.802Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/3500-alta-mesa-blvd",
+      "listedAs": "last verified October 2026",
+      "storeId": "way-672554405"
+    },
+    {
+      "address": "4405 Sw Loop 820",
+      "city": "Fort Worth",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T22:04:31.042Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/4405-sw-loop-820",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "525 Alta Mere Drive",
+      "city": "Fort Worth",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-12T22:04:39.541Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/525-alta-mere-drive",
+      "listedAs": "last verified October 2026",
+      "storeId": "way-163933925"
+    },
+    {
+      "address": "6401 Camp Bowie Boulevard",
+      "city": "Fort Worth",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T22:04:49.576Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fort-worth/6401-camp-bowie-boulevard",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "5020 E. I-30",
+      "city": "Fate",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-12T22:05:10.669Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/fate/5020-e-i-30",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1230 S Us Hwy 377",
+      "city": "Pilot Point",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-12T22:05:29.591Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/pilot-point/1230-s-us-hwy-377",
+      "listedAs": "last verified October 2026",
+      "storeId": "node-5894899167"
+    },
+    {
+      "address": "91 State Highway 205",
+      "city": "Terrell",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-12T22:05:49.688Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/terrell/91-state-highway-205",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1704 Hwy 34 S",
+      "city": "Terrell",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-12T22:05:59.610Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/terrell/1704-hwy-34-s",
+      "listedAs": "last verified October 2026"
+    }
+  ]
+}

@@ -1217,6 +1217,34 @@ only, whether the account belongs to this project and whether the key is one
 of its live published keys. Pasting the entire JSON file into
 `FIREBASE_PRIVATE_KEY` is the least error-prone way to set it.
 
+**Feed prices in production.** MenuPriceTracker's prices (shown by the
+owner's decision of 2026-10-11, named and linked; see `src/lib/feeds.ts`)
+reach production the same way: the snapshot in
+`src/data/feeds/menupricetracker.json` ships with the server, and every sync
+records its rows for the stores around it with the import script's own
+parsing and matching (`backfillFeedObservations`). A store whose price is as
+new as the row, or newer, is skipped, so a visitor's later price always wins
+and an up-to-date area costs no extra reads. The import script's guard is
+unchanged: it still won't write an unlicensed feed anywhere but the emulator.
+To refresh: `npm run fetch:menupricetracker` (against the emulator), copy the
+new file over the snapshot, push.
+
+Rows are matched by city and street number, but the feed and OpenStreetMap
+sometimes give one restaurant different numbers ("190 Shiloh" and "7201 N
+President George Bush Hwy" are the same McDonald's). Such a row can carry a
+`storeId` pin, set only when the link by location is unambiguous: the row's
+address names one All The Places location, exactly one of our stores is
+within 75 m of it, and no other McDonald's is within 200 m of that store. A
+pin naming a store we don't have is a miss, never a fallback to the address
+(`pinnedOrMatched` in `lib/feed-match`).
+
+Coverage on 2026-10-12: of the live stores MenuPriceTracker was asked about,
+every one it lists with a McChicken price is in the snapshot. The ones it
+doesn't list can't have a price from it: the DFW airport terminals, a
+handful of standalone stores it simply doesn't carry, and OpenStreetMap
+entries with no McDonald's within 200 m in McDonald's own locator (likely
+closed). Those show "No prices yet" until a visitor logs one.
+
 **Restaurant numbers in production.** Stores get their McDonald's number on
 the server, not by an import: `src/data/restaurant-numbers.json` (13,638 US
 restaurants from All The Places, CC0, 481 KB, server-only) is matched against

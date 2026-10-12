@@ -4,6 +4,7 @@ import {
   matchFeedRow,
   observationId,
   parseFeedFile,
+  pinnedOrMatched,
   storeCity,
   streetNumber,
 } from "@/lib/feed-match";
@@ -117,6 +118,7 @@ describe("parseFeedFile", () => {
         priceCents: 249,
         observedAt: "2026-08-03T00:00:00.000Z",
         sourceUrl: "https://menupricetracker.com/mcdonalds/texas/coppell/813-macarthur-blvd",
+        storeId: null,
       },
       {
         address: "501 E Fm 3040",
@@ -124,6 +126,7 @@ describe("parseFeedFile", () => {
         priceCents: null,
         observedAt: "2026-08-03T00:00:00.000Z",
         sourceUrl: "https://example.com/x",
+        storeId: null,
       },
     ]);
   });
@@ -188,6 +191,34 @@ describe("parseFeedFile", () => {
     const { rows, problems } = parseFeedFile({ stores: [] }, NOW);
     expect(rows).toEqual([]);
     expect(problems[0]).toMatch(/^file:/);
+  });
+});
+
+describe("pinnedOrMatched", () => {
+  const row = { address: "190 Shiloh Rd", city: "Garland" };
+
+  it("sends a pinned row to its store even when the street numbers disagree", () => {
+    expect(pinnedOrMatched({ ...row, storeId: "node-3" }, stores)).toEqual({ kind: "match", storeId: "node-3" });
+  });
+
+  it("misses when the pinned store isn't on file, rather than guessing by address", () => {
+    const sameAddress = { address: "813 S MacArthur Blvd", city: "Coppell", storeId: "way-gone" };
+    expect(pinnedOrMatched(sameAddress, stores)).toEqual({ kind: "miss" });
+  });
+
+  it("matches an unpinned row by city and street number, as before", () => {
+    expect(pinnedOrMatched({ address: "813 S MacArthur Blvd", city: "Coppell", storeId: null }, stores)).toEqual({
+      kind: "match",
+      storeId: "way-30288130",
+    });
+  });
+
+  it("keeps a row's pin through parsing", () => {
+    const parsed = parseFeedFile(
+      { rows: [{ ...row, mcchickenCents: 189, observedAt: "2026-10-11T00:00:00.000Z", storeId: "node-3" }] },
+      NOW,
+    );
+    expect(parsed.rows[0]?.storeId).toBe("node-3");
   });
 });
 
