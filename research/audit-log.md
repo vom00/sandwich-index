@@ -676,3 +676,19 @@ from MenuPriceTracker · observed 2 months ago", with a link to the source.
   so recalibrating it is its own change.
 - MenuPriceTracker's trustworthiness went *down* on re-inspection: dates
   contradict each other across its own pages. See `price-sources.md`.
+
+## Second sweep: accurate prices that need nothing from the owner
+
+The owner asked for accurate prices without any work on their side.
+`price-sources.md` now scores 21 candidates on five tests. Nothing passes in
+practice. Open Prices passes on paper but has no US McDonald's data and
+cannot name a McChicken. No price code was written, and the reasons are
+recorded there. A Flickr API-key draft joined `feed-outreach.md` as a "needs
+owner" item with a low expected yield.
+
+The app itself needed no fixes. With the dev emulator started from the
+snapshot (no export on exit) and `next dev` on port 3000, every check passed:
+lint, typecheck, `npm test` (152), `test:emulated` (235: unit, rules and
+integration), `test:rules` (37), `next build`, `test:browser` (265),
+`test:a11y` (68) and `check:contrast` (22 pairs). That is the README's 568,
+unchanged.

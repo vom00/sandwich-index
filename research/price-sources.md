@@ -13,6 +13,74 @@ verified, or an enterprise data contract. The August conclusion below ("a
 definitive per-store source exists") is superseded. See the next section.
 (Loop started 2026-08-10.)
 
+A second sweep the same evening asked a narrower question: is there anything
+accurate that needs **nothing** from the owner? No. The one source that
+passes every test on paper, Open Prices, has no McDonald's data and cannot
+name a McChicken. See "Second sweep" below.
+
+## 2026-10-11, second sweep: sources that need nothing from the owner
+
+The owner wants accurate prices with no work on their side: no emails,
+sign-ups, payments, app checks or price logging. "Accurate" means one price
+for one store, in-store or pickup, with the date it was observed, from a
+source the site may republish. Each candidate below is scored on those four
+tests plus a fifth: it needs nothing from the owner. ✓ passes, ✗ fails,
+? unknown. Earlier entries are re-scored on the same five tests so the whole
+field is in one table.
+
+| Source | Per store | Dated | In-store | Republish | No owner | Verdict |
+|---|---|---|---|---|---|---|
+| [McDonald's app](https://www.mcdonalds.com/us/en-us/terms-and-conditions.html) | ✓ | ✓ | ✓ | ✗ terms allow "personal, non-commercial" use only | ✗ needs a signed-in account | the ground truth, and unusable |
+| [MenuPriceTracker](https://menupricetracker.com) | ✓ | ✗ its own dates contradict each other | ✓ says app-sourced | ✗ no reuse terms | ✗ licence | needs owner; draft in `feed-outreach.md` |
+| [Datassential Price Monitor](https://datassential.com/resource/datassential-ai-powered-competitive-menu-pricing-food-beverage-companies/) | ✓ | ? monthly | ? | ? | ✗ enterprise contract | needs owner; draft in `feed-outreach.md` |
+| [RMS Competitor Price Intelligence](https://restauranttechnologynews.com/2023/06/revenue-management-solutions-launches-platform-that-gives-restaurant-operators-access-to-menu-price-change-data/) | ✓ | ? | ? | ? | ✗ enterprise contract | needs owner; draft in `feed-outreach.md` |
+| [Technomic](https://technomic.com/press-new-pricing-index-report) | ✗ state and metro | ✓ quarterly | ✓ | ? | ✗ enterprise | a sanity band, not a store price |
+| McDelivery, DoorDash, Uber Eats ([markup study](https://www.restaurantbusinessonline.com/technology/food-delivery-insanely-expensive-consumers-dont-seem-care)) | ✓ | ✓ | ✗ delivery runs about 27% above in-store | ✗ platform terms | ✓ | the wrong price |
+| [Open Prices](https://prices.openfoodfacts.org/api/v1/locations?osm_name__like=McDonald) (Open Food Facts) | ✓ keyed to OSM ids, like our stores | ✓ | ✓ receipts and shelf tags | ✓ [ODbL](https://www.data.gouv.fr/datasets/open-prices) | ✓ open read API | passes on paper, nothing to import (below) |
+| [Wikimedia Commons](https://commons.wikimedia.org/w/index.php?search=intitle%3Amenu+intitle%3AMcDonalds&ns6=1) menu-board photos | ✗ 1 of 6 relevant files geotagged | ✓ | ✓ | ✓ CC | ✓ | too thin and too old: the one located US board is from 2013 |
+| [OpenStreetMap tags](https://wiki.openstreetmap.org/wiki/Key:website:menu) | ✓ | ✗ | ✗ | ✓ ODbL | ✓ | no prices in OSM; US McDonald's carry only `website:menu`, a link to mcdonalds.com's price-free menu |
+| [Flickr CC photos](https://www.flickr.com/services/api/misc.api_keys.html) | ? geotags | ✓ | ✓ | ✓ per photo | ✗ API key application | needs owner, tiny expected yield; draft in `feed-outreach.md` |
+| [Mapillary street imagery](https://www.mapillary.com/developer/api-documentation) | ✓ | ✓ | ? boards rarely legible from the road | ? not stated on the API page | ✗ token from an account | needs owner, not worth it |
+| [Hugging Face datasets](https://huggingface.co/api/datasets?search=mcchicken) | ✗ none exist | ✗ | ✗ | ✗ | ✓ | "mcchicken" returns 0; "mcdonalds" returns satellite and foot-traffic sets |
+| [Harvard Dataverse](https://dataverse.harvard.edu/api/search?q=McChicken&type=dataset) | ✗ none exist | ✗ | ✗ | ✗ | ✓ | 0 datasets for McChicken; McDonald's searches return retail price projects |
+| Ashenfelter and Jurajda; Berkeley IRLE (see August section) | ✓ | ✓ | ✓ | ? | ✓ | Big Mac and burgers, 2016 to 2025, collected once for a paper |
+| GitHub trackers: [CyrilSLi](https://github.com/CyrilSLi/mcdonalds-price-tracker), [mcchicken-index](https://github.com/14039/mcchicken-index), [mcchickenflation](https://github.com/pzelle/mcchickenflation) | mixed | ✓ | ✓ | ✗ no licence, so all rights reserved | ✓ | mcchicken-index samples 12 metros from MenuPriceTracker and inherits its problems |
+| [Kaggle McDonald's UK Menu Dataset](https://www.kaggle.com/datasets/danilchurko/mcdonalds-uk-menu-dataset) | ✗ | ✓ | ✓ | ? | ? | UK national menu |
+| [FoodDataScrape](https://www.fooddatascrape.com/mcdonalds-menu-and-price-dataset.php) | ? | ? | ? | ✗ | ✗ paid | a commercial scraper; ruled out outright |
+| [Franchise Disclosure Documents](https://www.law.cornell.edu/cfr/text/16/436.5) | ✗ | ✗ | ✗ | ✓ public filings | ✓ | none of the 23 required items covers menu prices |
+| [BLS CPI, limited-service meals](https://data.bls.gov/timeseries/CUUR0000SEFV02) | ✗ national index | ✓ | ✓ | ✓ public domain | ✓ | context, not a price |
+| Delivery price minus a markup | ✓ | ✓ | ✗ an estimate | ✗ platform terms | ✓ | the markup varies by franchisee, so it can't be subtracted out |
+| Menu-board OCR | ? | ✓ | ✓ | ✗ | ✗ | no lawful image source: Commons is too thin, Flickr and Mapillary need the owner, Google and Yelp terms forbid it |
+
+**Open Prices in detail.** It is the only candidate that passes all five,
+and the fit looks perfect at first: every price hangs off an OpenStreetMap
+id, and every store in this app is an OSM id, so matching would be exact
+rather than by address. The public API on 2026-10-11 listed 7,543 locations,
+380 of them in the US. A name search found two McDonald's, one in
+Saint-Martin-d'Hères (France) and one in Helsingborg (Sweden), with zero
+prices between them. The bigger problem is the data model: a price must name
+either a barcode or an Open Food Facts food category (`en:mangoes`,
+`en:leaf-vegetables`). A McChicken has no barcode and no category of its own,
+so even a McDonald's receipt uploaded there could not be read back as "the
+McChicken price". Worth re-checking only if Open Prices adds restaurant
+menu items.
+
+**The scraping question.** The owner's brief for this sweep dropped the
+"no scraping" rule. The answer doesn't change: the app fails the republish
+test by McDonald's own terms, and reading it needs a signed-in account. The
+delivery storefronts fail the in-store test whatever the method.
+
+**What was built: nothing, on purpose.** Every route to an accurate price
+needs one of three things: the McDonald's app (which can't be republished and
+needs a sign-in), a licence (the owner's signature), or somebody standing at
+the counter (visitor logging, which the owner asked not to rely on). Open
+Prices is the one legitimate automated source, and an importer for it would
+have nothing to import and no way to recognise a McChicken. An estimate layer
+(a nearby median for unpriced stores) was considered and rejected. It fails
+the definition of accurate. The production database is empty, so it would
+estimate from nothing. And the landing page promises that "not one figure on
+this site is estimated".
+
 ## 2026-10-11: getting prices without people submitting them
 
 The owner asked for accurate McChicken prices that do not depend on visitors

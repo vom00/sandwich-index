@@ -1,6 +1,6 @@
 # Price-feed outreach: drafts to send
 
-Three drafts, in the order they're worth sending. None has been sent. Each
+Four drafts, in the order they're worth sending. None has been sent. Each
 needs to come from the owner's own address, through the vendor's own contact
 or sales form. No addresses are guessed here.
 
@@ -116,3 +116,26 @@ store's price actually observed?
 > Thanks,
 > [name]
 > Sandwich Index
+
+## 4. Flickr API key (free; expected yield tiny)
+
+Where: the key application linked from
+https://www.flickr.com/services/api/misc.api_keys.html. Flickr asks for "a
+brief explanation of how you're planning to use it"; the text below is that
+explanation.
+
+Listed because the 2026-10-11 second sweep in `price-sources.md` marks it
+"needs owner", not because it's likely to pay off. A usable photo has to be
+Creative Commons, geotagged to one restaurant, taken in the last 90 days, and
+show a legible McChicken price. Wikimedia Commons had six relevant photos,
+and the newest located US menu board was from 2013. Expect a handful
+nationwide. Searching and matching photos to stores is code that can be
+written once a key exists. Reading the price off each photo would still need
+a check before anything is imported.
+
+> Sandwich Index is a free, non-commercial site that shows what a McDonald's
+> McChicken costs at each US restaurant. I'd use the API to find recent,
+> geotagged, Creative Commons photos of McDonald's menu boards, read the
+> McChicken price from the board, and show it on that restaurant's page with
+> the photographer's name, the licence and a link back to the photo on
+> Flickr. No photos would be copied or rehosted.

@@ -34,7 +34,10 @@ yet, so in production today every price is a visitor's. See
 
 All seven phases are built. Two items are open, and both belong to the owner:
 choosing and licensing a price feed (see [Price feeds](#price-feeds)), and
-[Deployment](#deployment).
+[Deployment](#deployment). No code can close either one. A licence needs a
+signature, and deployment needs a Firebase project and credentials. On
+2026-10-11, a search for an accurate price source that needs nothing from the
+owner found none (see `research/price-sources.md`).
 
 ### Test results
 
@@ -524,6 +527,11 @@ logs one. The owner asked for accurate prices that don't depend on that.
   Competitor Price Intelligence).
 - **Delivery menus are not a shortcut.** They run about 27% above in-store
   prices, and the markup varies by franchisee, so it can't be backed out.
+- **Nothing accurate is free for the taking.** A second sweep the same day
+  scored 21 candidates on five tests: per store, dated, in-store, free to
+  republish, and needing nothing from the owner. Only Open Prices (Open Food
+  Facts) passes all five, and it has no US McDonald's data and no way to name
+  a McChicken, so no importer was written for it.
 
 So the app takes feed data the one way it can take it honestly, as a labelled,
 dated observation. Which feed fills it is left to whoever can sign a licence.
