@@ -15,7 +15,8 @@ definitive per-store source exists") is superseded. See the next section.
 
 **Owner's decision, 2026-10-11 (late):** use MenuPriceTracker for now,
 unlicensed, named and linked on every price, while the licensing email waits
-for an answer, with visitors still able to log what they see. The reader and
+for an answer (it bounced on 2026-10-12: their mail server refuses all
+inbound mail, and they publish no other contact; see `feed-outreach.md`), with visitors still able to log what they see. The reader and
 its limits are in the README's "MenuPriceTracker" section. This doesn't change
 the findings below: its dates are still month-level at best, which is why its
 prices say "checked" rather than "observed".
@@ -24,6 +25,104 @@ A second sweep the same evening asked a narrower question: is there anything
 accurate that needs **nothing** from the owner? No. The one source that
 passes every test on paper, Open Prices, has no McDonald's data and cannot
 name a McChicken. See "Second sweep" below.
+
+A third sweep on 2026-10-12 asked what could be **built** to get exact
+prices. Nothing automated can: the exact price lives in the McDonald's app
+and on receipts, and automating the app stays off the table. But the two
+exact sources are already in visitors' hands, and reading them can be made
+nearly effortless. See "Third sweep" below.
+
+## 2026-10-12, third sweep: building something that reads exact prices
+
+### Rechecked first
+
+- **McDonald's web ordering exists now, but it's delivery.** Since 13 August
+  2025, [mcdonalds.order.online](https://www.businesswire.com/news/home/20250813041428/en),
+  run by DoorDash, takes McDelivery orders in a browser with
+  [no app, login or account](https://foodondemand.com/08132025/mcdonalds-launches-new-direct-ordering-on-website/).
+  Its prices are delivery prices, which run about 27% above the counter
+  (see "Delivery menus" below), so it's the same wrong number as before.
+  Pickup is still [app only](https://www.mcdonalds.com/us/en-us/faq/how-do-i-order-mcdelivery--using-my-mcdonald-s-app.html).
+- **MenuPriceTracker** now claims 9,259 US stores
+  ([its city index](https://menupricetracker.com/cities)). Its only contact
+  address refuses mail (`feed-outreach.md`).
+- **No other per-store tracker** turned up. The rest
+  ([fastfoodmenuprices.com](https://fastfoodmenuprices.com/mcdonalds-prices/),
+  [usmenuprices.us](https://usmenuprices.us/mcdonalds-menu/),
+  [menupricebook.com](https://menupricebook.com/menu/mcdonalds/)) list one
+  national menu.
+
+### What can be built
+
+**1. A receipt and app-screenshot reader (the recommendation).** A visitor
+photographs a receipt, or screenshots the McChicken in the McDonald's app with
+their store selected, and the site reads the price, the store and the date
+from the picture. Both are exact: the receipt is what that store charged on
+that day, and the app is the source MenuPriceTracker itself claims to copy.
+
+- **Runs on the visitor's phone.** [tesseract.js](https://www.npmjs.com/package/tesseract.js)
+  (7.0.0, December 2025) does the OCR in the browser, so the photo never
+  leaves the device; only the price, store and date are submitted, the same
+  fields the form takes now. That also keeps card digits and order numbers off
+  our servers. Cost: the English model is 2.95 MB gzipped
+  ([`@tesseract.js-data/eng`](https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng@1.0.0/4.0.0_best_int/eng.traineddata.gz))
+  plus the WebAssembly engine, loaded only when someone taps the button, and
+  self-hosted rather than pulled from a CDN.
+- **The person confirms.** The form shows what was read, filled in and
+  editable, and nothing is saved until they submit. The existing rules all
+  still apply: the $1–$15 range, one report per device per store per day,
+  and the 40% hold.
+- **Only a plain McChicken counts.** The parser rejects Spicy McChicken,
+  McChicken Meal and anything else with the word in it, and divides by the
+  quantity ("2 McChicken 5.98" is $2.99 each).
+
+**2. Matching a receipt to its store by restaurant number.** McDonald's own
+[receipt FAQ](https://www.mcdonalds.com/us/en-us/faq/where-can-i-find-the-receipt-information.html)
+says every receipt prints "McDonald's Restaurant #" and the number, with the
+address under it. [All The Places](https://wiki.openstreetmap.org/wiki/All_the_Places)
+publishes every McDonald's location from the company's own store locator under
+CC0, with that number as `ref`
+([spider source](https://github.com/alltheplaces/alltheplaces/blob/master/locations/spiders/mcdonalds.py);
+latest run 2026-10-03, [`mcdonalds.geojson`](https://alltheplaces-data.openaddresses.io/runs/2026-10-03-13-32-35/output/mcdonalds.geojson),
+11 MB, worldwide). US refs are 3 to 5 digits, for example `17569` at 529
+Jonesborough Rd, Erwin TN, and `3910` at 806 E 1st St, Vidalia GA. A
+crosswalk from that number to our OpenStreetMap stores (nearest point, then
+street number) makes the store match exact even when OCR garbles the
+address. It's CC0, so no licence question.
+
+**3. Measuring MenuPriceTracker.** Every receipt that lands at a store
+MenuPriceTracker covers is a free accuracy check on it. A few dozen would
+answer the question this file has asked since August: are its prices current?
+
+### Feasibility spike (2026-10-12)
+
+Three mock images, rendered in the scratchpad and read by tesseract.js 7.0.0
+in Node: two thermal-style receipts, tilted and slightly blurred, and an app
+item screen. The receipt layout follows McDonald's FAQ; the item-line format
+("1 McChicken 2.49") is a guess, because no real US receipt was available.
+
+| Image | Read in | OCR confidence | Parsed |
+|---|---|---|---|
+| Receipt, Coppell (with a Spicy McChicken and a McChicken Meal as decoys) | 357 ms | 90 | Restaurant #4412, address, 2026-10-11, McChicken $2.49 |
+| Receipt, Irving, "2 McChicken 5.98" | 208 ms | 93 | Restaurant #31206, address, 2026-10-09, $2.99 each |
+| App item screen | 166 ms | 92 | Pickup address, McChicken $2.49 |
+
+All three were parsed correctly, and both decoys were rejected. The OCR still
+made mistakes elsewhere: "2.99" read as "2:99", "1.22" as "22", "TEL#" as
+"TEL$". Two guards catch that kind of error: the person confirms what was
+read, and the item lines can be checked against the printed subtotal.
+
+**What the spike does not show.** Real photos are harder than these: curled
+paper, glare, low light, faded thermal print. There are no freely licensed
+photos of US McDonald's receipts to test with (Wikimedia Commons has Dutch,
+Taiwanese and Hong Kong ones), and the real item-line wording is unconfirmed.
+The parser should be tuned on the first real receipts submitted, and until
+then it should prefill the form and never submit on its own.
+
+### What stays off the table
+
+Automating the app, scraping DoorDash or Google, and estimating a store's
+price from its neighbours. The site promises that no figure is estimated.
 
 ## 2026-10-11, second sweep: sources that need nothing from the owner
 

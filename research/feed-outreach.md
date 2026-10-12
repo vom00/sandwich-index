@@ -8,7 +8,7 @@ Status (2026-10-11):
 
 | Draft | Status |
 |---|---|
-| 3. MenuPriceTracker | **Sent** from the owner's Gmail to hello@menupricetracker.com, signed "Sandwich Index", with the owner's approval. Awaiting a reply. |
+| 3. MenuPriceTracker | **Bounced.** Sent 2026-10-12 04:09 UTC from the owner's Gmail to hello@menupricetracker.com, with the owner's approval; rejected a second later with `550 5.7.1 Relaying denied` from mxa.mailgun.org. Nobody there has seen it. See below. |
 | 1. Datassential | **Not sent.** The contact form is behind Google reCAPTCHA. The coding agent stops at bot checks, so the owner has to submit it. |
 | 2. RMS | **Not sent.** The contact form is behind Cloudflare Turnstile. Same reason. |
 | 4. Flickr API key | **Not sent.** The application needs a Flickr sign-in. |
@@ -101,6 +101,16 @@ price. Asking costs nothing.
 Contact: hello@menupricetracker.com. That is the address the site publishes
 in its own contact data (the schema.org `Organization` block on every page),
 so it isn't a guess.
+
+**It doesn't accept mail (checked 2026-10-12).** The domain's MX records point
+at Mailgun (mxa/mxb.mailgun.org, SPF `include:mailgun.org`), and Mailgun
+answers `550 5.7.1 Relaying denied`: the domain is set up to send through
+Mailgun but has no inbound route, so every message to any address there is
+refused. Resending won't help until they fix it. The site publishes no other
+contact: no form (`/contact` is a 404), no social links, and the privacy
+page only says "contact us directly". The domain was registered 2026-03-09
+through GoDaddy with the registrant hidden. Worth retrying now and then; a
+bounce comes back within seconds, so it's cheap to tell.
 
 The owner decided on 2026-10-11 to show MenuPriceTracker's prices while this
 request is outstanding (`unlicensedUse` in `src/lib/feeds.ts`). This version

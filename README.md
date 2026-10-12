@@ -603,8 +603,9 @@ write.
 ### MenuPriceTracker
 
 In use by the owner's decision of 2026-10-11, recorded as `unlicensedUse` in
-`src/lib/feeds.ts`, while the licensing email in `research/feed-outreach.md`
-waits for an answer. If they say no, set `unlicensedUse` to null and the
+`src/lib/feeds.ts`. The licensing email in `research/feed-outreach.md`
+bounced on 2026-10-12: their domain refuses all inbound mail, and the site
+publishes no other contact, so no request is actually pending. If they say no, set `unlicensedUse` to null and the
 site's copy reverts by itself; delete the observations to remove the prices.
 
 ```bash
