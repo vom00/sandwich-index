@@ -714,3 +714,39 @@ price they paid *or saw*, not only a receipt.
 Checks after the change: lint, typecheck and build clean; `npm test` 172,
 `test:emulated` 255, `test:rules` 37, `test:browser` 265, `test:a11y` 68. That
 makes 588.
+
+## Design pass, site header, clay scenes, and the first real MenuPriceTracker run
+
+- **No way back to the landing page.** Once a visitor went to `/map` there was
+  no link home. Every page now has a header with the wordmark (linking to `/`)
+  and Map, Log prices and About the data, the current one marked with
+  `aria-current="page"`. `tests/browser/nav.js` (32 checks) walks it.
+- **Three clay scenes on the landing page**: the kitchen line, headquarters,
+  and somebody logging a price. They share one stage (`scenes/stage.ts`), load
+  three.js only on `/`, and hold a still frame under reduced motion.
+  `tests/browser/scenes.js` (30 checks) replaced `kitchen.js`. On review, the
+  logging scene's phone text was wider than its screen and the flying price
+  card crossed the menu board in the still frame. The phone is now larger, its
+  lines fit, and the card takes a flatter path between the board and the map.
+- **MenuPriceTracker, run for real (2026-10-12).** 197 store pages read at the
+  10-second crawl delay robots.txt asks for, all 197 with a McChicken price,
+  all 197 matched to exactly one store. They were imported into a clean copy of
+  the emulator data, which was then saved.
+- **What the import broke, and the fixes.** Three checks failed against the new
+  data, and none of them was a code bug:
+  - Phase 3 found no stale store. The seed's stale stores are on
+    MenuPriceTracker, so they now have fresh prices. `npm run seed:stale` gives
+    two unpriced stores an old, invented history, emulator only, and never
+    touches a store with a price.
+  - Phase 4's pinned "long visitor history" store now shows the feed's price.
+    It and the outlier target are now looked up at run time among stores with
+    no feed price.
+  - Phase 5 rejected rank "201". Ranks are padded to two digits and there are
+    now more than 99 priced stores; the check accepts three digits.
+- **Still open:** the saved data ages. The visitor prices phase 4 relies on go
+  stale between 2026-10-17 and 2026-10-31 (see README, MenuPriceTracker).
+
+Checks after the change: lint, typecheck and build clean; `npm test` 172,
+`test:emulated` 255 (including rules and integration), `test:rules` 37,
+`test:browser` 327, `test:a11y` 68, `check:contrast` 22 pairs. That makes the
+README's 650.

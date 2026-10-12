@@ -32,7 +32,7 @@ outstanding. See [Price feeds](#price-feeds).
 | 5 | Landing page: live hero figure, leaderboards, editorial treatment | Done |
 | 6 | Polish: motion sweep, axe audit, error/empty states, offline | Done |
 | 7 | Price feeds: provenance, feed registry, import pipeline, labelled UI, MenuPriceTracker reader | Built; MenuPriceTracker in use, unlicensed |
-| 8 | Design pass: 3D kitchen line on the landing page, copy edit across the site | Done |
+| 8 | Design pass: three clay 3D scenes on the landing page, a site header, copy edit across the site | Done |
 
 All eight phases are built. Three items are open:
 
@@ -63,12 +63,15 @@ the owner found none (see `research/price-sources.md`).
 | Bulk logging — `/log` | 36 | `npm run test:browser` |
 | Hydration | 9 | `npm run test:browser` |
 | Stale-load race on `/map` | 7 | `npm run test:browser` |
+| Clay scenes on `/` | 30 | `npm run test:browser` |
+| Navigation — the site header | 32 | `npm run test:browser` |
 | Tap targets — every route, 2 viewports | 10 | `npm run test:a11y` |
 | Keyboard navigation | 13 | `npm run test:a11y` |
 | Screen-reader semantics | 45 | `npm run test:a11y` |
 
-588 checks, all passing with MenuPriceTracker in use (2026-10-11) against
-`next dev`; the production `next build` compiles all routes clean.
+650 checks, all passing on 2026-10-12 against `next dev` and the saved
+emulator data with all 197 MenuPriceTracker prices loaded; the production
+`next build` compiles all routes clean.
 
 The last three are accessibility sweeps added after the phase suites, each
 covering something the earlier ones could not see. Tap targets were only ever
@@ -628,11 +631,27 @@ the moment its page was read, and the UI says "checked", not "observed". The
 month the site claims is kept in the file as `listedAs`. Visitors can always
 log their own price, and a newer visitor price replaces the feed's.
 
-Not yet run for real: on 2026-10-11 the coding agent's safety check stopped
-the first fetch, so only the four August samples in
-`research/tracker-samples.json` have been imported, into the emulator. The
+First full run on 2026-10-12: 197 of our 222 Dallas–Fort Worth stores are on
+MenuPriceTracker, and all 197 had a McChicken price ($1.49 to $2.99). Every
+row matched exactly one store, and the import recorded 197 observations into
+the emulator, which was then saved as `.emulator-data`. The 25 stores it
+doesn't list (mostly airport terminals) keep whatever visitors reported. The
 parsers are tested against trimmed copies of real pages
 (`tests/unit/menupricetracker.test.ts`).
+
+A feed import also erases two states the test suites need. The seed makes a
+few stores stale on purpose, and when the feed covers them they get a fresh
+price. `npm run seed:stale` puts the state back: it gives an old, invented
+history to the two unpriced stores nearest Coppell, and leaves the other
+unpriced stores alone so "no prices yet" survives too. It never touches a
+store that has a price, and like the seed it refuses anything but the
+emulator. Phase 4 now looks up its "long visitor history" and "established
+price" stores at run time, among stores with no feed price.
+
+The saved data ages. The visitor prices on the four airport stores phase 4
+uses were last reported between 2026-07-19 and 2026-08-02, so they turn
+stale between 2026-10-17 and 2026-10-31, after which phase 4 says it has no
+fixture. Re-seed, then re-import, when that happens.
 
 ---
 
@@ -841,35 +860,43 @@ Suspense boundary above *every* route, and a streamed response has already sent
 its 200 by the time `/store/<unknown>` calls `notFound()`. It briefly made every
 404 on the site answer 200.
 
-### The kitchen line
+### The clay scenes
 
-Beside the headline on a wide screen, and after the call to action on a phone,
-is a small 3D scene: three clay cooks on a conveyor belt build the same chicken
-sandwich over and over, a press pins a price flag in each one, and it drops into
-a bag. The sandwiches are identical and the flags all differ, which is the
-site's premise in one loop. It was added on 2026-10-11, modelled on the clay,
-isometric style of a [Sendoso animation on
-Dribbble](https://dribbble.com/shots/26613831-3D-Animation-For-Sendoso-com),
-but built here from primitives in three.js: no model files, no logos, and the
+The landing page has three small 3D scenes, added on 2026-10-11 and modelled
+on the clay, isometric style of a [Sendoso animation on
+Dribbble](https://dribbble.com/shots/26613831-3D-Animation-For-Sendoso-com).
+They are built from primitives in three.js: no model files, no logos, and the
 site's own palette, so no red or yellow anywhere.
 
-- **Code:** `src/components/landing/kitchen/`. `scene.ts` is the three.js
-  scene and `KitchenLine.tsx` the React wrapper.
-- **Loading:** the figure and its caption are server-rendered at a fixed 4:3
+- **The kitchen line**, beside the headline: three cooks on a conveyor belt
+  build the same chicken sandwich over and over, a press pins a price flag in
+  each one, and it drops into a bag. Identical sandwiches, different flags.
+- **Headquarters**, in "Why it moves": a tall corporate tower with people in
+  suits going in and out, and two small franchise shops beside it, each with
+  its own price on the sign.
+- **Logging a price**, in "How a price gets here": somebody reads the menu
+  board, types $2.49 into their phone, and a price card flies onto that
+  store's pin on a small map.
+
+- **Code:** `src/components/landing/scenes/`. `stage.ts` holds the shared
+  renderer, camera, lights, clay materials and people; `kitchen.ts`,
+  `headquarters.ts` and `logging.ts` are the scenes; `ClayScene.tsx` is
+  the React wrapper.
+- **Loading:** each figure and its caption are server-rendered at a fixed
   ratio, so nothing moves when the scene arrives. `three` (pinned at 0.186.1)
   is imported with `import()` only on the client, only on `/`, and only once
-  the browser is idle and the figure is on screen. The headline number still
+  the browser is idle and a figure is on screen; the three scenes share it. The headline number still
   paints first.
-- **Motion:** one clock drives everything. The belt runs at a constant speed
-  and every cook's movement is a function of where the next sandwich is, so
-  nothing drifts. It renders only while on screen and while the tab is visible.
+- **Motion:** in each scene one clock drives everything: every position is a
+  function of time, so nothing drifts. In the kitchen, the belt runs at a
+  constant speed and every cook's movement follows the next sandwich. It renders only while on screen and while the tab is visible.
   Under `prefers-reduced-motion` or data saver it draws one still frame and
   never animates; without WebGL the canvas stays empty and the caption stands
   alone.
 - **Accessibility:** the canvas is `aria-hidden`. The caption says in words
   what the animation shows.
 
-`tests/browser/kitchen.js` checks all of that from the outside.
+`tests/browser/scenes.js` checks all of that from the outside, for all three.
 
 ---
 
@@ -1045,9 +1072,9 @@ and `globals.css` neutralises the stylesheet as well, for a preference changed
 after the map was created. No `!important`: each override is one class more
 specific than the Leaflet rule it replaces.
 
-The landing page's kitchen scene is the one continuous animation on the site.
-It runs in a canvas, so it never touches layout, and it stops whenever it is off
-screen or motion is reduced (see [The kitchen line](#the-kitchen-line)).
+The landing page's three clay scenes are the only continuous animation on the
+site. They run in canvases, so they never touch layout, and each stops whenever
+it is off screen or motion is reduced (see [The clay scenes](#the-clay-scenes)).
 
 Map marker hover is deliberately **not** animated. Users hover markers hundreds
 of times in a session, and a transition on each one turns reading the map into

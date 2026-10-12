@@ -27,9 +27,16 @@ const TARGET_URL = process.env.TARGET_URL || 'http://localhost:3000';
  * under test.
  *
  * So absence-defined fixtures are looked up at run time instead.
+ *
+ * The two that used to be pinned are now looked up too. Both are about
+ * visitors' prices: a long history with some reports left out of the median,
+ * and an established median to push an outlier against. Once a price feed is
+ * imported, the feed's price is the newest thing on file for most stores and
+ * the page shows that instead, so a pinned id stops meaning what this suite
+ * needs. They are found among stores with no feed price and a fresh median.
  */
-const RICH = 'node-6953201130';           // many reports, several excluded
-const OUTLIER_TARGET = 'node-3173004200'; // an established price to move against
+let RICH = null;           // many reports, several excluded
+let OUTLIER_TARGET = null; // an established price to move against
 
 /**
  * The id of the first nearby store currently in `state`, or null.
@@ -43,6 +50,7 @@ async function findStore(page, state) {
     const response = await fetch('/api/stores?lat=32.9546&lng=-96.99&radiusMiles=40');
     const body = await response.json();
     const NINETY_DAYS = 90 * 24 * 60 * 60 * 1000;
+    const fresh = (s) => s.pricedAt !== null && Date.now() - new Date(s.pricedAt).getTime() <= NINETY_DAYS;
 
     const matches = {
       unmeasured: (s) => s.priceCents === null && s.reportCount === 0,
@@ -51,6 +59,9 @@ async function findStore(page, state) {
         s.pricedAt !== null &&
         Date.now() - new Date(s.pricedAt).getTime() > NINETY_DAYS,
       single: (s) => s.reportCount === 1 && s.confirmedCount === 1,
+      rich: (s) =>
+        s.priceFeed == null && s.priceCents !== null && fresh(s) &&
+        s.confirmedCount >= 8 && s.reportCount > s.confirmedCount,
     }[which];
 
     const hit = (body.stores ?? []).find(matches);
@@ -117,13 +128,30 @@ async function apiStore(page, id) {
 
     const before = await (async () => {
       await goto(page, '/map');
+      RICH = await findStore(page, 'rich');
+      // Not the same store: the outlier section reads RICH's price afterwards.
+      OUTLIER_TARGET = await page.evaluate(async (rich) => {
+        const body = await (await fetch('/api/stores?lat=32.9546&lng=-96.99&radiusMiles=40')).json();
+        const NINETY_DAYS = 90 * 24 * 60 * 60 * 1000;
+        const hit = (body.stores ?? []).find((s) =>
+          s.id !== rich && s.priceFeed == null && s.priceCents !== null && s.heldPriceCents == null &&
+          s.confirmedCount >= 3 && s.pricedAt !== null &&
+          Date.now() - new Date(s.pricedAt).getTime() <= NINETY_DAYS);
+        return hit ? hit.id : null;
+      }, RICH);
+      if (RICH === null || OUTLIER_TARGET === null) {
+        throw new Error(
+          'No store near Coppell has a fresh visitor median with a long history ' +
+          `(rich: ${RICH}, established: ${OUTLIER_TARGET}). Re-seed, then re-import feeds.`);
+      }
+      console.log(`  fixtures: rich ${RICH}, outlier target ${OUTLIER_TARGET}`);
       return apiStore(page, RICH);
     })();
 
     await goto(page, `/store/${RICH}`);
 
     const h1 = (await page.locator('h1').first().innerText()).trim();
-    check('h1 names the store', h1.includes('Mac Arthur'), h1);
+    check('h1 names the store', before.store.address !== null && h1.includes(before.store.address.split(',')[0]), h1);
 
     const medianText = await page.locator('main .tabular').first().innerText();
     check(

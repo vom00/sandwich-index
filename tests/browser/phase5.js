@@ -135,8 +135,9 @@ const money = (cents) => `$${(cents / 100).toFixed(2)}`;
 
     const rowPrices = await proof.locator('ol li .tabular').allInnerTexts();
     check('every leaderboard figure is formatted currency or a rank',
-      rowPrices.every((t) => /^(\$\d+\.\d{2}|\d{2})$/.test(t.trim())),
-      rowPrices.filter((t) => !/^(\$\d+\.\d{2}|\d{2})$/.test(t.trim())).join(', ') || 'all ok');
+      // Ranks are padded to two digits and grow a third past 99 stores.
+      rowPrices.every((t) => /^(\$\d+\.\d{2}|\d{2,})$/.test(t.trim())),
+      rowPrices.filter((t) => !/^(\$\d+\.\d{2}|\d{2,})$/.test(t.trim())).join(', ') || 'all ok');
 
     // =================================================================
     console.log('\n3. "How it works" is not three identical cards');

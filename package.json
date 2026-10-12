@@ -15,6 +15,7 @@
     "posttest:emulated": "node scripts/stop-test-emulator.mjs",
     "test:emulated": "firebase emulators:exec --only firestore,auth --config firebase.itest.json \"vitest run\"",
     "seed": "tsx --conditions=react-server --env-file=.env.local scripts/seed.ts",
+    "seed:stale": "tsx --conditions=react-server --env-file=.env.local scripts/seed-stale.ts",
     "import:observations": "tsx --conditions=react-server --env-file=.env.local scripts/import-observations.ts",
     "fetch:menupricetracker": "tsx --conditions=react-server --env-file=.env.local scripts/fetch-menupricetracker.ts",
     "pretest:rules": "node scripts/stop-test-emulator.mjs",

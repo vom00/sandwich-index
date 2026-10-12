@@ -46,9 +46,12 @@ import {
 /** One loop, in seconds. */
 const LOOP = 7.2;
 
-/** What the phone shows, in order, and when each state starts. */
+/**
+ * What the phone shows, in order, and when each state starts. Every line has
+ * to fit a 192px-wide screen in a monospace face, about 0.6em a character.
+ */
 const SCREEN_STATES = [
-  { at: 0, lines: ["Log a price", ""] },
+  { at: 0, lines: ["McChicken", ""] },
   { at: 1.45, lines: ["McChicken", "$"] },
   { at: 1.8, lines: ["McChicken", "$2"] },
   { at: 2.15, lines: ["McChicken", "$2.4"] },
@@ -123,6 +126,7 @@ export function createLoggingScene(canvas: HTMLCanvasElement, options: SceneOpti
   person.rightArm.rotation.set(-1.3, 0, 0);
   person.leftArm.rotation.set(-0.35, 0, 0.12);
   const phone = new Group();
+  phone.scale.setScalar(1.45);
   scene.add(phone);
   const handset = roundedBox(0.46, 0.8, 0.07, 0.06, clay(COLORS.ink));
   phone.add(handset);
@@ -130,8 +134,12 @@ export function createLoggingScene(canvas: HTMLCanvasElement, options: SceneOpti
   const screenMaterials = SCREEN_STATES.map((state) => {
     const texture = textTexture(
       [
-        { text: state.lines[0], size: 34, color: COLORS.ink },
-        { text: state.lines[1], size: 54, color: state.lines[1] === "Send" || state.lines[1] === "Logged" ? COLORS.teal : COLORS.ink },
+        { text: state.lines[0], size: 30, color: COLORS.ink },
+        {
+          text: state.lines[1],
+          size: state.lines[1] === "Logged" ? 44 : 56,
+          color: state.lines[1] === "Send" || state.lines[1] === "Logged" ? COLORS.teal : COLORS.ink,
+        },
       ],
       { width: 192, height: 320, background: COLORS.apron, font: options.monoFont },
     );
@@ -231,7 +239,7 @@ export function createLoggingScene(canvas: HTMLCanvasElement, options: SceneOpti
     const typing = time > 1.4 && time < 3.0 ? Math.max(0, Math.sin(time * 26)) : 0;
     person.rightArm.rotation.x = -1.3 - 0.05 * typing;
     person.rightHand.getWorldPosition(handWorld);
-    phone.position.set(handWorld.x, handWorld.y + 0.28, handWorld.z);
+    phone.position.set(handWorld.x, handWorld.y + 0.4, handWorld.z);
     phone.lookAt(cameraPosition);
 
     // The screen fills in, one state after another.
@@ -258,7 +266,7 @@ export function createLoggingScene(canvas: HTMLCanvasElement, options: SceneOpti
     } else {
       card.visible = true;
       card.position.lerpVectors(phoneWorld, pinWorld, flight);
-      card.position.y += Math.sin(flight * Math.PI) * 1.1 + 0.3 * (1 - flight);
+      card.position.y += Math.sin(flight * Math.PI) * 0.7 + 0.3 * (1 - flight);
       card.rotation.y = Math.atan2(7.5, 11);
       const arrive = 1 - easeOutCubic(clamp01((time - LAND_AT) / 0.2));
       card.scale.setScalar(Math.max(0.001, easeOutBack(pop) * (time > LAND_AT ? arrive : 1)));
@@ -281,7 +289,7 @@ export function createLoggingScene(canvas: HTMLCanvasElement, options: SceneOpti
     fit: { halfWidth: 4.3, minHalfHeight: 2.9 },
     startAt: 0.4,
     // The card mid-flight, so the still frame tells the whole story.
-    stillAt: 4.1,
+    stillAt: 4.3,
     dispose() {
       textures.forEach((texture) => texture.dispose());
       screenMaterials.forEach((material) => material.dispose());
