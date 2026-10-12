@@ -1170,42 +1170,50 @@ suites.
 
 ## Deployment
 
-Half wired. Development stays emulator-first: `.firebaserc`'s default is still
+**Live at https://sandwich-index.vercel.app** since 2026-10-12.
+Development stays emulator-first: `.firebaserc`'s default is still
 `demo-sandwich-index`, so nothing local can reach production by accident.
 
-**What exists (2026-10-12):** a Firebase project, `sandwich-index-app` (alias
-`prod`), on the free Spark plan, with a registered web app. Its public config
-is in `deploy/vercel.env`, ready to paste into Vercel. Hosting is Vercel; the
-production build has been run with that config and compiles clean. Every page
-that reads Firestore renders on request, so the build needs no credentials.
+| Piece | Where |
+| --- | --- |
+| Firebase project | `sandwich-index-app` (alias `prod`), Spark plan. Firestore `(default)` in `nam5`; Anonymous sign-in on. |
+| Hosting | Vercel project `sandwich-index`, team `vyom-mehta-s-projects`, linked to `vom00/sandwich-index`. |
+| Public config | `deploy/vercel.env`, every value set in Vercel. |
+| Secrets | `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY`, Production only, marked Sensitive, set by hand by the owner. |
 
-**Still to do, in order:**
+**Deploying.** Vercel's production branch is still `main`, which is behind,
+so a production deploy is made by deploying `price-feeds-and-audit-fixes`
+explicitly (Vercel API `create_deployment` with `target: production`). A push
+alone makes a preview, and previews sit behind Vercel's sign-in. Rules and
+indexes go separately: `npx firebase deploy --only firestore --project prod`
+whenever `firestore.rules` or `firestore.indexes.json` changes. A changed
+environment variable needs a redeploy before it takes effect.
 
-1. ~~Create the Firestore database and deploy the rules and indexes~~ — done
-   2026-10-12 with `npx firebase deploy --only firestore --project prod`,
-   which enabled the Firestore API and created `(default)` itself. Rerun it
-   whenever `firestore.rules` or `firestore.indexes.json` changes.
-2. Turn on Anonymous sign-in: Firebase console → Authentication → Sign-in
-   method. No CLI command does this.
-3. In the Firebase console, generate a service account key (Project settings →
-   Service accounts) and add `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY`
-   to Vercel by hand. They are the only secrets; nothing else in
-   `deploy/vercel.env` is one.
-4. ~~Create the Vercel project~~ — done 2026-10-12: project `sandwich-index`
-   in the `vyom-mehta-s-projects` team, linked to `vom00/sandwich-index`,
-   with every value in `deploy/vercel.env` set, plus
-   `NEXT_PUBLIC_SITE_URL=https://sandwich-index.vercel.app`. The first
-   production deploy (branch `price-feeds-and-audit-fixes`) is live at
-   **https://sandwich-index.vercel.app**: the static pages (`/about`, `/map`,
-   `/log`, `robots.txt`, `sitemap.xml`) answer 200 with the security headers,
-   and everything that reads Firestore answers 500 with "Missing Firebase Admin
-   credentials" until step 3 is done. After it, redeploy so the site URL and
-   the key are picked up.
+**Verified on the live site, 2026-10-12** (read-only: no price was submitted):
+every route answers as it should (pages 200, unknown store 404, bad restaurant
+number 400), `robots.txt` and `sitemap.xml` name the production origin, the
+security headers are on every response, the first store sync for Coppell
+pulled 222 restaurants from OpenStreetMap, the map lists and plots the 86
+within 15 miles with search working, a store page renders, and the browser
+console is clean. The home page shows its honest empty state, "Nothing to
+report yet", because no price has been logged.
 
-   Vercel's production branch is still `main`, which is behind. Until the
-   branch is merged, production deploys are made by deploying
-   `price-feeds-and-audit-fixes` explicitly; a push to it alone only makes a
-   preview, and previews sit behind Vercel's sign-in.
+**The service-account key.** Pasting a PEM key into a dashboard goes wrong
+often, and it did here twice: a stray keystroke inside the key, then a key
+paired with the wrong email. `src/lib/firebase/private-key.ts` now repairs the
+usual damage (JSON quotes, escaped newlines, CRLF, invisible characters,
+debris after the padding, the whole JSON file pasted, in which case the file's
+own email is used), and `admin.ts` logs, once per cold start and as yes/no
+only, whether the account belongs to this project and whether the key is one
+of its live published keys. Pasting the entire JSON file into
+`FIREBASE_PRIVATE_KEY` is the least error-prone way to set it.
+
+**Not done yet:**
+- The restaurant-number crosswalk (`npm run import:store-numbers`) has only
+  been run against the emulator, so on the live site store-number search and
+  the photo reader's store check have no numbers to match until it is run
+  against production.
+- A full Content-Security-Policy (pre-flight item 7) and App Check (item 3).
 
 On Firebase App Hosting instead of Vercel, step 3 goes away: the Admin SDK
 uses the server's own Google identity when `FIREBASE_CONFIG` or `K_SERVICE`
