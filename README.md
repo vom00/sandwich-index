@@ -1222,6 +1222,18 @@ only, whether the account belongs to this project and whether the key is one
 of its live published keys. Pasting the entire JSON file into
 `FIREBASE_PRIVATE_KEY` is the least error-prone way to set it.
 
+**Firestore's free tier is the binding limit.** The Spark plan allows 50,000
+document reads a day; past that, every read fails with `RESOURCE_EXHAUSTED`
+until midnight Pacific, which takes the site's data down. It happened on
+2026-10-12, mostly from audit traffic, and showed what each visit cost:
+the landing page read ~500 store documents per view (twice), and a map
+visit read its area four or five times. Now the landing figures are cached
+for an hour (`lib/index-snapshot.server`) and marked stale when a price
+changes, and a map visit reads its area about twice. Scripts and audits
+against production should use small radii and few repeats. The Blaze plan
+keeps the same free allowance and bills reads past it at cents per hundred
+thousand, which removes the outage risk.
+
 **Feed prices in production.** MenuPriceTracker's prices (shown by the
 owner's decision of 2026-10-11, named and linked; see `src/lib/feeds.ts`)
 reach production the same way: the snapshot in
