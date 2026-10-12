@@ -42,6 +42,8 @@ import { observationId } from "@/lib/feed-match";
 import { dropTwinStores } from "@/lib/store-twins";
 import type { ResolvedAddress } from "@/lib/reverse-geocode";
 import { displayStateFor } from "@/lib/tiers";
+import { buildNumberIndex, chooseNumbers, type NumberIndex, type NumberRow } from "@/lib/store-numbers";
+import restaurantNumberRows from "@/data/restaurant-numbers.json";
 import type { ObservationWithId, Store, StoreWithId, SubmissionWithId } from "@/types";
 
 /** Firestore batches cap at 500 operations. */
@@ -704,6 +706,50 @@ const ADDRESS_BACKFILL_LIMIT = 15;
 
 /** Concurrent lookups within that cap. Polite, and still finishes in seconds. */
 const ADDRESS_BACKFILL_CONCURRENCY = 3;
+
+let numberIndex: NumberIndex | null = null;
+
+/** Built on first use: 13,600 rows, so not on every cold start that never syncs. */
+function restaurantNumberIndex(): NumberIndex {
+  numberIndex ??= buildNumberIndex(restaurantNumberRows as unknown as NumberRow[]);
+  return numberIndex;
+}
+
+/**
+ * Give the stores around a point their McDonald's restaurant numbers, where
+ * the match is unambiguous (`lib/store-numbers`). Runs on every sync, like
+ * the address backfill, so a store gets its number the first time anyone
+ * looks at its area, and production needs no import run against it.
+ *
+ * Only fills gaps: a number already recorded is never changed here, and a
+ * number another store nearby already holds is not handed out again.
+ */
+export async function backfillRestaurantNumbers(
+  center: LatLng,
+  radiusMeters: number,
+  db: Firestore = getAdminDb(),
+  index: NumberIndex = restaurantNumberIndex(),
+): Promise<{ assigned: number }> {
+  const nearby = await getStoresNear(center, radiusMeters, db);
+  const held = new Set(nearby.map((store) => store.restaurantNumber).filter((n) => n !== null));
+  const picks = chooseNumbers(nearby, index);
+
+  const updates = nearby.flatMap((store) => {
+    const number = picks.get(store.id);
+    return store.restaurantNumber === null && number !== undefined && !held.has(number)
+      ? [{ id: store.id, number }]
+      : [];
+  });
+
+  for (let offset = 0; offset < updates.length; offset += BATCH_LIMIT) {
+    const batch = db.batch();
+    for (const { id, number } of updates.slice(offset, offset + BATCH_LIMIT)) {
+      batch.update(db.collection(STORES_COLLECTION).doc(id), { restaurantNumber: number });
+    }
+    await batch.commit();
+  }
+  return { assigned: updates.length };
+}
 
 export interface AddressBackfillResult {
   attempted: number;

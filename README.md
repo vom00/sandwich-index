@@ -1208,12 +1208,25 @@ only, whether the account belongs to this project and whether the key is one
 of its live published keys. Pasting the entire JSON file into
 `FIREBASE_PRIVATE_KEY` is the least error-prone way to set it.
 
-**Not done yet:**
-- The restaurant-number crosswalk (`npm run import:store-numbers`) has only
-  been run against the emulator, so on the live site store-number search and
-  the photo reader's store check have no numbers to match until it is run
-  against production.
-- A full Content-Security-Policy (pre-flight item 7) and App Check (item 3).
+**Restaurant numbers in production.** Stores get their McDonald's number on
+the server, not by an import: `src/data/restaurant-numbers.json` (13,638 US
+restaurants from All The Places, CC0, 481 KB, server-only) is matched against
+the stores around every sync by `backfillRestaurantNumbers`, with the same
+rules as `import:store-numbers` (`lib/store-numbers`). Against the
+emulator's 235 stores the two agree exactly: 220 numbers, no differences. So
+any area gets its numbers the first time someone opens the map there.
+Refresh the table with `npm run build:store-numbers -- --file <geojson>`.
+
+**Content-Security-Policy, enforced.** Production builds send the full
+policy (`next.config.ts`): every host the browser reaches is listed. It ran
+report-only on the live site first, then enforced, and both passes over every
+page, the 3D scenes, the map tiles and the photo reader (blob: worker and
+WebAssembly) logged no violations and no console errors. Scripts still allow
+'unsafe-inline' because Next streams inline payloads; a nonce would remove
+that at the cost of making every static page dynamic.
+
+**Not done yet:** App Check (pre-flight item 3), which needs a reCAPTCHA site
+key registered by the owner.
 
 On Firebase App Hosting instead of Vercel, the two secrets go away: the Admin SDK
 uses the server's own Google identity when `FIREBASE_CONFIG` or `K_SERVICE`
@@ -1254,12 +1267,10 @@ the project — none of it can be done from a development machine.
    them on its own. That is how 16.3.0 sat on a critical advisory until the
    2026-10-11 audit. The four production findings left after it (Firebase's
    pinned `@grpc/grpc-js`) are explained in `research/audit-log.md`.
-7. **Add a full Content-Security-Policy once the hosts are known.** Every
-   response already sends `frame-ancestors 'none'`, `nosniff`, a referrer
-   policy and a Permissions-Policy that allows geolocation only from the site
-   (`next.config.ts`). Restricting scripts and connections as well needs the
-   production Firebase, App Check and map-tile hosts listed and tested in
-   place, which cannot be done against the emulator.
+7. ~~**Add a full Content-Security-Policy once the hosts are known.**~~ Done
+   2026-10-12 and enforced; see above. A new outside host (an analytics
+   script, a different tile server) has to be added to
+   `CONTENT_SECURITY_POLICY` in `next.config.ts` or the browser will block it.
 
 ### What is verified and what is not
 

@@ -19,6 +19,7 @@ import {
   OVERPASS_BUDGET_PER_WINDOW,
   OVERPASS_BUDGET_WINDOW_MS,
   backfillMissingAddresses,
+  backfillRestaurantNumbers,
   getIndexSnapshot,
   getObservationsForStore,
   getStore,
@@ -30,6 +31,7 @@ import {
   upsertStores,
 } from "@/lib/stores.server";
 import { encodeGeohash } from "@/lib/geohash";
+import { buildNumberIndex } from "@/lib/store-numbers";
 import type { PriceSource, SubmissionStatus } from "@/types";
 
 const PROJECT_ID = "demo-sandwich-index";
@@ -156,6 +158,48 @@ describe("store upsert", () => {
     expect((await getStore("node-1", db))?.address).toBe(
       "120 S Denton Tap Rd, Coppell, TX 75019",
     );
+  });
+});
+
+describe("restaurant-number backfill", () => {
+  // A stand-in table: one restaurant on top of Coppell's test store, one near
+  // Irving's with a different street number.
+  const index = buildNumberIndex([
+    ["4412", COPPELL.lat, COPPELL.lng, "125"],
+    ["5150", IRVING.lat, IRVING.lng, "900"],
+  ]);
+
+  it("gives a store the one number it unambiguously matches", async () => {
+    await upsertStores(
+      [
+        store("node-1", COPPELL, { address: "125 S Denton Tap Rd" }),
+        store("node-2", IRVING, { address: "77 Other St" }),
+      ],
+      db,
+    );
+
+    expect(await backfillRestaurantNumbers(COPPELL, milesToMeters(15), db, index)).toEqual({ assigned: 1 });
+    expect((await getStore("node-1", db))?.restaurantNumber).toBe("4412");
+    // A disagreeing street number is no match, however close.
+    expect((await getStore("node-2", db))?.restaurantNumber).toBeNull();
+  });
+
+  it("never changes a recorded number or hands one out twice", async () => {
+    await upsertStores([store("node-1", COPPELL, { address: "125 S Denton Tap Rd" })], db);
+    await db.collection("stores").doc("node-1").update({ restaurantNumber: "9999" });
+    await upsertStores([store("node-3", COPPELL, { address: "125 S Denton Tap Rd" })], db);
+    await db.collection("stores").doc("node-3").update({ restaurantNumber: null });
+
+    await backfillRestaurantNumbers(COPPELL, milesToMeters(15), db, index);
+    expect((await getStore("node-1", db))?.restaurantNumber).toBe("9999");
+    // node-1 and node-3 would both match #4412, so neither gets it.
+    expect((await getStore("node-3", db))?.restaurantNumber).toBeNull();
+  });
+
+  it("is a no-op the second time", async () => {
+    await upsertStores([store("node-1", COPPELL, { address: "125 S Denton Tap Rd" })], db);
+    await backfillRestaurantNumbers(COPPELL, milesToMeters(15), db, index);
+    expect(await backfillRestaurantNumbers(COPPELL, milesToMeters(15), db, index)).toEqual({ assigned: 0 });
   });
 });
 

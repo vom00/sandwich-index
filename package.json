@@ -20,6 +20,7 @@
     "seed:fixtures": "tsx --conditions=react-server --env-file=.env.local scripts/seed-fixtures.ts",
     "import:observations": "tsx --conditions=react-server --env-file=.env.local scripts/import-observations.ts",
     "import:store-numbers": "tsx --conditions=react-server --env-file=.env.local scripts/import-store-numbers.ts",
+    "build:store-numbers": "tsx scripts/build-store-numbers.ts",
     "fetch:menupricetracker":"tsx --conditions=react-server --env-file=.env.local scripts/fetch-menupricetracker.ts",
     "pretest:rules": "node scripts/stop-test-emulator.mjs",
     "posttest:rules": "node scripts/stop-test-emulator.mjs",
