@@ -442,7 +442,7 @@ function HowItWorks() {
       <ClayScene
         scene="logging"
         caption="Somebody reads the menu board, types the price in, and it lands on that store's pin."
-        className="mt-6 self-start lg:sticky lg:top-8 lg:col-span-5 lg:mt-16"
+        className="mt-6 self-start lg:col-span-5 lg:mt-16"
       />
     </section>
   );

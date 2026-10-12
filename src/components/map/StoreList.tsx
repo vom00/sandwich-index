@@ -75,7 +75,7 @@ export function StoreList({
                   onClick={() => onSelect(store.id)}
                   aria-pressed={isSelected}
                   // 44px minimum target, and the whole label is the target.
-                  className="press -m-1 min-h-11 flex-1 rounded p-1 text-left"
+                  className="press -m-1 min-h-11 min-w-0 flex-1 rounded p-1 text-left"
                 >
                   <span className="block font-medium">
                     {label.text}
@@ -91,7 +91,10 @@ export function StoreList({
                   </span>
                 </button>
 
-                <div className="shrink-0 text-right">
+                {/* Capped, so a long source line ("from MenuPriceTracker · 17
+                    visitor prices on file") wraps under the price instead of
+                    squeezing the address to one word a line. */}
+                <div className="max-w-[10.5rem] shrink-0 text-right">
                   {store.priceCents === null ? (
                     <span className="tabular text-lg text-ink-subtle" aria-hidden="true">
                       —

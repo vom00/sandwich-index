@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { SandwichMark } from "@/components/ui/SandwichMark";
+
 /**
  * The bar across the top of every page.
  *
@@ -37,8 +39,9 @@ export function SiteHeader() {
         <Link
           href="/"
           aria-current={pathname === "/" ? "page" : undefined}
-          className="hover-accent -ml-1 inline-flex min-h-11 items-center px-1 font-display text-base font-semibold tracking-tight sm:text-lg"
+          className="hover-accent -ml-1 inline-flex min-h-11 items-center gap-2 px-1 font-display text-base font-semibold tracking-tight sm:text-lg"
         >
+          <SandwichMark className="size-7 shrink-0" />
           Sandwich Index
         </Link>
 

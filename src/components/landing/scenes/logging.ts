@@ -91,10 +91,10 @@ export function createLoggingScene(canvas: HTMLCanvasElement, options: SceneOpti
   menuStand.add(board);
   const menuTexture = textTexture(
     [
-      { text: "McChicken      $2.49", size: 40, color: COLORS.apron },
-      { text: "Fries (M)      $2.89", size: 40, color: "#c9c4b6" },
-      { text: "Hash brown     $1.79", size: 40, color: "#c9c4b6" },
-      { text: "Apple pie      $1.69", size: 40, color: "#c9c4b6" },
+      { text: "McChicken      $2.49", size: 44, color: COLORS.apron },
+      { text: "Fries (M)      $2.89", size: 44, color: "#c9c4b6" },
+      { text: "Hash brown     $1.79", size: 44, color: "#c9c4b6" },
+      { text: "Apple pie      $1.69", size: 44, color: "#c9c4b6" },
     ],
     { width: 640, height: 380, background: COLORS.ink, font: options.monoFont },
   );

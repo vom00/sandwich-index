@@ -120,7 +120,9 @@ export function textTexture(
   });
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
-  texture.anisotropy = 4;
+  // Signs face the camera at a slant, and slanted text blurs fastest. three.js
+  // clamps this to what the GPU supports (16 on nearly everything).
+  texture.anisotropy = 16;
   return texture;
 }
 
@@ -256,7 +258,12 @@ export interface Stage {
 
 export function createStage(canvas: HTMLCanvasElement, options: StageOptions): Stage {
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "low-power" });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // Always 2, even on a 1x screen: the menu board and the phone are text
+  // drawn into textures and shrunk several times over, and rendering at
+  // double size then letting the browser scale the canvas down keeps that
+  // text from smearing. The canvases are small (about 400×300 CSS pixels),
+  // so four times the pixels is still cheap. Never above 2 on 3x phones.
+  renderer.setPixelRatio(2);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFShadowMap;
   renderer.setClearColor(0x000000, 0);

@@ -40,9 +40,14 @@ export function Confidence({
         >
           {feed?.name ?? "a price feed"}
         </span>
-        {sampleCount > 0
-          ? ` · ${visitorPrices(sampleCount)}`
-          : null}
+        {sampleCount > 0 ? (
+          <>
+            {" · "}
+            {/* Kept whole, so a narrow column breaks at the dot rather than
+                between "17" and "visitor prices". */}
+            <span className="whitespace-nowrap">{visitorPrices(sampleCount)}</span>
+          </>
+        ) : null}
       </span>
     );
   }
