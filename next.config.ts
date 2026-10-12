@@ -1,13 +1,6 @@
 import type { NextConfig } from "next";
 
 /**
- * Headers every response gets. They restrict what the page may be embedded
- * in and which powerful features it may ask for; none of them restricts
- * scripts, styles or connections. A full Content-Security-Policy needs the
- * production Firebase and tile hosts tested in place, so it waits for a
- * deployment (see README, Deployment).
- */
-/**
  * The full policy: what the page may load and talk to. Every outside host a
  * browser reaches is listed and why; the server's own calls (Overpass,
  * Photon, Zippopotam) aren't, since a CSP only governs the browser.
@@ -46,16 +39,18 @@ const SECURITY_HEADERS = [
   // Nobody may frame the site, so a submit button can't be overlaid and
   // clicked on someone's behalf. The CSP directive is the current standard;
   // X-Frame-Options covers older browsers.
+  //
+  // Production builds get the full policy. It ran report-only on the live site
+  // first (2026-10-12): every page, the 3D scenes, the map and its tiles, and
+  // the photo reader's worker and WebAssembly, with no violations. Development
+  // keeps only the framing rules, because hot reload needs eval and a socket.
   {
     key: "Content-Security-Policy",
-    value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'",
+    value:
+      process.env.NODE_ENV === "production"
+        ? CONTENT_SECURITY_POLICY
+        : "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'",
   },
-  // The full policy is report-only until a pass over production shows no
-  // violations; then it replaces the header above. Not in development, where
-  // hot reload needs eval and a websocket.
-  ...(process.env.NODE_ENV === "production"
-    ? [{ key: "Content-Security-Policy-Report-Only", value: CONTENT_SECURITY_POLICY }]
-    : []),
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   // Other sites see our origin, never the store or page a visitor came from.
