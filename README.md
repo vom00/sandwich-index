@@ -1191,8 +1191,21 @@ that reads Firestore renders on request, so the build needs no credentials.
    Service accounts) and add `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY`
    to Vercel by hand. They are the only secrets; nothing else in
    `deploy/vercel.env` is one.
-4. Create the Vercel project, paste `deploy/vercel.env`, deploy, then set
-   `NEXT_PUBLIC_SITE_URL` to the URL Vercel gives and redeploy.
+4. ~~Create the Vercel project~~ — done 2026-10-12: project `sandwich-index`
+   in the `vyom-mehta-s-projects` team, linked to `vom00/sandwich-index`,
+   with every value in `deploy/vercel.env` set, plus
+   `NEXT_PUBLIC_SITE_URL=https://sandwich-index.vercel.app`. The first
+   production deploy (branch `price-feeds-and-audit-fixes`) is live at
+   **https://sandwich-index.vercel.app**: the static pages (`/about`, `/map`,
+   `/log`, `robots.txt`, `sitemap.xml`) answer 200 with the security headers,
+   and everything that reads Firestore answers 500 with "Missing Firebase Admin
+   credentials" until step 3 is done. After it, redeploy so the site URL and
+   the key are picked up.
+
+   Vercel's production branch is still `main`, which is behind. Until the
+   branch is merged, production deploys are made by deploying
+   `price-feeds-and-audit-fixes` explicitly; a push to it alone only makes a
+   preview, and previews sit behind Vercel's sign-in.
 
 On Firebase App Hosting instead of Vercel, step 3 goes away: the Admin SDK
 uses the server's own Google identity when `FIREBASE_CONFIG` or `K_SERVICE`
