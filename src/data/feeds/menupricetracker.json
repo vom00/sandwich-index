@@ -2321,6 +2321,22 @@
       "url": "https://menupricetracker.com/mcdonalds/texas/glen-rose/2130-e-us-highway-67",
       "listedAs": "last verified October 2026",
       "storeId": "node-12203239940"
+    },
+    {
+      "address": "2217 Texoma Pky N",
+      "city": "Sherman",
+      "mcchickenCents": 259,
+      "observedAt": "2026-10-14T05:09:03.442Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/sherman/2217-texoma-pky-n",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "600 Hwy 75 N",
+      "city": "Denison",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-14T05:09:24.064Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/denison/600-hwy-75-n",
+      "listedAs": "last verified October 2026"
     }
   ]
 }
