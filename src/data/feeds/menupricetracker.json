@@ -2263,6 +2263,38 @@
       "observedAt": "2026-10-14T04:54:40.144Z",
       "url": "https://menupricetracker.com/mcdonalds/texas/wills-point/136-e-south-commerce-st",
       "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1435 W Henderson",
+      "city": "Cleburne",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-14T05:01:13.363Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/cleburne/1435-w-henderson",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1001 W Stephens",
+      "city": "Van Alstyne",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-14T05:01:34.341Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/van-alstyne/1001-w-stephens",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1934 Martin Luther King Blvd",
+      "city": "Corsicana",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-14T05:01:53.393Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/corsicana/1934-martin-luther-king-blvd",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "100 Garret Morris Pky",
+      "city": "Mineral Wells",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-14T05:02:13.361Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/mineral-wells/100-garret-morris-pky",
+      "listedAs": "last verified October 2026"
     }
   ]
 }
