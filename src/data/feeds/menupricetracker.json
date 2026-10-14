@@ -2159,6 +2159,110 @@
       "observedAt": "2026-10-12T22:28:26.278Z",
       "url": "https://menupricetracker.com/mcdonalds/texas/quinlan/8840-hwy-34-south",
       "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1200 Hwy 67 W",
+      "city": "Alvarado",
+      "mcchickenCents": 259,
+      "observedAt": "2026-10-14T04:50:50.052Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/alvarado/1200-hwy-67-w",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "952 S. Broadway St.",
+      "city": "Joshua",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-14T04:51:09.653Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/joshua/952-s-broadway-st",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1203 E Ennis Ave",
+      "city": "Ennis",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-14T04:51:30.095Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/ennis/1203-e-ennis-ave",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "1317 W White",
+      "city": "Anna",
+      "mcchickenCents": 229,
+      "observedAt": "2026-10-14T04:51:49.955Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/anna/1317-w-white",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2206 N Main",
+      "city": "Cleburne",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-14T04:52:09.581Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/cleburne/2206-n-main",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "908 Hwy 380",
+      "city": "Decatur",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-14T04:52:30.108Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/decatur/908-hwy-380",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2725 Fm1903",
+      "city": "Caddo Mills",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-14T04:52:50.433Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/caddo-mills/2725-fm1903",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "2407 S Main",
+      "city": "Weatherford",
+      "mcchickenCents": 279,
+      "observedAt": "2026-10-14T04:53:10.141Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/weatherford/2407-s-main",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "7600 Wesley St",
+      "city": "Greenville",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-14T04:53:29.899Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/greenville/7600-wesley-st",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "4705 Moulton Street",
+      "city": "Greenville",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-14T04:53:39.957Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/greenville/4705-moulton-street",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3908 Hwy 377 East",
+      "city": "Granbury",
+      "mcchickenCents": 209,
+      "observedAt": "2026-10-14T04:54:00.298Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/granbury/3908-hwy-377-east",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "501 Us Hwy 380",
+      "city": "Bridgeport",
+      "mcchickenCents": 239,
+      "observedAt": "2026-10-14T04:54:20.187Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/bridgeport/501-us-hwy-380",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "136 E South Commerce St",
+      "city": "Wills Point",
+      "mcchickenCents": 199,
+      "observedAt": "2026-10-14T04:54:40.144Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/wills-point/136-e-south-commerce-st",
+      "listedAs": "last verified October 2026"
     }
   ]
 }
