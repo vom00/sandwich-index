@@ -123,7 +123,7 @@ export interface Submission {
   status: SubmissionStatus;
   /**
    * Reserved. No surface sets this in v1 — there is no moderation UI. Kept so
-   * the schema does not need a migration when one lands. See README.
+   * the schema does not need a migration when one lands. See docs/ENGINEERING.md.
    */
   flagCount: number;
 }

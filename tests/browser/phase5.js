@@ -13,7 +13,7 @@ const { chromium } = require('playwright');
 const path = require('path');
 
 const TARGET_URL = process.env.TARGET_URL || 'http://localhost:3000';
-const SHOTS = process.env.TEMP || 'C:\\Users\\Vyom\\AppData\\Local\\Temp';
+const SHOTS = process.env.TEMP || require('os').tmpdir();
 
 const results = [];
 function check(name, passed, detail = '') {

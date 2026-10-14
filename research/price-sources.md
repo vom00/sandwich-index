@@ -17,7 +17,7 @@ definitive per-store source exists") is superseded. See the next section.
 unlicensed, named and linked on every price, while the licensing email waits
 for an answer (it bounced on 2026-10-12: their mail server refuses all
 inbound mail, and they publish no other contact; see `feed-outreach.md`), with visitors still able to log what they see. The reader and
-its limits are in the README's "MenuPriceTracker" section. This doesn't change
+its limits are in the "MenuPriceTracker" section of docs/ENGINEERING.md. This doesn't change
 the findings below: its dates are still month-level at best, which is why its
 prices say "checked" rather than "observed".
 
@@ -35,7 +35,7 @@ nearly effortless. See "Third sweep" below.
 ## 2026-10-12, third sweep: building something that reads exact prices
 
 **Built the same day**: the reader (1) and the store-number crosswalk (2) are
-in the app; see the README, "Reading a price from a photo". Measuring
+in the app; see "Reading a price from a photo" in docs/ENGINEERING.md. Measuring
 MenuPriceTracker (3) needs real receipts to arrive first. The crosswalk used
 the 2026-09-26 run (21.5 MB, 13,664 US locations): the 2026-10-03 run linked
 below was cut short at 11 MB and about half the US.
@@ -336,7 +336,7 @@ free site is unknown. That's the first question to ask, before price.
    date and a licence note, shown as such in the UI and ageing out like any
    other price. **Built 2026-10-11**: the `observations` collection, the feed
    registry in `src/lib/feeds.ts`, `npm run import:observations`, and labels
-   on every surface. See the README's "Price feeds" section. The four priced
+   on every surface. See "Price feeds" in docs/ENGINEERING.md. The four priced
    rows in `tracker-samples.json` match 4/4 against the dev data and import
    into the emulator only; the script refuses to write an unlicensed feed
    anywhere else.

@@ -30,7 +30,7 @@ What every reply has to settle before any data is imported (see
 
 Once a licence exists: declare the feed in `src/lib/feeds.ts`, export its data
 in the `parseFeedFile` format, run `npm run import:observations` without
-`--write`, spot-check matches against real receipts, then write. The README's
+`--write`, spot-check matches against real receipts, then write. docs/ENGINEERING.md's
 "Price feeds" section has the steps.
 
 ---

@@ -395,7 +395,7 @@ browser.
 Moving them meant removing what pinned them to one desktop:
 
 - `axe-core` was read from a hardcoded
-  `C:\Users\Vyom\...\node_modules\axe-core\axe.min.js`; now `require.resolve`.
+  `C:\Users\<user>\...\node_modules\axe-core\axe.min.js`; now `require.resolve`.
 - Screenshots wrote to `/tmp`, which **Node resolves to `C:\tmp`** on this
   machine while Git Bash resolves it somewhere else entirely — so every
   screenshot the suites produced was being written somewhere nobody looks.

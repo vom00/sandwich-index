@@ -17,7 +17,7 @@
  * newest report that clears the move gate becomes the price outright. What
  * keeps the numbers honest is that a wrong one is visible, dated, and
  * correctable by the next person through the door — not that it is hard to
- * write. See the README's "What this does not solve".
+ * write. See "What this does not solve" in docs/ENGINEERING.md.
  */
 
 import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
@@ -96,7 +96,7 @@ export async function ensureAnonymousUser(): Promise<User> {
  *
  * Enabling enforcement before Phase 6 would block every Playwright run, since
  * a headless browser cannot solve reCAPTCHA. When the key is set, local runs
- * still need a debug token — see README.
+ * still need a debug token — see docs/ENGINEERING.md.
  */
 export async function initAppCheck(): Promise<void> {
   const siteKey = process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY;

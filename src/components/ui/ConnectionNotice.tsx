@@ -12,7 +12,7 @@ import { useOnlineStatus } from "@/hooks/useOnlineStatus";
  * offline" leaves somebody to discover the second half by losing a submission.
  *
  * Firestore's offline persistence would queue that submission and replay it on
- * reconnect, and it is deliberately not enabled — see the README. A queued
+ * reconnect, and it is deliberately not enabled — see docs/ENGINEERING.md. A queued
  * price carries a status predicted against a price that may have moved by the
  * time it commits, so the security rule would reject it on replay, silently,
  * long after the contributor was told it had saved. Failing now and saying so
