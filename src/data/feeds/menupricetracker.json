@@ -2295,6 +2295,32 @@
       "observedAt": "2026-10-14T05:02:13.361Z",
       "url": "https://menupricetracker.com/mcdonalds/texas/mineral-wells/100-garret-morris-pky",
       "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3612 S Us Hwy 75",
+      "city": "Sherman",
+      "mcchickenCents": 249,
+      "observedAt": "2026-10-14T05:04:20.969Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/sherman/3612-s-us-hwy-75",
+      "listedAs": "last verified October 2026"
+    },
+    {
+      "address": "3900 W 7th Street",
+      "city": "Corsicana",
+      "mcchickenCents": 299,
+      "observedAt": "2026-10-14T05:04:40.952Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/corsicana/3900-w-7th-street",
+      "listedAs": "last verified October 2026",
+      "storeId": "node-13433667878"
+    },
+    {
+      "address": "2130 E. Us Highway 67",
+      "city": "Glen Rose",
+      "mcchickenCents": 189,
+      "observedAt": "2026-10-14T05:05:01.915Z",
+      "url": "https://menupricetracker.com/mcdonalds/texas/glen-rose/2130-e-us-highway-67",
+      "listedAs": "last verified October 2026",
+      "storeId": "node-12203239940"
     }
   ]
 }
