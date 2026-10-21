@@ -8,8 +8,8 @@ its own menu prices. Two stores a few miles apart can be more than a dollar
 apart on the same sandwich, and McDonald's doesn't publish any of it, so you
 usually find out at the register. Sandwich Index writes the prices down.
 
-It covers the Dallas-Fort Worth area for now. The store list grows as people
-use the map somewhere new.
+Every McDonald's in the US is on the map. Most of the prices so far are
+around Dallas-Fort Worth, where the site started.
 
 > Sandwich Index is not affiliated with, endorsed by, or sponsored by
 > McDonald's Corporation. "McDonald's" and "McChicken" are trademarks of
@@ -32,10 +32,11 @@ the feed comes down.
 A price a visitor logs replaces an older listing. Old prices are marked as old
 and left out of the comparisons.
 
-Store locations come from [OpenStreetMap](https://www.openstreetmap.org), and
-the restaurant numbers printed on receipts come from
-[All The Places](https://www.alltheplaces.xyz). The code never contacts a
-McDonald's website.
+Store locations and the restaurant numbers printed on receipts come from
+[All The Places](https://www.alltheplaces.xyz), a public-domain dataset that
+ships with the server. The first stores, around Dallas, came from
+[OpenStreetMap](https://www.openstreetmap.org), which still covers anywhere
+outside the US. The code never contacts a McDonald's website.
 
 ## What's on the site
 

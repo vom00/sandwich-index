@@ -23,10 +23,10 @@ import type { StoreWithId } from "@/types";
  * says so in as many words. A price index whose front page invents its headline
  * has nothing left to sell.
  *
- * Deliberately not named after a metro area. The data is Dallas–Fort Worth
- * today, but nothing in the schema knows that, and a hardcoded region becomes a
- * lie the first time someone syncs a different one. The addresses in the table
- * below say where this is well enough.
+ * Deliberately not named after a metro area. The prices are mostly Dallas–Fort
+ * Worth today while the store list covers the whole US, and a hardcoded region
+ * becomes a lie the first time someone prices a store somewhere else. The
+ * addresses in the table below say where this is well enough.
  */
 
 export const dynamic = "force-dynamic";

@@ -125,7 +125,7 @@ const money = (cents) => `$${(cents / 100).toFixed(2)}`;
 
     const hrefs = await rows.evaluateAll((els) => els.map((e) => e.getAttribute('href')));
     check('every row links to a real store page',
-      hrefs.every((h) => /^\/store\/(node|way|relation)-\d+$/.test(h)), hrefs.slice(0, 2).join(' '));
+      hrefs.every((h) => /^\/store\/(node|way|relation|atp)-\d+$/.test(h)), hrefs.slice(0, 2).join(' '));
 
     const probe = await page.evaluate(async (href) => {
       const response = await fetch(href);

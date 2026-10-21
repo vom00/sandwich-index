@@ -94,6 +94,13 @@ describe("storeIdSchema", () => {
     expect(storeIdSchema.safeParse("relation-9").success).toBe(true);
   });
 
+  it("accepts stores from the bundled list, named by restaurant number", () => {
+    expect(storeIdSchema.safeParse("atp-1844").success).toBe(true);
+    expect(storeIdSchema.safeParse("atp-37").success).toBe(true);
+    expect(storeIdSchema.safeParse("atp-").success).toBe(false);
+    expect(storeIdSchema.safeParse("osm-1844").success).toBe(false);
+  });
+
   it("refuses anything that could walk out of the collection", () => {
     for (const bad of ["node-123/../other", "../stores", "node-", "node-abc", ""]) {
       expect(storeIdSchema.safeParse(bad).success).toBe(false);

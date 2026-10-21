@@ -9,6 +9,7 @@ import {
   backfillFeedObservations,
   backfillMissingAddresses,
   backfillRestaurantNumbers,
+  bundledStoresNear,
   getStoresNear,
   syncAreaIfStale,
 } from "@/lib/stores.server";
@@ -17,8 +18,8 @@ import { nearbyQuerySchema } from "@/lib/validation";
 /**
  * POST /api/stores/sync
  *
- * Reconcile a geographic area against OpenStreetMap, then fill in the addresses
- * OSM did not supply.
+ * Reconcile a geographic area against the bundled US store list (or, outside
+ * it, OpenStreetMap), then fill in the addresses the source did not supply.
  *
  * Separate from /api/stores because it is the expensive, rate-limited half:
  * Overpass is donated infrastructure, and store locations change on the order
@@ -52,8 +53,14 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     // The gate decides what circle to fetch — the whole cell's coverage, not
     // just this caller's — so the fetcher takes its arguments from the gate.
-    const result = await syncAreaIfStale({ lat, lng }, radiusMeters, (center, meters) =>
-      fetchNearbyStores(center.lat, center.lng, meters),
+    // Inside the US the bundled store list answers and Overpass is never
+    // asked; elsewhere the sync falls back to it.
+    const result = await syncAreaIfStale(
+      { lat, lng },
+      radiusMeters,
+      (center, meters) => fetchNearbyStores(center.lat, center.lng, meters),
+      undefined,
+      bundledStoresNear,
     );
 
     if (result.deferred) {

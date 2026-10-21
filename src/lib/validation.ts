@@ -15,7 +15,9 @@ import { PRICE_SOURCES } from "@/types";
 /** Matches the OSM element id format used as a store document id. */
 export const storeIdSchema = z
   .string()
-  .regex(/^(node|way|relation)-\d+$/, "Not a valid store id");
+  // OSM element ids, or `atp-` plus a restaurant number for stores from the
+  // bundled US list (`lib/store-list`).
+  .regex(/^(node|way|relation|atp)-\d+$/, "Not a valid store id");
 
 /** McDonald's US store numbers are 3 to 5 digits ("Restaurant #4412"). */
 export const restaurantNumberSchema = z

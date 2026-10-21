@@ -281,7 +281,7 @@ export function LogRunExperience() {
       ) : candidates.length === 0 ? (
         <EmptyState
           title="No stores tracked here yet"
-          body={`We have no McDonald's locations on file within ${RADIUS_MILES} miles. Open the map first, which checks the area against OpenStreetMap.`}
+          body={`We have no McDonald's locations on file within ${RADIUS_MILES} miles. Open the map here first, which adds the stores in the area.`}
         />
       ) : (
         <>

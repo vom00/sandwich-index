@@ -17,8 +17,8 @@ outstanding; the request bounced. See [Price feeds](#price-feeds).
 > McDonald's Corporation, used here only to describe the product being tracked.
 >
 > **Nothing in this codebase makes a request to a McDonald's-owned domain.**
-> Store locations come from OpenStreetMap; prices come from contributors and
-> from price feeds named beside every figure they supply.
+> Store locations come from All The Places (US) and OpenStreetMap; prices come
+> from contributors and from price feeds named beside every figure they supply.
 
 ---
 
@@ -58,9 +58,9 @@ the owner found none (see `research/price-sources.md`).
 
 | Suite | Count | Runner |
 | --- | --- | --- |
-| `tests/unit` | 233 | `npm test` |
+| `tests/unit` | 245 | `npm test` |
 | `tests/rules` | 37 | `npm run test:emulated` |
-| `tests/integration` | 54 | `npm run test:emulated` |
+| `tests/integration` | 59 | `npm run test:emulated` |
 | Phase 1 — foundation | 16 | `npm run test:browser` |
 | Phase 3 — map view | 32 | `npm run test:browser` |
 | Phase 4 — store detail and submit | 80 | `npm run test:browser` |
@@ -77,7 +77,7 @@ the owner found none (see `research/price-sources.md`).
 | Keyboard navigation | 13 | `npm run test:a11y` |
 | Screen-reader semantics | 45 | `npm run test:a11y` |
 
-759 checks, all passing on 2026-10-12 against `next dev` and the saved
+776 checks, all passing on 2026-10-21 against `next dev` and the saved
 emulator data; the production `next build` compiles all routes clean.
 
 The last three are accessibility sweeps added after the phase suites, each
@@ -1008,9 +1008,40 @@ and saying "nothing is queued" is the honest option.
 
 ## Store locations
 
-Store data comes from OpenStreetMap via the Overpass API — free, no key, and
-licensed for this use under the ODbL, which requires the attribution carried in
-the site footer.
+### The US store list
+
+Since 2026-10-21 every US McDonald's ships with the server:
+`src/data/us-stores.json`, 13,664 restaurants (about 1 MB, server-only),
+built by `npm run build:store-list -- --file <geojson>` from All The Places'
+McDonald's output (CC0, the same file the restaurant numbers come from). Each
+row has the restaurant number, coordinates and full street address.
+
+An area sync inside the list (`syncAreaIfStale`'s `listed` source, wired up
+in the sync route) takes its stores from the list and never contacts
+Overpass, so it spends nothing from the hourly Overpass budget and works the
+same in Fresno as in Coppell. New stores get ids like `atp-1844` (the
+restaurant number), take their number on creation, and need no address
+lookup. A point more than 100 km from every listed store is outside the list,
+and the sync falls back to Overpass as before, which is what still serves a
+map opened in Canada.
+
+Stores that came from OpenStreetMap before keep their `node-…`/`way-…` ids,
+prices and history. `dropListedDuplicates` skips a listed store when a store
+on file already holds its restaurant number, or sits within 150 m of it
+(wider than the OSM twin radius, because OSM pins the building and the
+locator often pins the lot). Checked against the 312 DFW stores on
+2026-10-21: 268 listed stores matched existing ones, 26 were genuinely new
+(mostly Walmart and airport locations OSM lacked), and the closest new one to
+an existing pin was a second DFW Terminal A store 169 m away.
+
+Rerun the build with a newer All The Places file to pick up openings. A store
+that leaves the list is not deleted, since it may own price history.
+
+### OpenStreetMap
+
+Outside the list, and for the first DFW stores, store data comes from
+OpenStreetMap via the Overpass API — free, no key, and licensed for this use
+under the ODbL, which requires the attribution carried in the site footer.
 
 Three constraints shape the implementation (Phase 2):
 

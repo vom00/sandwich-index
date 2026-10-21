@@ -285,7 +285,7 @@ export function MapExperience() {
                     aria-hidden="true"
                     className="size-3 animate-spin motion-reduce:animate-none"
                   />
-                  checking OpenStreetMap
+                  checking the area
                 </span>
               ) : null}
               {/* The tab now remembers where you asked about, which would be a
@@ -386,7 +386,7 @@ export function MapExperience() {
           ) : stores.length === 0 && loaded ? (
             <EmptyState
               title="No stores tracked here yet"
-              body="We have no McDonald's locations on file within fifteen miles. That usually means OpenStreetMap has not been checked for this area yet, or there genuinely are none nearby."
+              body="We have no McDonald's locations on file within fifteen miles. That usually means there are none nearby, or, outside the US, that OpenStreetMap has none mapped here."
             />
           ) : visibleIds !== null && visibleIds.size === 0 ? (
             <EmptyState

@@ -130,7 +130,7 @@ async function launchBrowser() {
     // runs, a re-render can replace marker elements mid-interaction — focus
     // lands on a node that no longer exists by the time the key is pressed.
     await page
-      .getByText('checking OpenStreetMap')
+      .getByText('checking the area')
       .waitFor({ state: 'detached', timeout: 40000 })
       .catch(() => {});
     await page.waitForTimeout(300);

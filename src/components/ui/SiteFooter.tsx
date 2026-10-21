@@ -5,8 +5,9 @@ import { HAS_ACTIVE_FEED } from "@/lib/feeds";
 /**
  * Both notices here are load-bearing, not boilerplate.
  *
- * The OpenStreetMap credit is a licence condition — store locations come from
+ * The OpenStreetMap credit is a licence condition — the first stores came from
  * OSM under the ODbL, which requires attribution wherever the data is shown.
+ * All The Places (CC0) asks for nothing, and is credited anyway.
  *
  * The disclaimer is there because this site discusses a company's prices using
  * that company's product name. Describing a McChicken accurately is fair use;
@@ -28,6 +29,15 @@ export function SiteFooter() {
         <div className="space-y-3 text-sm leading-relaxed text-ink-muted">
           <p>
             Store locations from{" "}
+            <a
+              className="underline decoration-rule underline-offset-2 hover-accent"
+              href="https://www.alltheplaces.xyz"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              All The Places
+            </a>{" "}
+            and{" "}
             <a
               className="underline decoration-rule underline-offset-2 hover-accent"
               href="https://www.openstreetmap.org/copyright"

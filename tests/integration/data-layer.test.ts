@@ -755,6 +755,83 @@ describe("Overpass sync gate", () => {
   });
 });
 
+describe("store list sync", () => {
+  const listedStore = (id: string, point: LatLng, restaurantNumber: string | null) => ({
+    ...store(id, point, { address: "1 Main St, Coppell, TX 75019", locality: "Coppell, TX 75019" }),
+    restaurantNumber,
+  });
+  const noOverpass = async () => {
+    throw new Error("Overpass must not be asked inside the list");
+  };
+
+  it("syncs an area from the list without asking Overpass or spending its budget", async () => {
+    const result = await syncAreaIfStale(COPPELL, milesToMeters(15), noOverpass, db, () => [
+      listedStore("atp-1844", COPPELL, "1844"),
+    ]);
+
+    expect(result).toMatchObject({ cached: false, created: 1, found: 1 });
+    expect((await db.doc("syncBudget/overpass").get()).exists).toBe(false);
+
+    const saved = await getStore("atp-1844", db);
+    expect(saved?.restaurantNumber).toBe("1844");
+    expect(saved?.address).toBe("1 Main St, Coppell, TX 75019");
+    expect(saved?.priceCents).toBeNull();
+  });
+
+  it("is cached like any other sync once the area is fresh", async () => {
+    let asked = 0;
+    const list = () => {
+      asked += 1;
+      return [listedStore("atp-1844", COPPELL, "1844")];
+    };
+    await syncAreaIfStale(COPPELL, milesToMeters(15), noOverpass, db, list);
+    const second = await syncAreaIfStale(COPPELL, milesToMeters(15), noOverpass, db, list);
+
+    expect(asked).toBe(1);
+    expect(second).toMatchObject({ cached: true, found: 1 });
+  });
+
+  it("does not add a listed store next to the OSM store already holding its number", async () => {
+    await upsertStores([store("node-1", COPPELL, { address: "1 Main St" })], db);
+    await db.collection("stores").doc("node-1").update({ restaurantNumber: "1844", priceCents: 289 });
+
+    const nearby = { lat: COPPELL.lat + 0.003, lng: COPPELL.lng };
+    const result = await syncAreaIfStale(COPPELL, milesToMeters(15), noOverpass, db, () => [
+      listedStore("atp-1844", nearby, "1844"),
+      listedStore("atp-2000", IRVING, "2000"),
+    ]);
+
+    expect(result.created).toBe(1);
+    expect(await getStore("atp-1844", db)).toBeNull();
+    expect((await getStore("node-1", db))?.priceCents).toBe(289);
+    expect((await getStore("atp-2000", db))?.restaurantNumber).toBe("2000");
+  });
+
+  it("does not rewrite a listed store a neighbouring cell's sync already wrote", async () => {
+    const list = () => [listedStore("atp-1844", COPPELL, "1844")];
+    await syncAreaIfStale(COPPELL, milesToMeters(15), noOverpass, db, list);
+
+    // Just south of Coppell's cell; a 15-mile sync from there reaches Coppell.
+    const [minLat] = ngeohash.decode_bbox(encodeGeohash(COPPELL, 4));
+    const south = { lat: minLat - 0.01, lng: COPPELL.lng };
+    const neighbour = await syncAreaIfStale(south, milesToMeters(15), noOverpass, db, list);
+
+    expect(neighbour).toMatchObject({ cached: false, found: 1, created: 0, updated: 0 });
+  });
+
+  it("asks Overpass where the list has nothing to say", async () => {
+    let calls = 0;
+    const fetcher = async () => {
+      calls += 1;
+      return [store("node-1", COPPELL)];
+    };
+    const result = await syncAreaIfStale(COPPELL, milesToMeters(15), fetcher, db, () => null);
+
+    expect(calls).toBe(1);
+    expect(result.created).toBe(1);
+  });
+});
+
 describe("feed observations", () => {
   const observation = (storeId: string, priceCents: number, daysAgo: number) => ({
     storeId,

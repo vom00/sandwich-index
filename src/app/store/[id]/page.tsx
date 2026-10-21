@@ -19,6 +19,7 @@ import {
   getSubmissionsForStore,
 } from "@/lib/stores.server";
 import { storeLabel, storeLabelText } from "@/lib/store-label";
+import { locationSource } from "@/lib/store-list";
 import { displayStateFor } from "@/lib/tiers";
 import { storeIdSchema } from "@/lib/validation";
 
@@ -113,9 +114,10 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
           ) : null}
         </h1>
         <p className="mt-2 text-sm text-ink-subtle">
+          {`Location from ${locationSource(store.id)}. `}
           {observations.length === 0
-            ? "Location from OpenStreetMap. Prices from whoever walked in and told us."
-            : "Location from OpenStreetMap. Prices from visitors and from the price feeds listed below, each under its own name."}
+            ? "Prices from whoever walked in and told us."
+            : "Prices from visitors and from the price feeds listed below, each under its own name."}
         </p>
       </header>
 

@@ -38,11 +38,13 @@ import {
   type StoreRollup,
 } from "@/lib/pricing";
 import type { OverpassStore } from "@/lib/overpass";
+import { dropListedDuplicates, listedStoresNear, type ListedRow, type ListedStore } from "@/lib/store-list";
 import { dropTwinStores } from "@/lib/store-twins";
 import type { ResolvedAddress } from "@/lib/reverse-geocode";
 import { displayStateFor } from "@/lib/tiers";
 import { buildNumberIndex, chooseNumbers, type NumberIndex, type NumberRow } from "@/lib/store-numbers";
 import restaurantNumberRows from "@/data/restaurant-numbers.json";
+import usStoreRows from "@/data/us-stores.json";
 import menuPriceTrackerSnapshot from "@/data/feeds/menupricetracker.json";
 import { observationId, parseFeedFile, pinnedOrMatched } from "@/lib/feed-match";
 import { FEEDS, isFeedActive, type FeedDefinition } from "@/lib/feeds";
@@ -178,9 +180,13 @@ function toSubmission(
  * tags were empty, and writing `address: null` back over that answer would
  * undo the backfill every seven days — a bug that would only ever be visible
  * as addresses mysteriously coming and going.
+ *
+ * A store from the bundled list arrives with its restaurant number, which a
+ * new document takes on creation. Existing documents keep the number they
+ * have (`backfillRestaurantNumbers` owns those).
  */
 export async function upsertStores(
-  stores: readonly OverpassStore[],
+  stores: readonly (OverpassStore & { restaurantNumber?: string | null })[],
   db: Firestore = getAdminDb(),
 ): Promise<{ created: number; updated: number }> {
   if (stores.length === 0) return { created: 0, updated: 0 };
@@ -222,7 +228,7 @@ export async function upsertStores(
           ...osmFields,
           address: store.address,
           locality: store.locality,
-          restaurantNumber: null,
+          restaurantNumber: store.restaurantNumber ?? null,
           addressCheckedAt: null,
           reportCount: 0,
           confirmedCount: 0,
@@ -570,6 +576,17 @@ export type StoreFetcher = (
 ) => Promise<readonly OverpassStore[]>;
 
 /**
+ * Every store within a circle from a list held locally, or null when the
+ * circle is outside the list. In production, the bundled US list
+ * (`lib/store-list`).
+ */
+export type ListedStoreSource = (center: LatLng, radiusMeters: number) => ListedStore[] | null;
+
+/** The US list shipped with the server (`src/data/us-stores.json`). */
+export const bundledStoresNear: ListedStoreSource = (center, radiusMeters) =>
+  listedStoresNear(usStoreRows as unknown as ListedRow[], center, radiusMeters);
+
+/**
  * Spend one query from the site-wide Overpass budget, or report that none is
  * left. Transactional, so two syncs racing for the last query cannot both win.
  *
@@ -618,12 +635,18 @@ async function reserveOverpassQuery(
  * The fetcher is injected rather than imported so this stays testable without
  * reaching the network, and so the Overpass dependency lives at the route
  * boundary where the fair-use obligation is visible.
+ *
+ * When `listed` answers for the area, its stores are used and Overpass is not
+ * contacted, so no query is taken from the site-wide budget. A listed store
+ * already on file under an OSM id is dropped rather than added next to it
+ * (`dropListedDuplicates`).
  */
 export async function syncAreaIfStale(
   center: LatLng,
   radiusMeters: number,
   fetcher: StoreFetcher,
   db: Firestore = getAdminDb(),
+  listed: ListedStoreSource = () => null,
 ): Promise<SyncResult> {
   const cellKey = encodeGeohash(center, SYNC_CELL_PRECISION);
   const coverage = cellCoverage(cellKey, radiusMeters);
@@ -647,6 +670,27 @@ export async function syncAreaIfStale(
       updated: 0,
       lastSyncedAt: lastSynced,
     };
+  }
+
+  const fromList = listed(coverage.center, coverage.radiusMeters);
+  if (fromList !== null) {
+    const known = await getStoresNear(coverage.center, coverage.radiusMeters, db);
+    const { kept } = dropListedDuplicates(fromList, known);
+    // A sync's circle reaches past its cell, so most of what it lists a
+    // neighbouring cell's sync already wrote. Rewriting those unchanged would
+    // nearly double the writes of filling in the country.
+    const onFile = new Map(known.map((store) => [store.id, store]));
+    const changed = kept.filter((store) => {
+      const was = onFile.get(store.osmId);
+      return (
+        was === undefined ||
+        was.lat !== store.lat ||
+        was.lng !== store.lng ||
+        was.address !== store.address ||
+        was.locality !== store.locality
+      );
+    });
+    return recordSync(syncRef, cellKey, coverage.radiusMeters, changed, db, kept.length);
   }
 
   const budget = await reserveOverpassQuery(db);
@@ -674,20 +718,35 @@ export async function syncAreaIfStale(
     console.warn("[stores.sync] dropped OSM twin(s):", droppedIds.join(", "));
   }
 
+  return recordSync(syncRef, cellKey, coverage.radiusMeters, kept, db);
+}
+
+/**
+ * Write a sync's stores and its log entry. `found` is how many stores the
+ * area holds, when only some of them (`kept`) needed writing.
+ */
+async function recordSync(
+  syncRef: FirebaseFirestore.DocumentReference,
+  cellKey: string,
+  coverageMeters: number,
+  kept: readonly (OverpassStore & { restaurantNumber?: string | null })[],
+  db: Firestore,
+  found: number = kept.length,
+): Promise<SyncResult> {
   const { created, updated } = await upsertStores(kept, db);
 
   const now = Timestamp.now();
   await syncRef.set({
     cellKey,
     lastSyncedAt: now,
-    storeCount: kept.length,
-    coverageMeters: coverage.radiusMeters,
+    storeCount: found,
+    coverageMeters,
   });
 
   return {
     cached: false,
     deferred: false,
-    found: kept.length,
+    found,
     created,
     updated,
     lastSyncedAt: now.toDate().toISOString(),

@@ -65,7 +65,18 @@ export default function AboutPage() {
 
         <Section title="Where the data comes from">
           <p>
-            Store locations come from{" "}
+            Store locations in the US come from{" "}
+            <a
+              className="underline decoration-rule underline-offset-2 hover-accent"
+              href="https://www.alltheplaces.xyz"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              All The Places
+            </a>
+            , a public-domain dataset of store locations, which lists every
+            McDonald&rsquo;s in the country with its address and restaurant
+            number. The first stores on the site, around Dallas, came from{" "}
             <a
               className="underline decoration-rule underline-offset-2 hover-accent"
               href="https://www.openstreetmap.org/copyright"
@@ -75,9 +86,9 @@ export default function AboutPage() {
               OpenStreetMap
             </a>
             , a public map database maintained by volunteers, used under the
-            Open Database Licence. Some entries carry a full street address and
-            some carry none at all. Where an address is missing upstream, the
-            site shows nothing rather than inventing one.
+            Open Database Licence, and so do any outside the US. Where an
+            address is missing upstream, the site shows nothing rather than
+            inventing one.
           </p>
           <p>
             {HAS_ACTIVE_FEED
