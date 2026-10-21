@@ -80,11 +80,18 @@ export async function POST(request: Request): Promise<NextResponse> {
     // own (four reads of the area per sync), and on Firestore's free tier
     // (50,000 reads a day) reads per map visit decide how many visitors the
     // site can serve.
-    let known: Awaited<ReturnType<typeof getStoresNear>> | undefined;
-    try {
-      known = await getStoresNear({ lat, lng }, radiusMeters);
-    } catch (error) {
-      console.error("[api/stores/sync] area read for backfills failed", error);
+    //
+    // A sync from the store list has just read its whole area, a circle at
+    // least as wide as the caller's, so that is used instead of another read,
+    // and the backfills then cover the whole area in one call.
+    const { areaStores, ...summary } = result;
+    let known: Awaited<ReturnType<typeof getStoresNear>> | undefined = areaStores;
+    if (known === undefined) {
+      try {
+        known = await getStoresNear({ lat, lng }, radiusMeters);
+      } catch (error) {
+        console.error("[api/stores/sync] area read for backfills failed", error);
+      }
     }
 
     // Best effort by design. An address we could not look up is a cosmetic
@@ -125,7 +132,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     // New stores or new prices change the landing page's figures.
     if (result.created > 0 || feedPrices.recorded > 0) revalidateTag(INDEX_SNAPSHOT_TAG, "max");
 
-    return NextResponse.json({ ...result, addresses, numbers, feedPrices });
+    return NextResponse.json({ ...summary, addresses, numbers, feedPrices });
   } catch (error) {
     if (error instanceof OverpassError) {
       // Every mirror failed. This is upstream unavailability, not a bug here,

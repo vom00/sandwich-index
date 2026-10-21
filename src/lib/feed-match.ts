@@ -192,11 +192,19 @@ export function matchFeedRow(
  */
 export function pinnedOrMatched(
   row: Pick<FeedRow, "address" | "city" | "storeId">,
-  stores: readonly Pick<StoreWithId, "id" | "address" | "locality">[],
+  stores: readonly (Pick<StoreWithId, "id" | "address" | "locality"> & {
+    restaurantNumber?: string | null;
+  })[],
 ): FeedMatch {
   if (row.storeId !== null) {
-    return stores.some((store) => store.id === row.storeId)
-      ? { kind: "match", storeId: row.storeId }
+    if (stores.some((store) => store.id === row.storeId)) return { kind: "match", storeId: row.storeId };
+    // A pin to a store from the bundled list (`atp-1844`) names a restaurant
+    // number. Where that store was skipped because an OSM store already holds
+    // the number (`dropListedDuplicates`), the row belongs to that store.
+    const number = /^atp-(\d+)$/.exec(row.storeId)?.[1];
+    const holders = number === undefined ? [] : stores.filter((store) => store.restaurantNumber === number);
+    return holders.length === 1 && holders[0] !== undefined
+      ? { kind: "match", storeId: holders[0].id }
       : { kind: "miss" };
   }
   return matchFeedRow(row, stores);

@@ -258,6 +258,21 @@ describe("bundled feed prices", () => {
     expect((await getStore("node-7", db))?.priceCents).toBe(189);
   });
 
+  it("gives a row pinned to a listed store to the OSM store holding its number", async () => {
+    await upsertStores([store("node-8", COPPELL, { address: "1 Elm St, Coppell, TX 75019" })], db);
+    await db.collection("stores").doc("node-8").update({ restaurantNumber: "1844" });
+    const pinned = {
+      rows: [
+        { address: "9 Other Rd", city: "Coppell", mcchickenCents: 219, observedAt, storeId: "atp-1844" },
+        // Pinned to a store far away: passed over, not matched by address.
+        { address: "1 Elm St", city: "Coppell", mcchickenCents: 999, observedAt, storeId: "atp-77777" },
+      ],
+    };
+
+    expect((await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(true), file: pinned }])).recorded).toBe(1);
+    expect((await getStore("node-8", db))?.priceCents).toBe(219);
+  });
+
   it("leaves a store alone when its price is newer than the listing", async () => {
     await upsertStores([store("node-1", COPPELL, { address: "125 South Denton Tap Road, Coppell, TX 75019" })], db);
     await db.collection("stores").doc("node-1").update({ priceCents: 289, pricedAt: Timestamp.now(), priceFeed: null });
@@ -817,6 +832,24 @@ describe("store list sync", () => {
     const neighbour = await syncAreaIfStale(south, milesToMeters(15), noOverpass, db, list);
 
     expect(neighbour).toMatchObject({ cached: false, found: 1, created: 0, updated: 0 });
+  });
+
+  it("hands back the whole area after a list sync, prices included", async () => {
+    await upsertStores([store("node-1", COPPELL, { address: "1 Main St" })], db);
+    await db.collection("stores").doc("node-1").update({ restaurantNumber: "1844", priceCents: 289 });
+
+    const result = await syncAreaIfStale(COPPELL, milesToMeters(15), noOverpass, db, () => [
+      listedStore("atp-1844", COPPELL, "1844"),
+      listedStore("atp-2000", IRVING, "2000"),
+    ]);
+
+    const byId = new Map(result.areaStores?.map((s) => [s.id, s]));
+    expect([...byId.keys()].sort()).toEqual(["atp-2000", "node-1"]);
+    expect(byId.get("node-1")?.priceCents).toBe(289);
+    expect(byId.get("atp-2000")).toMatchObject({ restaurantNumber: "2000", priceCents: null, pricedAt: null });
+    // What it hands back is what a fresh read finds.
+    const read = await getStoresNear(COPPELL, milesToMeters(15), db);
+    expect(read.map((s) => s.id).sort()).toEqual(["atp-2000", "node-1"]);
   });
 
   it("asks Overpass where the list has nothing to say", async () => {

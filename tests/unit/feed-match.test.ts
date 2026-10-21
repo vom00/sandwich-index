@@ -206,6 +206,20 @@ describe("pinnedOrMatched", () => {
     expect(pinnedOrMatched(sameAddress, stores)).toEqual({ kind: "miss" });
   });
 
+  it("sends a row pinned to a listed store to the OSM store holding its number", () => {
+    const onFile = [...stores, { id: "way-9", address: "1 Elm St, Plano, TX 75074", locality: null, restaurantNumber: "1844" }];
+    expect(pinnedOrMatched({ ...row, storeId: "atp-1844" }, onFile)).toEqual({ kind: "match", storeId: "way-9" });
+  });
+
+  it("misses a listed pin when no store, or two, hold its number", () => {
+    expect(pinnedOrMatched({ ...row, storeId: "atp-1844" }, stores)).toEqual({ kind: "miss" });
+    const twice = [
+      { id: "way-9", address: null, locality: null, restaurantNumber: "1844" },
+      { id: "way-10", address: null, locality: null, restaurantNumber: "1844" },
+    ];
+    expect(pinnedOrMatched({ ...row, storeId: "atp-1844" }, twice)).toEqual({ kind: "miss" });
+  });
+
   it("matches an unpinned row by city and street number, as before", () => {
     expect(pinnedOrMatched({ address: "813 S MacArthur Blvd", city: "Coppell", storeId: null }, stores)).toEqual({
       kind: "match",

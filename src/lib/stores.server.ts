@@ -46,7 +46,7 @@ import { buildNumberIndex, chooseNumbers, type NumberIndex, type NumberRow } fro
 import restaurantNumberRows from "@/data/restaurant-numbers.json";
 import usStoreRows from "@/data/us-stores.json";
 import menuPriceTrackerSnapshot from "@/data/feeds/menupricetracker.json";
-import { observationId, parseFeedFile, pinnedOrMatched } from "@/lib/feed-match";
+import { observationId, parseFeedFile, pinnedOrMatched, type FeedRow } from "@/lib/feed-match";
 import { FEEDS, isFeedActive, type FeedDefinition } from "@/lib/feeds";
 import type { ObservationWithId, Store, StoreWithId, SubmissionWithId } from "@/types";
 
@@ -567,6 +567,12 @@ export interface SyncResult {
   updated: number;
   /** ISO 8601, or null when the cell has never been synced. */
   lastSyncedAt: string | null;
+  /**
+   * Every store in the circle a list sync covered, as it stands after the
+   * sync. Present only when a sync from the list ran, so callers can work on
+   * the area without reading it again. Not for sending to a client.
+   */
+  areaStores?: StoreWithId[];
 }
 
 /** Fetches every store within a circle. In production, Overpass. */
@@ -690,7 +696,37 @@ export async function syncAreaIfStale(
         was.locality !== store.locality
       );
     });
-    return recordSync(syncRef, cellKey, coverage.radiusMeters, changed, db, kept.length);
+    const result = await recordSync(syncRef, cellKey, coverage.radiusMeters, changed, db, kept.length);
+
+    // The area as it now stands: what was on file, with this sync's writes
+    // laid over it. Upserts only touch location fields, so a store's price
+    // history is whatever was read.
+    const lastSyncedAt = result.lastSyncedAt ?? new Date().toISOString();
+    for (const store of changed) {
+      const was = onFile.get(store.osmId);
+      onFile.set(store.osmId, {
+        ...(was ?? {
+          restaurantNumber: store.restaurantNumber,
+          addressCheckedAt: null,
+          reportCount: 0,
+          confirmedCount: 0,
+          priceCents: null,
+          heldPriceCents: null,
+          pricedAt: null,
+          priceFeed: null,
+        }),
+        id: store.osmId,
+        osmId: store.osmId,
+        name: store.name,
+        address: store.address ?? was?.address ?? null,
+        locality: store.locality ?? was?.locality ?? null,
+        lat: store.lat,
+        lng: store.lng,
+        geohash: store.geohash,
+        lastSyncedAt,
+      });
+    }
+    return { ...result, areaStores: [...onFile.values()] };
   }
 
   const budget = await reserveOverpassQuery(db);
@@ -832,6 +868,23 @@ const BUNDLED_FEEDS: readonly BundledFeed[] = [
 ];
 
 /**
+ * A feed file's rows, parsed at most once an hour per file. A bundled file
+ * never changes while the server runs, and parsing thousands of rows on
+ * every sync is time the visitor waits for. The hour keeps the parser's
+ * date checks (nothing dated in the future) close enough to now.
+ */
+const parsedFeeds = new WeakMap<object, { at: number; rows: FeedRow[] }>();
+
+function parsedFeedRows(file: unknown, now: Date): FeedRow[] {
+  if (typeof file !== "object" || file === null) return parseFeedFile(file, now).rows;
+  const cached = parsedFeeds.get(file);
+  if (cached !== undefined && Math.abs(now.getTime() - cached.at) < 60 * 60 * 1000) return cached.rows;
+  const rows = parseFeedFile(file, now).rows;
+  parsedFeeds.set(file, { at: now.getTime(), rows });
+  return rows;
+}
+
+/**
  * Record the bundled feeds' prices for the stores around a point, exactly as
  * `import:observations --write` would: rows parsed and matched by
  * `lib/feed-match` (city and street number), one observation per feed, store
@@ -857,12 +910,18 @@ export async function backfillFeedObservations(
 
   const nearby = known ?? (await getStoresNear(center, radiusMeters, db));
   const byId = new Map(nearby.map((store) => [store.id, store]));
+  const numbers = new Set(nearby.map((store) => store.restaurantNumber).filter((n) => n !== null));
   const planned = new Map<string, ObservationInput>();
   const conflicted = new Set<string>();
 
   for (const { feed, file } of active) {
-    for (const row of parseFeedFile(file, now).rows) {
+    for (const row of parsedFeedRows(file, now)) {
       if (row.priceCents === null) continue;
+      // Most rows of a nationwide file are pinned to stores far from here;
+      // passing over them here keeps a sync from matching every one.
+      if (row.storeId !== null && !byId.has(row.storeId) && !numbers.has(row.storeId.replace(/^atp-/, ""))) {
+        continue;
+      }
       const match = pinnedOrMatched(row, nearby);
       if (match.kind !== "match") continue;
       const store = byId.get(match.storeId);
