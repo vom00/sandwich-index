@@ -9,7 +9,7 @@ import { SubmissionLog } from "@/components/store/SubmissionLog";
 import { SubmitPriceButton } from "@/components/store/SubmitPriceButton";
 import { Confidence } from "@/components/ui/Confidence";
 import { StoreStateBadge } from "@/components/ui/StoreStateBadge";
-import { feedName } from "@/lib/feeds";
+import { feedAttribution, feedName } from "@/lib/feeds";
 import { formatCents } from "@/lib/money";
 import { priceAge } from "@/lib/provenance";
 import {
@@ -157,6 +157,11 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
                   </a>
                 ) : null}
               </div>
+              {behindPrice !== null && feedAttribution(behindPrice.feed, behindPrice.observedAt) !== null ? (
+                <p className="mt-1 text-xs text-ink-subtle">
+                  {feedAttribution(behindPrice.feed, behindPrice.observedAt)}
+                </p>
+              ) : null}
             </>
           )}
 

@@ -213,6 +213,8 @@ describe("bundled feed prices", () => {
     dateVerb: "checked",
     licence: null,
     unlicensedUse: active ? { decidedOn: "2026-10-12", note: "test" } : null,
+    attribution: null,
+    dateNote: null,
   });
   const observedAt = new Date(Date.now() - 2 * DAY_MS).toISOString();
   const file = {

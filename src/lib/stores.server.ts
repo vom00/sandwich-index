@@ -45,6 +45,7 @@ import { displayStateFor } from "@/lib/tiers";
 import { buildNumberIndex, chooseNumbers, type NumberIndex, type NumberRow } from "@/lib/store-numbers";
 import restaurantNumberRows from "@/data/restaurant-numbers.json";
 import usStoreRows from "@/data/us-stores.json";
+import driveThruIndexSnapshot from "@/data/feeds/drivethruindex.json";
 import menuPriceTrackerSnapshot from "@/data/feeds/menupricetracker.json";
 import { observationId, parseFeedFile, pinnedOrMatched, type FeedRow } from "@/lib/feed-match";
 import { FEEDS, isFeedActive, type FeedDefinition } from "@/lib/feeds";
@@ -865,6 +866,7 @@ export interface BundledFeed {
 
 const BUNDLED_FEEDS: readonly BundledFeed[] = [
   { feed: FEEDS["menupricetracker"]!, file: menuPriceTrackerSnapshot },
+  { feed: FEEDS["drivethruindex"]!, file: driveThruIndexSnapshot },
 ];
 
 /**

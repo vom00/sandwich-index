@@ -1,0 +1,6 @@
+{
+ "feed": "drivethruindex",
+ "source": "https://drivethruindex.com",
+ "note": "Written by npm run fetch:drivethruindex -- --merge.",
+ "rows": []
+}

@@ -55,6 +55,14 @@ export interface FeedDefinition {
    * shows one on the live site.
    */
   unlicensedUse: UnlicensedUse | null;
+  /**
+   * The credit line the feed asks for, shown under a price it supplied, with
+   * `{date}` replaced by the day it checked that price (YYYY-MM-DD), or null
+   * when it asks for none beyond being named.
+   */
+  attribution: string | null;
+  /** What the date on its prices is, for the About page, or null. */
+  dateNote: string | null;
 }
 
 export const FEEDS: Readonly<Record<string, FeedDefinition>> = {
@@ -73,6 +81,32 @@ export const FEEDS: Readonly<Record<string, FeedDefinition>> = {
         "Owner's decision: show MenuPriceTracker's prices, named and linked, while the " +
         "licensing request in research/feed-outreach.md is outstanding. Stop if they say no.",
     },
+    attribution: null,
+    dateNote:
+      "Its pages give a month rather than a day for each store, so its prices are dated by the day we read them, and say “checked”.",
+  },
+  drivethruindex: {
+    id: "drivethruindex",
+    name: "Drive Thru Index",
+    homepage: "https://drivethruindex.com",
+    method: "which reads every store's pickup prices from the McDonald's app each day",
+    // Each store page says "Pickup prices from the McDonald's app, checked
+    // 2026-10-21": a day, which the import keeps as the price's date.
+    dateVerb: "checked",
+    // From drivethruindex.com/llms.txt ("figures are free to quote with
+    // attribution") and /insights#citing, which gives the credit line below;
+    // both read 2026-10-21. No other terms are published.
+    licence: "the permission on its own site to quote its figures with attribution",
+    unlicensedUse: {
+      decidedOn: "2026-10-21",
+      note:
+        "Owner's decision: quote Drive Thru Index's McChicken pickup price for every US store, " +
+        "with its credit line, date and a link. Its permission is to quote with attribution; it " +
+        "names no operator and publishes no other terms. Stop if it asks.",
+    },
+    attribution: "Source: Drive Thru Index (drivethruindex.com), prices checked {date}",
+    dateNote:
+      "Each of its store pages says which day it checked the price, and that day is the date shown here. Its prices are the McDonald’s app’s pickup prices.",
   },
 };
 
@@ -101,6 +135,11 @@ export function feedById(id: string): FeedDefinition | null {
 /** For display. An observation from a feed since removed still needs a name. */
 export function feedName(id: string): string {
   return feedById(id)?.name ?? "a price feed";
+}
+
+/** The credit line a feed asks for under a price it checked on `observedAt`, or null. */
+export function feedAttribution(id: string, observedAt: string): string | null {
+  return feedById(id)?.attribution?.replace("{date}", observedAt.slice(0, 10)) ?? null;
 }
 
 /** The verb for a feed's dates: "checked", "observed". */

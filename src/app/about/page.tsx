@@ -196,9 +196,7 @@ export default function AboutPage() {
                   {feed.licence !== null
                     ? `Used under: ${feed.licence}.`
                     : "Shown without a licence while we ask for one, and removed if the answer is no. Its prices are read from its public store pages, at the pace its robots.txt asks for."}
-                  {feed.dateVerb === "checked"
-                    ? " Its pages give a month rather than a day for each store, so its prices are dated by the day we read them, and say “checked”."
-                    : null}
+                  {feed.dateNote !== null ? ` ${feed.dateNote}` : null}
                 </li>
               ))}
             </ul>
