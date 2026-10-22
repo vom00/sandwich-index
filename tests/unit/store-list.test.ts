@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import usStoreRows from "@/data/us-stores.json";
 import { distanceMeters } from "@/lib/geohash";
 import {
+  DTI_LISTED_ROWS,
   LISTED_DUPLICATE_METERS,
   dropListedDuplicates,
+  locationSource,
   listedStoresNear,
   toListedStore,
   type ListedRow,
@@ -96,5 +99,18 @@ describe("dropListedDuplicates", () => {
     expect(distanceMeters(neighbour, toListedStore(STORY_RD))).toBeGreaterThan(LISTED_DUPLICATE_METERS);
     const { kept } = dropListedDuplicates(listed, [neighbour]);
     expect(kept).toHaveLength(2);
+  });
+});
+
+describe("locationSource", () => {
+  it("credits the source each store's location came from", () => {
+    expect(locationSource("node-123")).toBe("OpenStreetMap");
+    expect(locationSource("atp-1844")).toBe("All The Places");
+    for (const [ref] of DTI_LISTED_ROWS) expect(locationSource(`atp-${ref}`)).toBe("Drive Thru Index");
+  });
+
+  it("never lists a supplement store All The Places already has", () => {
+    const listed = new Set((usStoreRows as unknown as ListedRow[]).map(([ref]) => ref));
+    expect(DTI_LISTED_ROWS.filter(([ref]) => listed.has(ref))).toEqual([]);
   });
 });

@@ -44,7 +44,16 @@ describe("parseDtiStorePage", () => {
       city: "Barre",
       priceCents: 239,
       checkedOn: "2026-10-21",
+      location: null,
     });
+  });
+
+  it("reads where the page places the store", () => {
+    const html = page({ rows: row("McChicken", "$2.39", "$3.99") }).replace(
+      '"postalCode": "05641"}',
+      '"postalCode": "05641"}, "geo": {"@type": "GeoCoordinates", "latitude": 44.1707, "longitude": -72.4876}',
+    );
+    expect(parseDtiStorePage(html)?.location).toEqual({ lat: 44.1707, lng: -72.4876, state: "VT", postcode: "05641" });
   });
 
   it("takes the sandwich, not its cheaper share of a bundle, when McChicken is listed twice", () => {

@@ -14,6 +14,7 @@
  * second pin next to one of them.
  */
 
+import dtiStoreRows from "@/data/us-stores-dti.json";
 import { composeLocality, composeStreetAddress } from "@/lib/address";
 import { STORE_GEOHASH_PRECISION, distanceMeters, encodeGeohash, type LatLng } from "@/lib/geohash";
 import type { OverpassStore } from "@/lib/overpass";
@@ -53,8 +54,18 @@ export const LISTED_DUPLICATE_METERS = 150;
 
 const RESTAURANT_NUMBER = /^\d{3,5}$/;
 
+/**
+ * Stores All The Places lacks, placed by their Drive Thru Index pages
+ * (`scripts/fetch-drivethruindex.ts --missing`, then `--merge`). Synced with
+ * the main list, under the same `atp-<number>` ids so the price feed's pins
+ * reach them; only the credit differs.
+ */
+export const DTI_LISTED_ROWS = dtiStoreRows as unknown as ListedRow[];
+const dtiListedIds = new Set(DTI_LISTED_ROWS.map((row) => `${LISTED_ID_PREFIX}${row[0]}`));
+
 /** Where a store's location came from, by its id, for the credit on its page. */
-export function locationSource(storeId: string): "All The Places" | "OpenStreetMap" {
+export function locationSource(storeId: string): "All The Places" | "Drive Thru Index" | "OpenStreetMap" {
+  if (dtiListedIds.has(storeId)) return "Drive Thru Index";
   return storeId.startsWith(LISTED_ID_PREFIX) ? "All The Places" : "OpenStreetMap";
 }
 

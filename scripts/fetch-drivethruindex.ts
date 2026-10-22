@@ -6,6 +6,7 @@
  *   npm run fetch:drivethruindex                 # read, resuming today's run where it stopped
  *   npm run fetch:drivethruindex -- --limit 50   # at most 50 store pages this run
  *   npm run fetch:drivethruindex -- --retry-unparsed  # also re-read pages the parser could not read
+ *   npm run fetch:drivethruindex -- --missing    # read the stores our list lacks, for us-stores-dti.json
  *   npm run fetch:drivethruindex -- --merge      # write the newest row per store, across runs, into the snapshot
  *
  * robots.txt first; it asks for no crawl delay, so this keeps its own
@@ -26,15 +27,22 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
+import dtiStoreRows from "../src/data/us-stores-dti.json";
 import usStoreRows from "../src/data/us-stores.json";
 import { DTI_MIN_DELAY_SECONDS, DTI_ORIGIN, parseDtiStorePage, restaurantNumberFromPath } from "../src/lib/drivethruindex";
 import { parseFeedFile } from "../src/lib/feed-match";
 import { delaySeconds, isAllowed, parseRobots, type RobotsRules } from "../src/lib/robots";
-import type { ListedRow } from "../src/lib/store-list";
+import { distanceMeters } from "../src/lib/geohash";
+import { LISTED_DUPLICATE_METERS, type ListedRow } from "../src/lib/store-list";
 
 const USER_AGENT = "sandwich-index/0.1 (+https://sandwich-index.vercel.app)";
 const FEEDS_DIR = resolve("feeds");
 const SNAPSHOT = resolve("src/data/feeds/drivethruindex.json");
+const DTI_STORES = resolve("src/data/us-stores-dti.json");
+
+/** All The Places' stores: the list every other source fills in around. */
+const ATP_ROWS = usStoreRows as unknown as ListedRow[];
+const atpRefs = new Set(ATP_ROWS.map((row) => String(Number(row[0]))));
 
 interface Row {
   address: string;
@@ -43,6 +51,8 @@ interface Row {
   observedAt: string;
   url: string;
   storeId: string;
+  /** Where the page places the store; kept only for stores All The Places lacks. */
+  location?: { lat: number; lng: number; state: string | null; postcode: string | null };
 }
 
 interface ProgressLine {
@@ -100,7 +110,7 @@ function makeFetcher(rules: RobotsRules) {
   };
 }
 
-async function read(limit: number, runDate: string, retryUnparsed: boolean): Promise<void> {
+async function read(limit: number, runDate: string, retryUnparsed: boolean, missing: boolean): Promise<void> {
   const robots = await fetch(`${DTI_ORIGIN}/robots.txt`, { headers: { "User-Agent": USER_AGENT } });
   if (!robots.ok) {
     console.error(`robots.txt answered ${robots.status}; not reading without it.`);
@@ -109,7 +119,7 @@ async function read(limit: number, runDate: string, retryUnparsed: boolean): Pro
   const rules = parseRobots(await robots.text());
   const get = makeFetcher(rules);
 
-  const ours = new Set((usStoreRows as unknown as ListedRow[]).map((row) => String(Number(row[0]))));
+  const ours = new Set([...atpRefs, ...(dtiStoreRows as unknown as ListedRow[]).map((row) => String(Number(row[0])))]);
   const file = progressFile(runDate);
   const done = readProgress(file);
 
@@ -126,7 +136,8 @@ async function read(limit: number, runDate: string, retryUnparsed: boolean): Pro
     for (const match of xml.matchAll(/<loc>https:\/\/drivethruindex\.com([^<]+)<\/loc>/g)) {
       const path = match[1]!;
       const number = restaurantNumberFromPath(path);
-      if (number === null || seen.has(number) || !ours.has(number)) continue;
+      // --missing reads the stores our lists lack instead of the ones they have.
+      if (number === null || seen.has(number) || ours.has(number) === missing) continue;
       seen.add(number);
       // A page read before in a shape the parser has since learned is read again.
       if (!done.has(path) || (retryUnparsed && done.get(path)?.row === null)) wanted.push({ path, number });
@@ -156,6 +167,7 @@ async function read(limit: number, runDate: string, retryUnparsed: boolean): Pro
               observedAt: `${page.checkedOn}T08:00:00.000Z`,
               url: `${DTI_ORIGIN}${path}`,
               storeId: `atp-${number}`,
+              ...(page.location !== null && !atpRefs.has(number) ? { location: page.location } : {}),
             },
           };
     appendFileSync(file, `${JSON.stringify(line)}\n`);
@@ -195,7 +207,9 @@ function merge(): void {
     .filter((row): row is Row => row !== null && row.mcchickenCents !== null);
   const rows = priced
     .filter((row) => plausible(row.mcchickenCents!))
-    .sort((a, b) => a.storeId.localeCompare(b.storeId));
+    .sort((a, b) => a.storeId.localeCompare(b.storeId))
+    // The location goes to the store list, not the price feed.
+    .map((row) => ({ ...row, location: undefined }));
   for (const row of priced.filter((r) => !plausible(r.mcchickenCents!))) {
     console.log(`DROP    ${row.mcchickenCents} cents at ${row.url} (implausible)`);
   }
@@ -222,11 +236,42 @@ function merge(): void {
       1,
     )}\n`,
   );
+  const supplement = writeStoreSupplement(lines);
   const unpriced = lines.filter((line) => line.row !== null && line.row.mcchickenCents === null).length;
+  console.log(`Wrote ${supplement} stores All The Places lacks to ${DTI_STORES}.`);
   console.log(
     `Wrote ${rows.length} priced rows from ${runs.length} run(s), newest ${latest} (${priced.length - rows.length} implausible, ` +
       `${unpriced} pages had no McChicken, ${lines.length - priced.length - unpriced} unreadable).`,
   );
+}
+
+/**
+ * Stores Drive Thru Index has a page for and All The Places doesn't (about one
+ * in a hundred), placed where the page puts them, as rows in the bundled
+ * list's format. One standing within `LISTED_DUPLICATE_METERS` of a listed
+ * store is that store under another number, and is left out.
+ */
+function writeStoreSupplement(lines: readonly ProgressLine[]): number {
+  const supplement: ListedRow[] = [];
+  for (const { row } of lines) {
+    if (row === null || row.location === undefined) continue;
+    const ref = row.storeId.replace(/^atp-/, "");
+    if (atpRefs.has(ref)) continue;
+    const at = { lat: row.location.lat, lng: row.location.lng };
+    const near = ATP_ROWS.some(
+      (listed) =>
+        Math.abs(listed[1] - at.lat) < 0.01 && distanceMeters(at, { lat: listed[1], lng: listed[2] }) < LISTED_DUPLICATE_METERS,
+    );
+    if (near) {
+      console.log(`SKIP    #${ref} ${row.address}, ${row.city}: within ${LISTED_DUPLICATE_METERS} m of a listed store`);
+      continue;
+    }
+    supplement.push([ref, at.lat, at.lng, row.address, row.city, row.location.state, row.location.postcode]);
+  }
+  supplement.sort((a, b) => Number(a[0]) - Number(b[0]));
+  const body = supplement.map((entry) => JSON.stringify(entry)).join(",\n");
+  writeFileSync(DTI_STORES, supplement.length === 0 ? "[]\n" : `[\n${body}\n]\n`);
+  return supplement.length;
 }
 
 if (process.argv.includes("--merge")) {
@@ -234,7 +279,12 @@ if (process.argv.includes("--merge")) {
 } else {
   const limit = Number.parseInt(values("--limit") ?? "", 10);
   const runDate = values("--run") ?? new Date().toISOString().slice(0, 10);
-  read(Number.isFinite(limit) && limit > 0 ? limit : Number.POSITIVE_INFINITY, runDate, process.argv.includes("--retry-unparsed")).catch((error: unknown) => {
+  read(
+    Number.isFinite(limit) && limit > 0 ? limit : Number.POSITIVE_INFINITY,
+    runDate,
+    process.argv.includes("--retry-unparsed"),
+    process.argv.includes("--missing"),
+  ).catch((error: unknown) => {
     console.error(error);
     process.exit(1);
   });

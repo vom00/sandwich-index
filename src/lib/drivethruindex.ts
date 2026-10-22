@@ -33,6 +33,8 @@ export interface DtiStorePage {
   priceCents: number | null;
   /** YYYY-MM-DD: the day the page says its prices were checked. */
   checkedOn: string;
+  /** Where the page places the store, for stores our list lacks. Null when it doesn't say. */
+  location: { lat: number; lng: number; state: string | null; postcode: string | null } | null;
 }
 
 /** The menu's own names for the sandwich itself, not a meal, patty or the spicy one. */
@@ -52,6 +54,7 @@ function cents(text: string): number | null {
 export function parseDtiStorePage(html: string): DtiStorePage | null {
   let address: string | null = null;
   let city: string | null = null;
+  let location: DtiStorePage["location"] = null;
   for (const match of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
     try {
       const block = JSON.parse(match[1] ?? "") as Record<string, unknown>;
@@ -59,6 +62,19 @@ export function parseDtiStorePage(html: string): DtiStorePage | null {
       if (typeof postal?.["streetAddress"] === "string" && typeof postal["addressLocality"] === "string") {
         address = postal["streetAddress"];
         city = postal["addressLocality"];
+        const geo = block["geo"] as Record<string, unknown> | undefined;
+        const lat = geo?.["latitude"];
+        const lng = geo?.["longitude"];
+        if (typeof lat === "number" && typeof lng === "number" && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+          const region = postal["addressRegion"];
+          const postcode = postal["postalCode"];
+          location = {
+            lat,
+            lng,
+            state: typeof region === "string" ? region : null,
+            postcode: typeof postcode === "string" ? postcode : null,
+          };
+        }
       }
     } catch {
       // Not JSON this module needs.
@@ -81,5 +97,5 @@ export function parseDtiStorePage(html: string): DtiStorePage | null {
     const pickup = cents(match[2] ?? "");
     if (pickup !== null && (priceCents === null || pickup > priceCents)) priceCents = pickup;
   }
-  return { address: decodeEntities(address), city: decodeEntities(city), priceCents, checkedOn };
+  return { address: decodeEntities(address), city: decodeEntities(city), priceCents, checkedOn, location };
 }

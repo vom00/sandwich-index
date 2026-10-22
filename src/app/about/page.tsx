@@ -74,9 +74,11 @@ export default function AboutPage() {
             >
               All The Places
             </a>
-            , a public-domain dataset of store locations, which lists every
-            McDonald&rsquo;s in the country with its address and restaurant
-            number. The first stores on the site, around Dallas, came from{" "}
+            , a public-domain dataset of store locations, which lists nearly
+            every McDonald&rsquo;s in the country with its address and
+            restaurant number. The few it misses are placed where Drive Thru
+            Index&rsquo;s page for the store puts them, and their pages say so.
+            The first stores on the site, around Dallas, came from{" "}
             <a
               className="underline decoration-rule underline-offset-2 hover-accent"
               href="https://www.openstreetmap.org/copyright"
