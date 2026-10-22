@@ -228,7 +228,7 @@ describe("bundled feed prices", () => {
     await upsertStores([store("node-1", COPPELL, { address: "125 South Denton Tap Road, Coppell, TX 75019" })], db);
 
     const result = await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(true), file }]);
-    expect(result).toEqual({ recorded: 1, recomputed: 1 });
+    expect(result).toEqual({ recorded: 1, recomputed: 1, retired: 0 });
     const saved = await getStore("node-1", db);
     expect(saved?.priceCents).toBe(249);
     expect(saved?.priceFeed).toBe("testfeed");
@@ -239,8 +239,33 @@ describe("bundled feed prices", () => {
     expect(await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(false), file }])).toEqual({
       recorded: 0,
       recomputed: 0,
+      retired: 0,
     });
     expect((await getStore("node-1", db))?.priceCents).toBeNull();
+  });
+
+  it("takes a removed feed's price off a store the area's sync can't reprice", async () => {
+    await upsertStores([store("node-9", COPPELL, { address: "1 Nowhere Rd, Coppell, TX 75019" })], db);
+    await db.collection("observations").doc("menupricetracker_node-9_2026-10-12").set({
+      storeId: "node-9",
+      priceCents: 219,
+      observedAt: Timestamp.fromDate(new Date(Date.now() - 9 * DAY_MS)),
+      feed: "menupricetracker",
+      sourceUrl: null,
+      importedAt: Timestamp.now(),
+    });
+    await db.collection("stores").doc("node-9").update({
+      priceCents: 219,
+      pricedAt: Timestamp.fromDate(new Date(Date.now() - 9 * DAY_MS)),
+      priceFeed: "menupricetracker",
+    });
+
+    const result = await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(true), file }]);
+
+    expect(result.retired).toBe(1);
+    expect(await getStore("node-9", db)).toMatchObject({ priceCents: null, priceFeed: null });
+    // Nothing left to retire the next time.
+    expect((await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(true), file }])).retired).toBe(0);
   });
 
   it("writes nothing the second time", async () => {
@@ -249,6 +274,7 @@ describe("bundled feed prices", () => {
     expect(await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(true), file }])).toEqual({
       recorded: 0,
       recomputed: 0,
+      retired: 0,
     });
   });
 

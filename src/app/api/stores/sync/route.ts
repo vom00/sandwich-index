@@ -125,7 +125,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     // Feed prices shipped with the server (lib/feeds, stores.server). Rows
     // match on street number and city, so a store whose address was only
     // just looked up above is matched on the next sync, from the next read.
-    let feedPrices = { recorded: 0, recomputed: 0 };
+    let feedPrices = { recorded: 0, recomputed: 0, retired: 0 };
     try {
       feedPrices = await backfillFeedObservations({ lat, lng }, radiusMeters, undefined, undefined, undefined, known);
     } catch (error) {
@@ -133,7 +133,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     // New stores or new prices change the landing page's figures.
-    if (result.created > 0 || feedPrices.recorded > 0) revalidateTag(INDEX_SNAPSHOT_TAG, "max");
+    if (result.created > 0 || feedPrices.recorded > 0 || feedPrices.retired > 0) revalidateTag(INDEX_SNAPSHOT_TAG, "max");
 
     return NextResponse.json({ ...summary, addresses, numbers, feedPrices });
   } catch (error) {

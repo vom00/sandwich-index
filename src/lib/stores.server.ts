@@ -715,7 +715,10 @@ export async function syncAreaIfStale(
         was.locality !== store.locality
       );
     });
-    const result = await recordSync(syncRef, cellKey, coverage.radiusMeters, changed, db, kept.length);
+    // Found: every store the area holds now, not just the listed ones kept,
+    // since duplicates of stores on file are dropped from `kept`.
+    const found = new Set([...known.map((store) => store.id), ...kept.map((store) => store.osmId)]).size;
+    const result = await recordSync(syncRef, cellKey, coverage.radiusMeters, changed, db, found);
 
     // The area as it now stands: what was on file, with this sync's writes
     // laid over it. Upserts only touch location fields, so a store's price
@@ -914,6 +917,10 @@ function parsedFeedRows(file: unknown, now: Date): FeedRow[] {
  * row, or newer, is skipped before anything is read, so once an area is up to
  * date a sync costs no extra reads, and a visitor's newer price is never
  * second-guessed by an older listing.
+ *
+ * A store whose price still comes from a feed the site has stopped showing
+ * is recomputed too, if nothing new priced it here, so a removed feed's
+ * prices leave each area the next time anyone looks at it (`retired`).
  */
 export async function backfillFeedObservations(
   center: LatLng,
@@ -923,11 +930,34 @@ export async function backfillFeedObservations(
   now: Date = new Date(),
   /** The stores around `center`, when the caller has already read them. */
   known?: readonly StoreWithId[],
-): Promise<{ recorded: number; recomputed: number }> {
+): Promise<{ recorded: number; recomputed: number; retired: number }> {
   const active = feeds.filter(({ feed }) => isFeedActive(feed));
-  if (active.length === 0) return { recorded: 0, recomputed: 0 };
-
   const nearby = known ?? (await getStoresNear(center, radiusMeters, db));
+  const result = await recordFeedRows(active, nearby, db, now);
+
+  const removedFeed = (id: string) => {
+    const feed = feedById(id);
+    return feed !== null && !isFeedActive(feed);
+  };
+  const stale = nearby.filter(
+    (store) => store.priceFeed !== null && removedFeed(store.priceFeed) && !result.storeIds.has(store.id),
+  );
+  for (let offset = 0; offset < stale.length; offset += RECOMPUTE_CONCURRENCY) {
+    await Promise.all(
+      stale.slice(offset, offset + RECOMPUTE_CONCURRENCY).map((store) => recomputeStoreRollup(store.id, db)),
+    );
+  }
+  return { recorded: result.recorded, recomputed: result.recomputed, retired: stale.length };
+}
+
+async function recordFeedRows(
+  active: readonly BundledFeed[],
+  nearby: readonly StoreWithId[],
+  db: Firestore,
+  now: Date,
+): Promise<{ recorded: number; recomputed: number; storeIds: Set<string> }> {
+  if (active.length === 0) return { recorded: 0, recomputed: 0, storeIds: new Set() };
+
   const byId = new Map(nearby.map((store) => [store.id, store]));
   const numbers = new Set(nearby.map((store) => store.restaurantNumber).filter((n) => n !== null));
   const planned = new Map<string, ObservationInput>();
@@ -962,8 +992,13 @@ export async function backfillFeedObservations(
   }
   for (const id of conflicted) planned.delete(id);
 
-  const result = await recordObservations([...planned.values()], db);
-  return { recorded: result.written, recomputed: result.recomputed };
+  const inputs = [...planned.values()];
+  const result = await recordObservations(inputs, db);
+  return {
+    recorded: result.written,
+    recomputed: result.recomputed,
+    storeIds: new Set(inputs.map((input) => input.storeId)),
+  };
 }
 
 export interface AddressBackfillResult {
