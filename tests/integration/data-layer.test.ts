@@ -18,9 +18,13 @@ import type { OverpassStore } from "@/lib/overpass";
 import {
   OVERPASS_BUDGET_PER_WINDOW,
   OVERPASS_BUDGET_WINDOW_MS,
+  areaCellFor,
+  areaComparisonFrom,
   backfillFeedObservations,
   backfillMissingAddresses,
   backfillRestaurantNumbers,
+  getAreaComparison,
+  getAreaPeers,
   getIndexSnapshot,
   getObservationsForStore,
   getStore,
@@ -179,7 +183,7 @@ describe("restaurant-number backfill", () => {
       db,
     );
 
-    expect(await backfillRestaurantNumbers(COPPELL, milesToMeters(15), db, index)).toEqual({ assigned: 1 });
+    expect((await backfillRestaurantNumbers(COPPELL, milesToMeters(15), db, index)).assigned).toBe(1);
     expect((await getStore("node-1", db))?.restaurantNumber).toBe("4412");
     // A disagreeing street number is no match, however close.
     expect((await getStore("node-2", db))?.restaurantNumber).toBeNull();
@@ -200,7 +204,7 @@ describe("restaurant-number backfill", () => {
   it("is a no-op the second time", async () => {
     await upsertStores([store("node-1", COPPELL, { address: "125 S Denton Tap Rd" })], db);
     await backfillRestaurantNumbers(COPPELL, milesToMeters(15), db, index);
-    expect(await backfillRestaurantNumbers(COPPELL, milesToMeters(15), db, index)).toEqual({ assigned: 0 });
+    expect((await backfillRestaurantNumbers(COPPELL, milesToMeters(15), db, index)).assigned).toBe(0);
   });
 });
 
@@ -670,6 +674,27 @@ describe("proximity queries", () => {
   it("returns nothing for an area with no stores", async () => {
     await upsertStores([store("node-coppell", COPPELL)], db);
     expect(await getStoresNear(AUSTIN, milesToMeters(15), db)).toEqual([]);
+  });
+});
+
+describe("area comparison from a cell's neighbours", () => {
+  it("gives every store in the cell the answer a read of its own would", async () => {
+    await upsertStores(
+      [store("node-1", COPPELL), store("node-2", IRVING), store("node-3", COPPELL), store("node-4", AUSTIN)],
+      db,
+    );
+    for (const [id, cents] of [["node-1", 249], ["node-2", 279], ["node-3", 219], ["node-4", 199]] as const) {
+      await addSubmission(id, cents);
+      await recomputeStoreRollup(id, db);
+    }
+
+    const peers = await getAreaPeers(areaCellFor(COPPELL), db);
+    expect(peers.map((peer) => peer.id)).not.toContain("node-4");
+
+    for (const id of ["node-1", "node-3"]) {
+      const subject = (await getStore(id, db))!;
+      expect(areaComparisonFrom(subject, peers)).toEqual(await getAreaComparison(subject, db));
+    }
   });
 });
 

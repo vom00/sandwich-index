@@ -33,6 +33,7 @@ import {
   type LatLng,
 } from "@/lib/geohash";
 import {
+  isStale,
   reconcile,
   type ObservedPrice,
   type PriceCandidate,
@@ -388,9 +389,51 @@ export async function getAreaComparison(
     milesToMeters(AREA_RADIUS_MILES),
     db,
   );
+  return areaComparisonFrom(store, neighbours, now);
+}
 
+/** A neighbour as the area comparison needs it, small enough to cache. */
+export type AreaPeer = Pick<StoreWithId, "id" | "lat" | "lng" | "priceCents" | "pricedAt">;
+
+/**
+ * Store pages share their neighbours by geohash cell at this precision
+ * (about 5 km square), so one read of an area serves every store in it.
+ */
+const AREA_CELL_PRECISION = 5;
+
+export function areaCellFor(store: LatLng): string {
+  return encodeGeohash(store, AREA_CELL_PRECISION);
+}
+
+/**
+ * Every store close enough to be a neighbour of any store in `cell`: the
+ * comparison radius from each point in the cell, read once.
+ *
+ * A comparison read per store page cost 150 to 300 documents in a city,
+ * which on Firestore's free tier (50,000 reads a day) is a few hundred page
+ * views. Callers cache this per cell (`area-peers.server`).
+ */
+export async function getAreaPeers(cell: string, db: Firestore = getAdminDb()): Promise<AreaPeer[]> {
+  const { center, radiusMeters } = cellCoverage(cell, milesToMeters(AREA_RADIUS_MILES));
+  const stores = await getStoresNear(center, radiusMeters, db);
+  return stores.map(({ id, lat, lng, priceCents, pricedAt }) => ({ id, lat, lng, priceCents, pricedAt }));
+}
+
+/** The comparison for `store`, from neighbours already read (a superset is fine). */
+export function areaComparisonFrom(
+  store: StoreWithId,
+  neighbours: readonly AreaPeer[],
+  now: Date = new Date(),
+): AreaComparison {
+  const radiusMeters = milesToMeters(AREA_RADIUS_MILES);
   const peerPrices = neighbours
-    .filter((peer) => peer.id !== store.id && displayStateFor(peer, now) === "priced")
+    .filter(
+      (peer) =>
+        peer.id !== store.id &&
+        distanceMeters(store, peer) <= radiusMeters &&
+        peer.priceCents !== null &&
+        !isStale(peer.pricedAt, now),
+    )
     .map((peer) => peer.priceCents)
     .filter((cents): cents is number => cents !== null);
 
@@ -874,7 +917,7 @@ export async function backfillRestaurantNumbers(
   index: NumberIndex = restaurantNumberIndex(),
   /** The stores around `center`, when the caller has already read them. */
   known?: readonly StoreWithId[],
-): Promise<{ assigned: number }> {
+): Promise<{ assigned: number; updates: { id: string; number: string }[] }> {
   const nearby = known ?? (await getStoresNear(center, radiusMeters, db));
   const held = new Set(nearby.map((store) => store.restaurantNumber).filter((n) => n !== null));
   const picks = chooseNumbers(nearby, index);
@@ -893,7 +936,7 @@ export async function backfillRestaurantNumbers(
     }
     await batch.commit();
   }
-  return { assigned: updates.length };
+  return { assigned: updates.length, updates };
 }
 
 /**

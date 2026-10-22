@@ -74,4 +74,12 @@ describe("parseDtiStorePage", () => {
     );
     expect(parseDtiStorePage(html)).toBeNull();
   });
+
+  it("reads a menu with no Delivery column", () => {
+    const html = page({ rows: '<tr><td>McChicken</td><td class="num">$2.19</td></tr>' }).replace(
+      "<th class=num>Delivery</th>",
+      "",
+    );
+    expect(parseDtiStorePage(html)?.priceCents).toBe(219);
+  });
 });

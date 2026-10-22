@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 
 import { ObservationLog } from "@/components/store/ObservationLog";
 import { PriceComparison } from "@/components/store/PriceComparison";
@@ -13,8 +14,10 @@ import { StoreStateBadge } from "@/components/ui/StoreStateBadge";
 import { feedName } from "@/lib/feeds";
 import { formatCents } from "@/lib/money";
 import { priceAge } from "@/lib/provenance";
+import { getCachedAreaPeers } from "@/lib/area-peers.server";
 import {
-  getAreaComparison,
+  areaCellFor,
+  areaComparisonFrom,
   getObservationsForStore,
   getStore,
   getSubmissionsForStore,
@@ -31,6 +34,10 @@ import { storeIdSchema } from "@/lib/validation";
  * revalidates a cached copy. A store page quoting yesterday's number is the
  * exact failure this project exists to avoid, so the full route cache is opted
  * out of rather than trusted.
+ *
+ * The one exception is the area comparison's neighbours, cached per area for
+ * up to an hour (`area-peers.server`): reading them fresh cost hundreds of
+ * documents a view. This store's own price is always read fresh.
  */
 export const dynamic = "force-dynamic";
 
@@ -45,6 +52,12 @@ export const dynamic = "force-dynamic";
  * three reads it takes to answer that are fast enough not to need covering up.
  */
 
+/**
+ * One read of the store per request: the metadata and the page both need it,
+ * and on Firestore's free tier every read is counted.
+ */
+const readStore = cache((id: string) => getStore(id));
+
 export async function generateMetadata(
   props: PageProps<"/store/[id]">,
 ): Promise<Metadata> {
@@ -52,7 +65,7 @@ export async function generateMetadata(
   const parsed = storeIdSchema.safeParse(id);
   if (!parsed.success) return { title: "Store — Sandwich Index" };
 
-  const store = await getStore(parsed.data);
+  const store = await readStore(parsed.data);
   if (store === null) return { title: "Store not found — Sandwich Index" };
 
   const where = storeLabelText(store);
@@ -74,7 +87,7 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
   if (!parsed.success) notFound();
 
   const [store, submissions, observations] = await Promise.all([
-    getStore(parsed.data),
+    readStore(parsed.data),
     getSubmissionsForStore(parsed.data),
     getObservationsForStore(parsed.data),
   ]);
@@ -82,7 +95,7 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
   if (store === null) notFound();
 
   // Depends on the store record, so it cannot join the parallel batch above.
-  const comparison = await getAreaComparison(store);
+  const comparison = areaComparisonFrom(store, await getCachedAreaPeers(areaCellFor(store)));
 
   const state = displayStateFor(store);
   const label = storeLabel(store);

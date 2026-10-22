@@ -5,7 +5,8 @@
  *
  *   npm run fetch:drivethruindex                 # read, resuming today's run where it stopped
  *   npm run fetch:drivethruindex -- --limit 50   # at most 50 store pages this run
- *   npm run fetch:drivethruindex -- --merge      # write the latest run into the snapshot
+ *   npm run fetch:drivethruindex -- --retry-unparsed  # also re-read pages the parser could not read
+ *   npm run fetch:drivethruindex -- --merge      # write the newest row per store, across runs, into the snapshot
  *
  * robots.txt first; it asks for no crawl delay, so this keeps its own
  * (`DTI_MIN_DELAY_SECONDS`, longer if robots.txt ever asks) between every
@@ -99,7 +100,7 @@ function makeFetcher(rules: RobotsRules) {
   };
 }
 
-async function read(limit: number, runDate: string): Promise<void> {
+async function read(limit: number, runDate: string, retryUnparsed: boolean): Promise<void> {
   const robots = await fetch(`${DTI_ORIGIN}/robots.txt`, { headers: { "User-Agent": USER_AGENT } });
   if (!robots.ok) {
     console.error(`robots.txt answered ${robots.status}; not reading without it.`);
@@ -127,7 +128,8 @@ async function read(limit: number, runDate: string): Promise<void> {
       const number = restaurantNumberFromPath(path);
       if (number === null || seen.has(number) || !ours.has(number)) continue;
       seen.add(number);
-      if (!done.has(path)) wanted.push({ path, number });
+      // A page read before in a shape the parser has since learned is read again.
+      if (!done.has(path) || (retryUnparsed && done.get(path)?.row === null)) wanted.push({ path, number });
     }
     console.log(`MAP     ${map}: ${wanted.length} to read so far`);
   }
@@ -162,7 +164,12 @@ async function read(limit: number, runDate: string): Promise<void> {
   console.log(`\nRead ${fetched} store pages this run.`);
 }
 
-/** Replace the snapshot with the latest run's priced rows. */
+/**
+ * Replace the snapshot with each store's newest row across every run, so a
+ * page the latest run missed (gone from a sitemap that day, or unreadable)
+ * keeps the last price read for it. A page that was read but showed no
+ * McChicken counts as read: no older price is put back under it.
+ */
 function merge(): void {
   const runs = readdirSync(FEEDS_DIR).filter((name) => /^drivethruindex-\d{4}-\d{2}-\d{2}\.jsonl$/.test(name)).sort();
   const latest = runs.at(-1);
@@ -170,7 +177,14 @@ function merge(): void {
     console.error("No run to merge. Read first.");
     process.exit(1);
   }
-  const lines = [...readProgress(resolve(FEEDS_DIR, latest)).values()];
+  const newest = new Map<string, ProgressLine>();
+  for (const run of runs) {
+    for (const line of readProgress(resolve(FEEDS_DIR, run)).values()) {
+      // A page's path ends in its restaurant number, so it names one store.
+      if (line.row !== null || !newest.has(line.path)) newest.set(line.path, line);
+    }
+  }
+  const lines = [...newest.values()];
   // About one store in 170 shows a placeholder from the app ($19.99, $99.99,
   // $0.12). A McChicken has never been near either end of this range. A flat
   // $1.00 is the sandwich's share of a bundle (lib/drivethruindex), not the
@@ -199,7 +213,7 @@ function merge(): void {
         feed: "drivethruindex",
         source: DTI_ORIGIN,
         note:
-          `Read ${latest.slice(15, 25)} from drivethruindex.com store pages: each row is the McChicken's ` +
+          `Read up to ${latest.slice(15, 25)} from drivethruindex.com store pages: each row is the McChicken's ` +
           "pickup price and the day the page says it was checked, pinned to our store by restaurant number. " +
           "Credit: Source: Drive Thru Index (https://drivethruindex.com), prices checked <date>.",
         rows,
@@ -210,7 +224,7 @@ function merge(): void {
   );
   const unpriced = lines.filter((line) => line.row !== null && line.row.mcchickenCents === null).length;
   console.log(
-    `Wrote ${rows.length} priced rows from ${latest} (${priced.length - rows.length} implausible, ` +
+    `Wrote ${rows.length} priced rows from ${runs.length} run(s), newest ${latest} (${priced.length - rows.length} implausible, ` +
       `${unpriced} pages had no McChicken, ${lines.length - priced.length - unpriced} unreadable).`,
   );
 }
@@ -220,7 +234,7 @@ if (process.argv.includes("--merge")) {
 } else {
   const limit = Number.parseInt(values("--limit") ?? "", 10);
   const runDate = values("--run") ?? new Date().toISOString().slice(0, 10);
-  read(Number.isFinite(limit) && limit > 0 ? limit : Number.POSITIVE_INFINITY, runDate).catch((error: unknown) => {
+  read(Number.isFinite(limit) && limit > 0 ? limit : Number.POSITIVE_INFINITY, runDate, process.argv.includes("--retry-unparsed")).catch((error: unknown) => {
     console.error(error);
     process.exit(1);
   });

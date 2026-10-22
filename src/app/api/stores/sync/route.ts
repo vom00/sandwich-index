@@ -117,7 +117,17 @@ export async function POST(request: Request): Promise<NextResponse> {
     // just as optional. A store without one still works everywhere.
     let numbers = { assigned: 0 };
     try {
-      numbers = await backfillRestaurantNumbers({ lat, lng }, radiusMeters, undefined, undefined, known);
+      const { assigned, updates } = await backfillRestaurantNumbers({ lat, lng }, radiusMeters, undefined, undefined, known);
+      numbers = { assigned };
+      // The feed backfill below pins rows by number, so it needs the ones
+      // just assigned, or those stores wait a visit for their price.
+      if (known !== undefined && updates.length > 0) {
+        const assignedTo = new Map(updates.map(({ id, number }) => [id, number]));
+        known = known.map((store) => {
+          const number = assignedTo.get(store.id);
+          return number === undefined ? store : { ...store, restaurantNumber: number };
+        });
+      }
     } catch (error) {
       console.error("[api/stores/sync] restaurant-number backfill failed", error);
     }

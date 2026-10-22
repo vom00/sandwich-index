@@ -67,13 +67,15 @@ export function parseDtiStorePage(html: string): DtiStorePage | null {
 
   const checkedOn = /Pickup prices from the McDonald(?:&#x27;|')s app, checked (\d{4}-\d{2}-\d{2})/.exec(html)?.[1];
   if (address === null || city === null || checkedOn === undefined) return null;
-  if (!/<th class=num>Pickup<\/th>\s*<th class=num>Delivery<\/th>/.test(html)) return null;
+  // Some stores list no delivery prices, and their menus have no Delivery
+  // column; Pickup is always the first price column.
+  if (!/<th>Item<\/th>\s*<th class=num>Pickup<\/th>/.test(html)) return null;
 
   // About one menu in fifteen lists "McChicken" twice: the sandwich, and a
   // cheaper line that is the sandwich's share of a bundle ($1.00 against
   // $2.79 at Restaurant #25056, Brooklyn). The sandwich is the dearer one.
   let priceCents: number | null = null;
-  const row = /<tr><td>(?:<a [^>]*>)?([^<]+)(?:<\/a>)?<\/td><td class="num">([^<]+)<\/td><td class="num">([^<]+)<\/td><\/tr>/g;
+  const row = /<tr><td>(?:<a [^>]*>)?([^<]+)(?:<\/a>)?<\/td><td class="num">([^<]+)<\/td>(?:<td class="num">[^<]*<\/td>)?<\/tr>/g;
   for (const match of html.matchAll(row)) {
     if (!MCCHICKEN.test(decodeEntities(match[1] ?? "").trim())) continue;
     const pickup = cents(match[2] ?? "");
