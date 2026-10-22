@@ -257,6 +257,23 @@ describe("bundled feed prices", () => {
     expect((await getStore("node-1", db))?.priceCents).toBe(259);
   });
 
+  it("lets a row already on file still veto a disagreeing row for the same store and day", async () => {
+    await upsertStores([store("node-1", COPPELL)], db);
+    const day = new Date(Date.now() - DAY_MS).toISOString();
+    await backfillFeedObservations(COPPELL, milesToMeters(15), db, [
+      { feed: feed(true), file: { rows: [{ address: "1 A St", city: "Coppell", mcchickenCents: 249, observedAt: day, storeId: "node-1" }] } },
+    ]);
+
+    const both = {
+      rows: [
+        { address: "1 A St", city: "Coppell", mcchickenCents: 249, observedAt: day, storeId: "node-1" },
+        { address: "2 B St", city: "Coppell", mcchickenCents: 199, observedAt: day, storeId: "node-1" },
+      ],
+    };
+    expect((await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(true), file: both }])).recorded).toBe(0);
+    expect((await getStore("node-1", db))?.priceCents).toBe(249);
+  });
+
   it("applies nothing from a feed the site may not show", async () => {
     await upsertStores([store("node-1", COPPELL, { address: "125 South Denton Tap Road, Coppell, TX 75019" })], db);
     expect(await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(false), file }])).toEqual({

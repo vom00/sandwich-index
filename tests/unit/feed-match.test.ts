@@ -237,7 +237,11 @@ describe("pinnedOrMatched", () => {
   });
 
   describe("a listed pin whose store was dropped for an unnumbered neighbour", () => {
-    const listedAt = (number: string) => (number === "1844" ? { lat: 32.9546, lng: -96.9899 } : null);
+    const listedAt = {
+      at: (number: string) => (number === "1844" ? { lat: 32.9546, lng: -96.9899 } : null),
+      countNear: () => 1,
+      sees: () => true,
+    };
     // About 50 m north of the listed store.
     const osm = { id: "way-9", address: null, locality: null, restaurantNumber: null, lat: 32.95505, lng: -96.9899 };
 
@@ -255,6 +259,17 @@ describe("pinnedOrMatched", () => {
     it("misses when two unnumbered stores are that close", () => {
       const both = [osm, { ...osm, id: "way-10", lat: 32.9542 }];
       expect(pinnedOrMatched({ ...row, storeId: "atp-1844" }, both, listedAt)).toEqual({ kind: "miss" });
+    });
+
+    it("misses when another listed restaurant stands that close, or the area read stops short", () => {
+      // Two restaurants 100 m apart would otherwise both land on one store.
+      expect(pinnedOrMatched({ ...row, storeId: "atp-1844" }, [osm], { ...listedAt, countNear: () => 2 })).toEqual({
+        kind: "miss",
+      });
+      // A store holding the number could be just outside what was read.
+      expect(pinnedOrMatched({ ...row, storeId: "atp-1844" }, [osm], { ...listedAt, sees: () => false })).toEqual({
+        kind: "miss",
+      });
     });
   });
 

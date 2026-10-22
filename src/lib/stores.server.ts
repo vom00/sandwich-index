@@ -55,7 +55,7 @@ import { buildNumberIndex, chooseNumbers, type NumberIndex, type NumberRow } fro
 import restaurantNumberRows from "@/data/restaurant-numbers.json";
 import usStoreRows from "@/data/us-stores.json";
 import driveThruIndexSnapshot from "@/data/feeds/drivethruindex.json";
-import { observationId, parseFeedFile, pinnedOrMatched, type FeedRow } from "@/lib/feed-match";
+import { observationId, parseFeedFile, pinnedOrMatched, type FeedRow, type ListedLookup } from "@/lib/feed-match";
 import { FEEDS, feedById, isFeedActive, type FeedDefinition } from "@/lib/feeds";
 import { STALE_AFTER_DAYS, type ObservationWithId, type Store, type StoreWithId, type SubmissionWithId } from "@/types";
 
@@ -611,8 +611,9 @@ export async function recordObservations(
   // Every store asked about, not only those with something new: if an
   // earlier call wrote the observations and then died before recomputing
   // (a timeout, a spent quota), this is what puts the price on the store.
-  // Callers only ask about stores whose price is older than the row, so once
-  // a store is up to date it is not asked about again.
+  // Callers (the feed backfill, the import script) only ask about stores
+  // whose price is older than the row, so once a store is up to date it is
+  // not asked about again.
   //
   // A few at a time: a sync that prices a dense area touches hundreds of
   // stores, and one after another that outlasts the function.
@@ -685,6 +686,16 @@ let listedLocations: Map<string, LatLng> | null = null;
 function listedLocation(number: string): LatLng | null {
   listedLocations ??= new Map(BUNDLED_ROWS.map(([ref, lat, lng]) => [ref, { lat, lng }]));
   return listedLocations.get(number) ?? null;
+}
+
+/** How many listed stores stand within `LISTED_DUPLICATE_METERS` of a point. */
+function listedCountNear(point: LatLng): number {
+  // A degree of latitude is 111 km, so this passes over all but a sliver.
+  const band = LISTED_DUPLICATE_METERS / 111_000;
+  return BUNDLED_ROWS.filter(
+    ([, lat, lng]) =>
+      Math.abs(lat - point.lat) <= band && distanceMeters(point, { lat, lng }) < LISTED_DUPLICATE_METERS,
+  ).length;
 }
 
 /**
@@ -1012,7 +1023,7 @@ export async function backfillFeedObservations(
 ): Promise<{ recorded: number; recomputed: number; retired: number }> {
   const active = feeds.filter(({ feed }) => isFeedActive(feed));
   const nearby = known ?? (await getStoresNear(center, radiusMeters, db));
-  const result = await recordFeedRows(active, nearby, db, now);
+  const result = await recordFeedRows(active, nearby, db, now, { center, radiusMeters });
 
   const removedFeed = (id: string) => {
     const feed = feedById(id);
@@ -1034,6 +1045,8 @@ async function recordFeedRows(
   nearby: readonly StoreWithId[],
   db: Firestore,
   now: Date,
+  /** A circle every store in `nearby` covers: the caller's, inside whatever was read. */
+  area: { center: LatLng; radiusMeters: number },
 ): Promise<{ recorded: number; recomputed: number; storeIds: Set<string> }> {
   if (active.length === 0) return { recorded: 0, recomputed: 0, storeIds: new Set() };
 
@@ -1045,6 +1058,11 @@ async function recordFeedRows(
   const listedNear = (number: string) => {
     const at = listedLocation(number);
     return at !== null && unnumbered.some((store) => distanceMeters(at, store) < LISTED_DUPLICATE_METERS);
+  };
+  const listed: ListedLookup = {
+    at: listedLocation,
+    countNear: listedCountNear,
+    sees: (point) => distanceMeters(area.center, point) + 2 * LISTED_DUPLICATE_METERS <= area.radiusMeters,
   };
   const planned = new Map<string, ObservationInput>();
   const conflicted = new Set<string>();
@@ -1058,24 +1076,14 @@ async function recordFeedRows(
         const number = row.storeId.replace(/^atp-/, "");
         if (!numbers.has(number) && (unnumbered.length === 0 || !listedNear(number))) continue;
       }
-      const match = pinnedOrMatched(row, nearby, listedLocation);
+      const match = pinnedOrMatched(row, nearby, listed);
       if (match.kind !== "match") continue;
       const store = byId.get(match.storeId);
       if (store === undefined) continue;
-      if (store.pricedAt !== null && store.pricedAt >= row.observedAt) continue;
-      // The same feed saying the same price again, soon after: nothing a
-      // visitor would see changes but the date, and re-recording a whole
-      // refreshed snapshot costs more writes than the free tier has in a day.
-      if (
-        store.priceFeed === feed.id &&
-        store.priceCents === row.priceCents &&
-        store.pricedAt !== null &&
-        Date.parse(row.observedAt) - Date.parse(store.pricedAt) < FEED_RECHECK_MS
-      ) {
-        continue;
-      }
 
       // Two rows for one store on one day must agree, or neither is trusted.
+      // Checked before anything is skipped, so a row that would be skipped
+      // as already on file still vetoes a disagreeing one.
       const id = observationId(feed.id, store.id, row.observedAt);
       const earlier = planned.get(id);
       if (earlier !== undefined && earlier.priceCents !== row.priceCents) conflicted.add(id);
@@ -1090,7 +1098,20 @@ async function recordFeedRows(
   }
   for (const id of conflicted) planned.delete(id);
 
-  const inputs = [...planned.values()];
+  const inputs = [...planned.values()].filter((input) => {
+    const store = byId.get(input.storeId);
+    if (store === undefined) return false;
+    if (store.pricedAt !== null && store.pricedAt >= input.observedAt) return false;
+    // The same feed saying the same price again, soon after: nothing a
+    // visitor would see changes but the date, and re-recording a whole
+    // refreshed snapshot costs more writes than the free tier has in a day.
+    return !(
+      store.priceFeed === input.feed &&
+      store.priceCents === input.priceCents &&
+      store.pricedAt !== null &&
+      Date.parse(input.observedAt) - Date.parse(store.pricedAt) < FEED_RECHECK_MS
+    );
+  });
   const result = await recordObservations(inputs, db);
   return {
     recorded: result.written,

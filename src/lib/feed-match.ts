@@ -197,8 +197,19 @@ export function matchFeedRow(
   return { kind: "miss" };
 }
 
-/** Where the bundled list puts a restaurant number, or null when it has no such store. */
-export type ListedLocation = (restaurantNumber: string) => LatLng | null;
+/** What `pinnedOrMatched` needs to know about the bundled store list. */
+export interface ListedLookup {
+  /** Where the list puts a restaurant number, or null when it has no such store. */
+  at(restaurantNumber: string): LatLng | null;
+  /** How many listed stores stand within `LISTED_DUPLICATE_METERS` of a point. */
+  countNear(point: LatLng): number;
+  /**
+   * Whether every store on file within twice `LISTED_DUPLICATE_METERS` of a
+   * point is among the stores being matched, so that a store already
+   * holding a number there can't be missed for being just outside.
+   */
+  sees(point: LatLng): boolean;
+}
 
 /**
  * A pinned row goes to its store when that store is among `stores`; any other
@@ -213,7 +224,7 @@ export function pinnedOrMatched(
     lat?: number;
     lng?: number;
   })[],
-  listedAt?: ListedLocation,
+  listed?: ListedLookup,
 ): FeedMatch {
   if (row.storeId !== null) {
     if (stores.some((store) => store.id === row.storeId)) return { kind: "match", storeId: row.storeId };
@@ -230,16 +241,23 @@ export function pinnedOrMatched(
     // number disagreed with the table's, so none was assigned). That store is
     // the same restaurant, by the same rule that dropped the listed one. A
     // store holding a different number is a different restaurant.
-    const listed = listedAt?.(number) ?? null;
-    if (listed === null) return { kind: "miss" };
+    //
+    // Only where that is unambiguous: one unnumbered store near the listed
+    // one, no other listed store near it (two restaurants 100 m apart would
+    // otherwise both land on it), and the whole neighbourhood in view.
+    const at = listed?.at(number) ?? null;
+    if (listed === undefined || at === null) return { kind: "miss" };
     const near = stores.filter(
       (store) =>
         (store.restaurantNumber ?? null) === null &&
         store.lat !== undefined &&
         store.lng !== undefined &&
-        distanceMeters(listed, { lat: store.lat, lng: store.lng }) < LISTED_DUPLICATE_METERS,
+        distanceMeters(at, { lat: store.lat, lng: store.lng }) < LISTED_DUPLICATE_METERS,
     );
-    return near.length === 1 && near[0] !== undefined ? { kind: "match", storeId: near[0].id } : { kind: "miss" };
+    const only = near.length === 1 ? near[0] : undefined;
+    if (only?.lat === undefined || only.lng === undefined) return { kind: "miss" };
+    const point = { lat: only.lat, lng: only.lng };
+    return listed.countNear(point) === 1 && listed.sees(point) ? { kind: "match", storeId: only.id } : { kind: "miss" };
   }
   return matchFeedRow(row, stores);
 }

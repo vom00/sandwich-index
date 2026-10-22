@@ -205,7 +205,14 @@ async function main(): Promise<void> {
     return;
   }
 
-  const result = await recordObservations([...planned.values()]);
+  // Only stores whose price is older than the row: `recordObservations`
+  // recomputes every store it is given, and a re-run over a whole snapshot
+  // would otherwise re-read every store it names.
+  const due = [...planned.values()].filter((input) => {
+    const pricedAt = byId.get(input.storeId)?.pricedAt ?? null;
+    return pricedAt === null || pricedAt < input.observedAt;
+  });
+  const result = await recordObservations(due);
   console.log(
     `Recorded ${result.written} new observations (${result.alreadyRecorded} already on file); ` +
       `recomputed ${result.recomputed} stores.\n`,
