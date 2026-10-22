@@ -53,6 +53,9 @@ import type { ObservationWithId, Store, StoreWithId, SubmissionWithId } from "@/
 /** Firestore batches cap at 500 operations. */
 const BATCH_LIMIT = 450;
 
+/** Store recomputes run together when a feed prices many stores at once. */
+const RECOMPUTE_CONCURRENCY = 6;
+
 /** Tracks when each geographic cell was last reconciled against OpenStreetMap. */
 const SYNC_LOG_COLLECTION = "syncLog";
 
@@ -548,9 +551,13 @@ export async function recordObservations(
     await batch.commit();
   }
 
+  // A few at a time: a sync that prices a dense area touches hundreds of
+  // stores, and one after another that outlasts the function.
   const touched = [...new Set(fresh.map((input) => input.storeId))];
-  for (const storeId of touched) {
-    await recomputeStoreRollup(storeId, db);
+  for (let offset = 0; offset < touched.length; offset += RECOMPUTE_CONCURRENCY) {
+    await Promise.all(
+      touched.slice(offset, offset + RECOMPUTE_CONCURRENCY).map((storeId) => recomputeStoreRollup(storeId, db)),
+    );
   }
 
   return {

@@ -31,6 +31,9 @@ import { nearbyQuerySchema } from "@/lib/validation";
  * stores nobody has ever geocoded — and it is capped per call, so an area heals
  * across a handful of visits rather than in one burst.
  */
+/** A sync that prices a whole dense area records and recomputes hundreds of stores. */
+export const maxDuration = 60;
+
 export async function POST(request: Request): Promise<NextResponse> {
   let body: unknown;
   try {
