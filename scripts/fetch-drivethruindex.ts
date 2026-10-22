@@ -170,10 +170,18 @@ function merge(): void {
     process.exit(1);
   }
   const lines = [...readProgress(resolve(FEEDS_DIR, latest)).values()];
-  const rows = lines
+  // About one store in 170 shows a placeholder from the app ($19.99, $99.99,
+  // $0.12). A McChicken has never been near either end of this range.
+  const plausible = (cents: number) => cents >= 100 && cents <= 600;
+  const priced = lines
     .map((line) => line.row)
-    .filter((row): row is Row => row !== null && row.mcchickenCents !== null)
+    .filter((row): row is Row => row !== null && row.mcchickenCents !== null);
+  const rows = priced
+    .filter((row) => plausible(row.mcchickenCents!))
     .sort((a, b) => a.storeId.localeCompare(b.storeId));
+  for (const row of priced.filter((r) => !plausible(r.mcchickenCents!))) {
+    console.log(`DROP    ${row.mcchickenCents} cents at ${row.url} (implausible)`);
+  }
   writeFileSync(
     SNAPSHOT,
     `${JSON.stringify(
@@ -191,7 +199,10 @@ function merge(): void {
     )}\n`,
   );
   const unpriced = lines.filter((line) => line.row !== null && line.row.mcchickenCents === null).length;
-  console.log(`Wrote ${rows.length} priced rows from ${latest} (${unpriced} pages had no McChicken, ${lines.length - rows.length - unpriced} unreadable).`);
+  console.log(
+    `Wrote ${rows.length} priced rows from ${latest} (${priced.length - rows.length} implausible, ` +
+      `${unpriced} pages had no McChicken, ${lines.length - priced.length - unpriced} unreadable).`,
+  );
 }
 
 if (process.argv.includes("--merge")) {
