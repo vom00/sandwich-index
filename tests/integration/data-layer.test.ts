@@ -1138,6 +1138,30 @@ describe("index snapshot", () => {
     expect(snapshot.priciest).toEqual([]);
   });
 
+  it("counts every priced store, not only the two windows it reads", async () => {
+    // Past 500 priced stores the windows overlap nothing and hold a fraction.
+    const ids = Array.from({ length: 560 }, (_, index) => `node-${index + 1}`);
+    await upsertStores(ids.map((id, index) => store(id, { lat: COPPELL.lat + index * 1e-4, lng: COPPELL.lng })), db);
+    const fresh = Timestamp.fromMillis(Date.now() - DAY_MS);
+    const old = Timestamp.fromMillis(Date.now() - 200 * DAY_MS);
+    for (let offset = 0; offset < ids.length; offset += 400) {
+      const batch = db.batch();
+      ids.slice(offset, offset + 400).forEach((id, index) => {
+        const stale = offset + index >= 540;
+        batch.update(db.collection("stores").doc(id), {
+          priceCents: 150 + ((offset + index) % 300),
+          pricedAt: stale ? old : fresh,
+        });
+      });
+      await batch.commit();
+    }
+
+    const snapshot = await getIndexSnapshot(db);
+    expect(snapshot.trackedStoreCount).toBe(560);
+    expect(snapshot.pricedStoreCount).toBe(540);
+    expect(snapshot.staleStoreCount).toBe(20);
+  });
+
   it("counts tracked stores separately from priced ones", async () => {
     await upsertStores(
       [store("node-1", COPPELL), store("node-2", IRVING), store("node-3", AUSTIN)],

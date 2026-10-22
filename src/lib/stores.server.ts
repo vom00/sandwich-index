@@ -41,6 +41,7 @@ import {
 } from "@/lib/pricing";
 import type { OverpassStore } from "@/lib/overpass";
 import {
+  DTI_LISTED_ROWS,
   LISTED_DUPLICATE_METERS,
   dropListedDuplicates,
   listedStoresNear,
@@ -56,7 +57,7 @@ import usStoreRows from "@/data/us-stores.json";
 import driveThruIndexSnapshot from "@/data/feeds/drivethruindex.json";
 import { observationId, parseFeedFile, pinnedOrMatched, type FeedRow } from "@/lib/feed-match";
 import { FEEDS, feedById, isFeedActive, type FeedDefinition } from "@/lib/feeds";
-import type { ObservationWithId, Store, StoreWithId, SubmissionWithId } from "@/types";
+import { STALE_AFTER_DAYS, type ObservationWithId, type Store, type StoreWithId, type SubmissionWithId } from "@/types";
 
 /** Firestore batches cap at 500 operations. */
 const BATCH_LIMIT = 450;
@@ -669,17 +670,20 @@ export type StoreFetcher = (
  */
 export type ListedStoreSource = (center: LatLng, radiusMeters: number) => ListedStore[] | null;
 
-/** The US list shipped with the server (`src/data/us-stores.json`). */
+/**
+ * The US list shipped with the server: All The Places (`src/data/us-stores.json`)
+ * and the few stores it lacks that Drive Thru Index places (`us-stores-dti.json`).
+ */
+const BUNDLED_ROWS: readonly ListedRow[] = [...(usStoreRows as unknown as ListedRow[]), ...DTI_LISTED_ROWS];
+
 export const bundledStoresNear: ListedStoreSource = (center, radiusMeters) =>
-  listedStoresNear(usStoreRows as unknown as ListedRow[], center, radiusMeters);
+  listedStoresNear(BUNDLED_ROWS, center, radiusMeters);
 
 let listedLocations: Map<string, LatLng> | null = null;
 
 /** Where the bundled list puts a restaurant number. Indexed on first use. */
 function listedLocation(number: string): LatLng | null {
-  listedLocations ??= new Map(
-    (usStoreRows as unknown as ListedRow[]).map(([ref, lat, lng]) => [ref, { lat, lng }]),
-  );
+  listedLocations ??= new Map(BUNDLED_ROWS.map(([ref, lat, lng]) => [ref, { lat, lng }]));
   return listedLocations.get(number) ?? null;
 }
 
@@ -1201,10 +1205,8 @@ export interface IndexSnapshot {
  * the cut happens in memory and this caps how much is pulled to do it.
  *
  * Read from both ends (see `getIndexSnapshot`), so the cheapest and priciest
- * figures stay correct however large the index grows. What the cap still
- * bounds is the *counts*: past 500 priced stores, `pricedStoreCount` and
- * `staleStoreCount` describe the two windows rather than the whole set, and a
- * maintained aggregate document is the answer at that point.
+ * figures stay correct however large the index grows. The counts come from
+ * aggregations over the whole collection, so the cap bounds nothing else.
  */
 const SNAPSHOT_LIMIT = 250;
 
@@ -1234,8 +1236,15 @@ export async function getIndexSnapshot(
   // single largest claim on the landing page — shrinks without anything
   // looking wrong. Reading from both ends keeps the endpoints true at any
   // size. The windows overlap harmlessly below the cap; the map dedupes.
-  const [trackedCount, cheapestSnapshot, priciestSnapshot] = await Promise.all([
+  //
+  // The counts are aggregations over the whole collection, not the windows:
+  // a window holds at most `SNAPSHOT_LIMIT` stores and the index holds
+  // thousands. An aggregation costs one read per thousand stores counted.
+  const freshSince = Timestamp.fromMillis(now.getTime() - STALE_AFTER_DAYS * 24 * 60 * 60 * 1000);
+  const [trackedCount, pricedCount, currentCount, cheapestSnapshot, priciestSnapshot] = await Promise.all([
     collection.count().get(),
+    collection.where("priceCents", ">", 0).count().get(),
+    collection.where("pricedAt", ">=", freshSince).count().get(),
     collection
       .where("priceCents", ">", 0)
       .orderBy("priceCents", "asc")
@@ -1259,10 +1268,12 @@ export async function getIndexSnapshot(
   const lowestPriceCents = current[0]?.priceCents ?? null;
   const highestPriceCents = current[current.length - 1]?.priceCents ?? null;
 
+  // A priced store always has `pricedAt`, so the fresh ones are a subset.
+  const pricedStoreCount = currentCount.data().count;
   return {
     trackedStoreCount: trackedCount.data().count,
-    pricedStoreCount: current.length,
-    staleStoreCount: priced.length - current.length,
+    pricedStoreCount,
+    staleStoreCount: Math.max(0, pricedCount.data().count - pricedStoreCount),
     lowestPriceCents,
     highestPriceCents,
     spreadCents:

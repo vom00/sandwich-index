@@ -1,8 +1,6 @@
-import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { milesToMeters } from "@/lib/geohash";
-import { INDEX_SNAPSHOT_TAG } from "@/lib/index-snapshot.server";
 import { OverpassError, fetchNearbyStores } from "@/lib/overpass";
 import { reverseGeocode } from "@/lib/reverse-geocode";
 import {
@@ -142,8 +140,10 @@ export async function POST(request: Request): Promise<NextResponse> {
       console.error("[api/stores/sync] feed backfill failed", error);
     }
 
-    // New stores or new prices change the landing page's figures.
-    if (result.created > 0 || feedPrices.recorded > 0 || feedPrices.retired > 0) revalidateTag(INDEX_SNAPSHOT_TAG, "max");
+    // New stores and feed prices reach the landing page's figures within the
+    // hour (`index-snapshot.server`). Dropping that cache here instead made
+    // the next landing view re-read about 500 stores, and while the map fills
+    // an area, syncs that add something come every few seconds.
 
     return NextResponse.json({ ...summary, addresses, numbers, feedPrices });
   } catch (error) {

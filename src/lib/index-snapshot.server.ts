@@ -12,7 +12,9 @@ import { getIndexSnapshot, type IndexSnapshot } from "@/lib/stores.server";
  * reads per view, and twice that because the metadata asks too. On
  * Firestore's free tier (50,000 reads a day) that is a hundred visitors. The
  * figures only change when a price does, so they are cached for an hour and
- * dropped early by `refreshIndexSnapshot` whenever a price is recorded.
+ * dropped early when a visitor's report changes a store's price (the recompute
+ * route). Feed prices and new stores from syncs wait for the hour: syncs come
+ * too often while an area fills for each one to cost a re-read.
  *
  * Kept out of `stores.server` so scripts and tests that import the data layer
  * never load `next/cache`, which only works inside a Next.js server.
