@@ -192,6 +192,22 @@ describe("parseFeedFile", () => {
     expect(rows).toEqual([]);
     expect(problems[0]).toMatch(/^file:/);
   });
+
+  it("drops a malformed row and keeps the rest of the file", () => {
+    const { rows, problems } = parseFeedFile(
+      {
+        observedAt: "2026-08-03",
+        rows: [
+          { address: "", city: "Coppell", priceCents: 249 },
+          { address: "813 Macarthur Blvd", city: "Coppell", priceCents: 189 },
+        ],
+      },
+      NOW,
+    );
+    expect(rows.map((row) => row.address)).toEqual(["813 Macarthur Blvd"]);
+    expect(problems).toHaveLength(1);
+    expect(problems[0]).toMatch(/^row 1: address/);
+  });
 });
 
 describe("pinnedOrMatched", () => {
@@ -218,6 +234,28 @@ describe("pinnedOrMatched", () => {
       { id: "way-10", address: null, locality: null, restaurantNumber: "1844" },
     ];
     expect(pinnedOrMatched({ ...row, storeId: "atp-1844" }, twice)).toEqual({ kind: "miss" });
+  });
+
+  describe("a listed pin whose store was dropped for an unnumbered neighbour", () => {
+    const listedAt = (number: string) => (number === "1844" ? { lat: 32.9546, lng: -96.9899 } : null);
+    // About 50 m north of the listed store.
+    const osm = { id: "way-9", address: null, locality: null, restaurantNumber: null, lat: 32.95505, lng: -96.9899 };
+
+    it("goes to the store standing where the list puts it", () => {
+      expect(pinnedOrMatched({ ...row, storeId: "atp-1844" }, [osm], listedAt)).toEqual({ kind: "match", storeId: "way-9" });
+    });
+
+    it("never goes to one holding a different number, or one too far away", () => {
+      expect(pinnedOrMatched({ ...row, storeId: "atp-1844" }, [{ ...osm, restaurantNumber: "77" }], listedAt)).toEqual({
+        kind: "miss",
+      });
+      expect(pinnedOrMatched({ ...row, storeId: "atp-1844" }, [{ ...osm, lat: 32.957 }], listedAt)).toEqual({ kind: "miss" });
+    });
+
+    it("misses when two unnumbered stores are that close", () => {
+      const both = [osm, { ...osm, id: "way-10", lat: 32.9542 }];
+      expect(pinnedOrMatched({ ...row, storeId: "atp-1844" }, both, listedAt)).toEqual({ kind: "miss" });
+    });
   });
 
   it("matches an unpinned row by city and street number, as before", () => {

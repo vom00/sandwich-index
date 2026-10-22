@@ -106,7 +106,7 @@ export const FEEDS: Readonly<Record<string, FeedDefinition>> = {
         "with its credit line, date and a link. Its permission is to quote with attribution; it " +
         "names no operator and publishes no other terms. Stop if it asks.",
     },
-    attribution: "Source: Drive Thru Index (drivethruindex.com), prices checked {date}",
+    attribution: "Source: Drive Thru Index (https://drivethruindex.com), prices checked {date}",
     dateNote:
       "Each of its store pages says which day it checked the price, and that day is the date shown here. Its prices are the McDonald’s app’s pickup prices.",
   },

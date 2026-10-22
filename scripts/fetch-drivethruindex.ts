@@ -27,6 +27,7 @@ import { dirname, resolve } from "node:path";
 
 import usStoreRows from "../src/data/us-stores.json";
 import { DTI_MIN_DELAY_SECONDS, DTI_ORIGIN, parseDtiStorePage, restaurantNumberFromPath } from "../src/lib/drivethruindex";
+import { parseFeedFile } from "../src/lib/feed-match";
 import { delaySeconds, isAllowed, parseRobots, type RobotsRules } from "../src/lib/robots";
 import type { ListedRow } from "../src/lib/store-list";
 
@@ -171,8 +172,10 @@ function merge(): void {
   }
   const lines = [...readProgress(resolve(FEEDS_DIR, latest)).values()];
   // About one store in 170 shows a placeholder from the app ($19.99, $99.99,
-  // $0.12). A McChicken has never been near either end of this range.
-  const plausible = (cents: number) => cents >= 100 && cents <= 600;
+  // $0.12). A McChicken has never been near either end of this range. A flat
+  // $1.00 is the sandwich's share of a bundle (lib/drivethruindex), not the
+  // sandwich's price, so it is out too.
+  const plausible = (cents: number) => cents > 100 && cents <= 600;
   const priced = lines
     .map((line) => line.row)
     .filter((row): row is Row => row !== null && row.mcchickenCents !== null);
@@ -181,6 +184,13 @@ function merge(): void {
     .sort((a, b) => a.storeId.localeCompare(b.storeId));
   for (const row of priced.filter((r) => !plausible(r.mcchickenCents!))) {
     console.log(`DROP    ${row.mcchickenCents} cents at ${row.url} (implausible)`);
+  }
+  // The server drops a row it cannot parse; this makes sure none ship.
+  const check = parseFeedFile({ rows });
+  if (check.problems.length > 0) {
+    console.error(`The snapshot would ship ${check.problems.length} rows the server rejects:`);
+    for (const problem of check.problems.slice(0, 20)) console.error(`  ${problem}`);
+    process.exit(1);
   }
   writeFileSync(
     SNAPSHOT,

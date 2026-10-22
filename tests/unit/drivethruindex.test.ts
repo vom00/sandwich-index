@@ -47,6 +47,11 @@ describe("parseDtiStorePage", () => {
     });
   });
 
+  it("takes the sandwich, not its cheaper share of a bundle, when McChicken is listed twice", () => {
+    const html = page({ rows: row("McChicken", "$1.00", "$1.59") + row("McChicken", "$2.79", "$5.39") });
+    expect(parseDtiStorePage(html)?.priceCents).toBe(279);
+  });
+
   it("reads a McChicken row whose name is a link", () => {
     const html = page({ rows: row('<a href="/items/mcdonalds/mcchicken">McChicken</a>', "$1.99", "$2.89") });
     expect(parseDtiStorePage(html)?.priceCents).toBe(199);

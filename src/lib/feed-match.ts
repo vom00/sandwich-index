@@ -19,6 +19,8 @@
 
 import { z } from "zod";
 
+import { distanceMeters, type LatLng } from "@/lib/geohash";
+import { LISTED_DUPLICATE_METERS } from "@/lib/store-list";
 import { priceCentsSchema } from "@/lib/validation";
 import type { StoreWithId } from "@/types";
 
@@ -57,21 +59,25 @@ const dateString = z
  * one: `mcchickenCents` for `priceCents`, and a file-level `verifiedAt` as the
  * default observation date.
  */
+const feedRowSchema = z.object({
+  address: z.string().trim().min(1),
+  city: z.string().trim().min(1),
+  priceCents: z.number().nullable().optional(),
+  mcchickenCents: z.number().nullable().optional(),
+  observedAt: dateString.optional(),
+  url: z.string().url().nullable().optional(),
+  sourceUrl: z.string().url().nullable().optional(),
+  storeId: z.string().trim().min(1).max(200).nullable().optional(),
+});
+
+/**
+ * Rows are checked one at a time, below, so that one malformed row in a
+ * nationwide file costs that row and not the other thirteen thousand.
+ */
 const feedFileSchema = z.object({
   observedAt: dateString.optional(),
   verifiedAt: dateString.optional(),
-  rows: z.array(
-    z.object({
-      address: z.string().trim().min(1),
-      city: z.string().trim().min(1),
-      priceCents: z.number().nullable().optional(),
-      mcchickenCents: z.number().nullable().optional(),
-      observedAt: dateString.optional(),
-      url: z.string().url().nullable().optional(),
-      sourceUrl: z.string().url().nullable().optional(),
-      storeId: z.string().trim().min(1).max(200).nullable().optional(),
-    }),
-  ),
+  rows: z.array(z.unknown()),
 });
 
 /** A day of clock skew between the feed and us is fine; a week is a typo. */
@@ -92,7 +98,14 @@ export function parseFeedFile(input: unknown, now: Date = new Date()): ParsedFee
   const rows: FeedRow[] = [];
   const problems: string[] = [];
 
-  parsed.data.rows.forEach((raw, index) => {
+  parsed.data.rows.forEach((input, index) => {
+    const shaped = feedRowSchema.safeParse(input);
+    if (!shaped.success) {
+      const issue = shaped.error.issues[0];
+      problems.push(`row ${index + 1}: ${issue?.path.join(".") || "(row)"} ${issue?.message ?? "invalid"}`);
+      return;
+    }
+    const raw = shaped.data;
     const where = `row ${index + 1} (${raw.address}, ${raw.city})`;
 
     // An undated price is the one thing a feed must never supply: there is no
@@ -184,6 +197,9 @@ export function matchFeedRow(
   return { kind: "miss" };
 }
 
+/** Where the bundled list puts a restaurant number, or null when it has no such store. */
+export type ListedLocation = (restaurantNumber: string) => LatLng | null;
+
 /**
  * A pinned row goes to its store when that store is among `stores`; any other
  * row is matched by city and street number. A pin naming a store we don't have
@@ -194,7 +210,10 @@ export function pinnedOrMatched(
   row: Pick<FeedRow, "address" | "city" | "storeId">,
   stores: readonly (Pick<StoreWithId, "id" | "address" | "locality"> & {
     restaurantNumber?: string | null;
+    lat?: number;
+    lng?: number;
   })[],
+  listedAt?: ListedLocation,
 ): FeedMatch {
   if (row.storeId !== null) {
     if (stores.some((store) => store.id === row.storeId)) return { kind: "match", storeId: row.storeId };
@@ -202,10 +221,25 @@ export function pinnedOrMatched(
     // number. Where that store was skipped because an OSM store already holds
     // the number (`dropListedDuplicates`), the row belongs to that store.
     const number = /^atp-(\d+)$/.exec(row.storeId)?.[1];
-    const holders = number === undefined ? [] : stores.filter((store) => store.restaurantNumber === number);
-    return holders.length === 1 && holders[0] !== undefined
-      ? { kind: "match", storeId: holders[0].id }
-      : { kind: "miss" };
+    if (number === undefined) return { kind: "miss" };
+    const holders = stores.filter((store) => store.restaurantNumber === number);
+    if (holders.length === 1 && holders[0] !== undefined) return { kind: "match", storeId: holders[0].id };
+    if (holders.length > 1) return { kind: "miss" };
+    // The list's store can also have been skipped for an OSM store standing
+    // within `LISTED_DUPLICATE_METERS` that has no number at all (its street
+    // number disagreed with the table's, so none was assigned). That store is
+    // the same restaurant, by the same rule that dropped the listed one. A
+    // store holding a different number is a different restaurant.
+    const listed = listedAt?.(number) ?? null;
+    if (listed === null) return { kind: "miss" };
+    const near = stores.filter(
+      (store) =>
+        (store.restaurantNumber ?? null) === null &&
+        store.lat !== undefined &&
+        store.lng !== undefined &&
+        distanceMeters(listed, { lat: store.lat, lng: store.lng }) < LISTED_DUPLICATE_METERS,
+    );
+    return near.length === 1 && near[0] !== undefined ? { kind: "match", storeId: near[0].id } : { kind: "miss" };
   }
   return matchFeedRow(row, stores);
 }

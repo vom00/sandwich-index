@@ -154,11 +154,13 @@ export function MapExperience() {
           const result = await syncResponse.json();
           // Refetch for new stores, and for addresses the backfill just filled
           // in — a row that silently stops saying "no address on file" is the
-          // visible half of that work.
+          // visible half of that work. Likewise for prices recorded or taken
+          // away, so a removed feed's price doesn't linger on this screen.
           const changed =
             result.created > 0 ||
             (result.addresses?.resolved ?? 0) > 0 ||
-            (result.feedPrices?.recorded ?? 0) > 0;
+            (result.feedPrices?.recorded ?? 0) > 0 ||
+            (result.feedPrices?.retired ?? 0) > 0;
           if (changed) {
             const refreshed = await fetchStores(position);
             if (isCurrent()) setStores(refreshed);

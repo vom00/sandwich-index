@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Confidence } from "@/components/ui/Confidence";
+import { FeedCredit } from "@/components/ui/FeedCredit";
 import { Sparkline } from "@/components/ui/Sparkline";
 import { StoreStateBadge } from "@/components/ui/StoreStateBadge";
 import { formatCents } from "@/lib/money";
@@ -154,6 +155,7 @@ export function StoreSheet({
               </span>
             ) : null}
           </div>
+          <FeedCredit feed={store.priceFeed} observedAt={store.pricedAt} className="mt-1 text-xs text-ink-subtle" />
 
           <div className="mt-3">
             <StoreStateBadge

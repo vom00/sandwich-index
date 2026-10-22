@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import driveThruIndexSnapshot from "@/data/feeds/drivethruindex.json";
+import { parseFeedFile } from "@/lib/feed-match";
 import { ACTIVE_FEEDS, FEEDS, HAS_ACTIVE_FEED, feedAttribution, feedDateVerb, isFeedActive } from "@/lib/feeds";
 import { priceAge, provenanceSummary } from "@/lib/provenance";
 
@@ -14,7 +16,7 @@ describe("Drive Thru Index as a feed", () => {
 
   it("carries the credit line it asks for, with the day the price was checked", () => {
     expect(feedAttribution("drivethruindex", "2026-10-21T08:00:00.000Z")).toBe(
-      "Source: Drive Thru Index (drivethruindex.com), prices checked 2026-10-21",
+      "Source: Drive Thru Index (https://drivethruindex.com), prices checked 2026-10-21",
     );
     expect(feedAttribution("a-feed-since-removed", "2026-10-21T08:00:00.000Z")).toBeNull();
   });
@@ -40,6 +42,16 @@ describe("Drive Thru Index as a feed", () => {
     const store = { priceFeed: null, confirmedCount: 2, pricedAt: new Date().toISOString() };
     expect(priceAge(store)).toBe("last confirmed today");
     expect(feedDateVerb("a-feed-since-removed")).toBe("observed");
+  });
+});
+
+describe("the bundled Drive Thru Index snapshot", () => {
+  it("parses whole: every row the server would apply", () => {
+    const { rows, problems } = parseFeedFile(driveThruIndexSnapshot);
+    expect(problems).toEqual([]);
+    expect(rows.length).toBe(driveThruIndexSnapshot.rows.length);
+    expect(rows.every((row) => row.priceCents !== null && row.priceCents > 100 && row.priceCents <= 600)).toBe(true);
+    expect(rows.every((row) => row.storeId?.startsWith("atp-"))).toBe(true);
   });
 });
 

@@ -24,6 +24,7 @@ import {
 } from "@/lib/comparison";
 import {
   cellCoverage,
+  distanceMeters,
   encodeGeohash,
   filterByRadius,
   geohashQueryBounds,
@@ -38,7 +39,13 @@ import {
   type StoreRollup,
 } from "@/lib/pricing";
 import type { OverpassStore } from "@/lib/overpass";
-import { dropListedDuplicates, listedStoresNear, type ListedRow, type ListedStore } from "@/lib/store-list";
+import {
+  LISTED_DUPLICATE_METERS,
+  dropListedDuplicates,
+  listedStoresNear,
+  type ListedRow,
+  type ListedStore,
+} from "@/lib/store-list";
 import { dropTwinStores } from "@/lib/store-twins";
 import type { ResolvedAddress } from "@/lib/reverse-geocode";
 import { displayStateFor } from "@/lib/tiers";
@@ -504,7 +511,7 @@ export interface RecordObservationsResult {
   written: number;
   /** Observations already on file — the same feed, store and day. */
   alreadyRecorded: number;
-  /** Stores whose rollup was recomputed because something new arrived. */
+  /** Stores whose rollup was recomputed: every store the inputs name. */
   recomputed: number;
 }
 
@@ -551,9 +558,15 @@ export async function recordObservations(
     await batch.commit();
   }
 
+  // Every store asked about, not only those with something new: if an
+  // earlier call wrote the observations and then died before recomputing
+  // (a timeout, a spent quota), this is what puts the price on the store.
+  // Callers only ask about stores whose price is older than the row, so once
+  // a store is up to date it is not asked about again.
+  //
   // A few at a time: a sync that prices a dense area touches hundreds of
   // stores, and one after another that outlasts the function.
-  const touched = [...new Set(fresh.map((input) => input.storeId))];
+  const touched = [...new Set(inputs.map((input) => input.storeId))];
   for (let offset = 0; offset < touched.length; offset += RECOMPUTE_CONCURRENCY) {
     await Promise.all(
       touched.slice(offset, offset + RECOMPUTE_CONCURRENCY).map((storeId) => recomputeStoreRollup(storeId, db)),
@@ -610,6 +623,16 @@ export type ListedStoreSource = (center: LatLng, radiusMeters: number) => Listed
 /** The US list shipped with the server (`src/data/us-stores.json`). */
 export const bundledStoresNear: ListedStoreSource = (center, radiusMeters) =>
   listedStoresNear(usStoreRows as unknown as ListedRow[], center, radiusMeters);
+
+let listedLocations: Map<string, LatLng> | null = null;
+
+/** Where the bundled list puts a restaurant number. Indexed on first use. */
+function listedLocation(number: string): LatLng | null {
+  listedLocations ??= new Map(
+    (usStoreRows as unknown as ListedRow[]).map(([ref, lat, lng]) => [ref, { lat, lng }]),
+  );
+  return listedLocations.get(number) ?? null;
+}
 
 /**
  * Spend one query from the site-wide Overpass budget, or report that none is
@@ -901,7 +924,10 @@ function parsedFeedRows(file: unknown, now: Date): FeedRow[] {
   if (typeof file !== "object" || file === null) return parseFeedFile(file, now).rows;
   const cached = parsedFeeds.get(file);
   if (cached !== undefined && Math.abs(now.getTime() - cached.at) < 60 * 60 * 1000) return cached.rows;
-  const rows = parseFeedFile(file, now).rows;
+  const { rows, problems } = parseFeedFile(file, now);
+  if (problems.length > 0) {
+    console.warn(`[feeds] ${problems.length} bundled feed rows rejected, e.g. ${problems.slice(0, 3).join("; ")}`);
+  }
   parsedFeeds.set(file, { at: now.getTime(), rows });
   return rows;
 }
@@ -960,6 +986,13 @@ async function recordFeedRows(
 
   const byId = new Map(nearby.map((store) => [store.id, store]));
   const numbers = new Set(nearby.map((store) => store.restaurantNumber).filter((n) => n !== null));
+  // Stores with no number can still take a listed pin by location
+  // (`pinnedOrMatched`); usually none are left once an area is synced.
+  const unnumbered = nearby.filter((store) => store.restaurantNumber === null);
+  const listedNear = (number: string) => {
+    const at = listedLocation(number);
+    return at !== null && unnumbered.some((store) => distanceMeters(at, store) < LISTED_DUPLICATE_METERS);
+  };
   const planned = new Map<string, ObservationInput>();
   const conflicted = new Set<string>();
 
@@ -968,10 +1001,11 @@ async function recordFeedRows(
       if (row.priceCents === null) continue;
       // Most rows of a nationwide file are pinned to stores far from here;
       // passing over them here keeps a sync from matching every one.
-      if (row.storeId !== null && !byId.has(row.storeId) && !numbers.has(row.storeId.replace(/^atp-/, ""))) {
-        continue;
+      if (row.storeId !== null && !byId.has(row.storeId)) {
+        const number = row.storeId.replace(/^atp-/, "");
+        if (!numbers.has(number) && (unnumbered.length === 0 || !listedNear(number))) continue;
       }
-      const match = pinnedOrMatched(row, nearby);
+      const match = pinnedOrMatched(row, nearby, listedLocation);
       if (match.kind !== "match") continue;
       const store = byId.get(match.storeId);
       if (store === undefined) continue;

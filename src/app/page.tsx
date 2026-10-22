@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { CountUpPrice } from "@/components/landing/CountUpPrice";
 import { ClayScene } from "@/components/landing/scenes/ClayScene";
-import { HAS_ACTIVE_FEED } from "@/lib/feeds";
+import { ACTIVE_FEEDS, HAS_ACTIVE_FEED } from "@/lib/feeds";
 import { formatCents } from "@/lib/money";
 import { priceAge, provenanceSummary } from "@/lib/provenance";
 import { getCachedIndexSnapshot } from "@/lib/index-snapshot.server";
@@ -165,6 +165,29 @@ function Hero({ snapshot }: { snapshot: IndexSnapshot }) {
                 highCents={highestPriceCents}
                 storeCount={snapshot.pricedStoreCount}
               />
+              {/* The figures above are mostly a feed's, and its permission to
+                  quote them comes with being credited where they appear. */}
+              {HAS_ACTIVE_FEED ? (
+                <p className="mt-4 text-xs leading-relaxed text-ink-subtle">
+                  Source: visitors&rsquo; reports and{" "}
+                  {ACTIVE_FEEDS.map((feed, index) => (
+                    <span key={feed.id}>
+                      {index > 0 ? ", " : null}
+                      {feed.name} (
+                      <a
+                        href={feed.homepage}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="hover-accent underline decoration-rule underline-offset-2"
+                      >
+                        {feed.homepage}
+                      </a>
+                      )
+                    </span>
+                  ))}
+                  . Each store&rsquo;s page gives the day its price was checked.
+                </p>
+              ) : null}
             </div>
 
             <div
@@ -391,7 +414,7 @@ function Leaderboard({
 const FIRST_STEP = HAS_ACTIVE_FEED
   ? {
       title: "Somebody sees a McChicken price",
-      body: "on a receipt, a menu board or in the app. Stores nobody has logged yet can show a price from an outside tracker instead, always under the tracker's name and with the date we checked it. Not one figure on this site is estimated.",
+      body: "on a receipt, a menu board or in the app. Stores nobody has logged yet can show a price from an outside tracker instead, always under the tracker's name and with the day it was checked. Not one figure on this site is estimated.",
     }
   : {
       title: "Somebody sees a McChicken price",

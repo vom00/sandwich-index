@@ -924,9 +924,20 @@ describe("feed observations", () => {
     const again = await recordObservations([observation("node-1", 249, 30)], db);
     const all = await getObservationsForStore("node-1", db);
 
-    expect(again).toEqual({ written: 0, alreadyRecorded: 1, recomputed: 0 });
+    expect(again).toEqual({ written: 0, alreadyRecorded: 1, recomputed: 1 });
     expect(all).toHaveLength(1);
     expect(all[0]?.importedAt).toBe(first?.importedAt);
+  });
+
+  it("prices a store whose observation landed but whose recompute never ran", async () => {
+    await upsertStores([store("node-1", COPPELL)], db);
+    await recordObservations([observation("node-1", 249, 30)], db);
+    // As if the function died between the observation batch and the recompute.
+    await db.collection("stores").doc("node-1").update({ priceCents: null, pricedAt: null, priceFeed: null });
+
+    await recordObservations([observation("node-1", 249, 30)], db);
+
+    expect(await getStore("node-1", db)).toMatchObject({ priceCents: 249, priceFeed: "drivethruindex" });
   });
 
   it("gives way to a newer visitor report, and the label follows", async () => {
