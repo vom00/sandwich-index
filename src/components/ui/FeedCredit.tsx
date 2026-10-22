@@ -33,7 +33,7 @@ export function FeedCredit({
         href={homepage}
         target="_blank"
         rel="noreferrer noopener"
-        className="hover-accent underline decoration-rule underline-offset-2"
+        className="hover-accent inline-flex min-h-11 items-center underline decoration-rule underline-offset-2"
       >
         {homepage}
       </a>

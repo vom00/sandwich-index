@@ -166,26 +166,13 @@ function Hero({ snapshot }: { snapshot: IndexSnapshot }) {
                 storeCount={snapshot.pricedStoreCount}
               />
               {/* The figures above are mostly a feed's, and its permission to
-                  quote them comes with being credited where they appear. */}
+                  quote them comes with being credited where they appear. In
+                  words here, so the hero keeps its one way in; the link is
+                  under the leaderboards (`FeedSources`). */}
               {HAS_ACTIVE_FEED ? (
                 <p className="mt-4 text-xs leading-relaxed text-ink-subtle">
                   Source: visitors&rsquo; reports and{" "}
-                  {ACTIVE_FEEDS.map((feed, index) => (
-                    <span key={feed.id}>
-                      {index > 0 ? ", " : null}
-                      {feed.name} (
-                      <a
-                        href={feed.homepage}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        className="hover-accent underline decoration-rule underline-offset-2"
-                      >
-                        {feed.homepage}
-                      </a>
-                      )
-                    </span>
-                  ))}
-                  . Each store&rsquo;s page gives the day its price was checked.
+                  {ACTIVE_FEEDS.map((feed) => `${feed.name} (${feed.homepage})`).join(", ")}.
                 </p>
               ) : null}
             </div>
@@ -304,6 +291,32 @@ function Premise() {
 
 /* ------------------------------------------------------------------------ */
 
+/** The feeds behind the figures on this page, each credited with a link. */
+function FeedSources() {
+  if (!HAS_ACTIVE_FEED) return null;
+  return (
+    <p className="mt-8 text-sm text-ink-subtle">
+      Source: visitors&rsquo; reports and{" "}
+      {ACTIVE_FEEDS.map((feed, index) => (
+        <span key={feed.id}>
+          {index > 0 ? ", " : null}
+          {feed.name} (
+          <a
+            href={feed.homepage}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="hover-accent inline-flex min-h-11 items-center underline decoration-rule underline-offset-2"
+          >
+            {feed.homepage}
+          </a>
+          )
+        </span>
+      ))}
+      . Each store&rsquo;s page gives the day its price was checked.
+    </p>
+  );
+}
+
 function LiveProof({ snapshot }: { snapshot: IndexSnapshot }) {
   if (snapshot.pricedStoreCount === 0) return null;
 
@@ -340,6 +353,8 @@ function LiveProof({ snapshot }: { snapshot: IndexSnapshot }) {
           />
         ) : null}
       </div>
+
+      <FeedSources />
 
       {snapshot.staleStoreCount > 0 ? (
         <p className="mt-10 text-sm text-ink-subtle">
