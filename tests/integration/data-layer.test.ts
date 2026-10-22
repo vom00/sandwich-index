@@ -872,8 +872,8 @@ describe("feed observations", () => {
     storeId,
     priceCents,
     observedAt: new Date(Date.now() - daysAgo * DAY_MS).toISOString(),
-    feed: "menupricetracker",
-    sourceUrl: "https://menupricetracker.com/mcdonalds/texas/coppell/813-macarthur-blvd",
+    feed: "drivethruindex",
+    sourceUrl: "https://drivethruindex.com/restaurants/us/tx/coppell/mcdonalds-4412",
   });
 
   it("prices an unreported store and records which feed did it", async () => {
@@ -884,7 +884,7 @@ describe("feed observations", () => {
 
     expect(result).toEqual({ written: 1, alreadyRecorded: 0, recomputed: 1 });
     expect(priced?.priceCents).toBe(249);
-    expect(priced?.priceFeed).toBe("menupricetracker");
+    expect(priced?.priceFeed).toBe("drivethruindex");
     // Nobody vouched for it. The visitor counts must still say so.
     expect(priced?.confirmedCount).toBe(0);
     expect(priced?.reportCount).toBe(0);
@@ -942,7 +942,43 @@ describe("feed observations", () => {
     const after = await getStore("node-1", db);
 
     expect(after?.priceCents).toBe(249);
-    expect(after?.priceFeed).toBe("menupricetracker");
+    expect(after?.priceFeed).toBe("drivethruindex");
+  });
+
+  it("drops a removed feed's prices at the next recompute, and stops showing them", async () => {
+    await upsertStores([store("node-1", COPPELL)], db);
+    // A MenuPriceTracker price recorded while it was shown, then a newer one
+    // from the feed that replaced it.
+    await recordObservations([{ ...observation("node-1", 199, 9), feed: "menupricetracker" }], db);
+    await recomputeStoreRollup("node-1", db);
+    expect((await getStore("node-1", db))?.priceCents).toBeNull();
+    expect(await getObservationsForStore("node-1", db)).toEqual([]);
+
+    await recordObservations([observation("node-1", 239, 1)], db);
+    expect((await getStore("node-1", db))?.priceCents).toBe(239);
+    expect((await getObservationsForStore("node-1", db)).map((o) => o.feed)).toEqual(["drivethruindex"]);
+  });
+
+  it("unprices a store whose only price came from a removed feed", async () => {
+    await upsertStores([store("node-1", COPPELL)], db);
+    // Written as it was before the removal: the store priced by the feed.
+    await db.collection("observations").doc("menupricetracker_node-1_2026-10-12").set({
+      storeId: "node-1",
+      priceCents: 219,
+      observedAt: Timestamp.fromDate(new Date(Date.now() - 9 * DAY_MS)),
+      feed: "menupricetracker",
+      sourceUrl: null,
+      importedAt: Timestamp.now(),
+    });
+    await db.collection("stores").doc("node-1").update({
+      priceCents: 219,
+      pricedAt: Timestamp.fromDate(new Date(Date.now() - 9 * DAY_MS)),
+      priceFeed: "menupricetracker",
+    });
+
+    await recomputeStoreRollup("node-1", db);
+    const after = await getStore("node-1", db);
+    expect(after).toMatchObject({ priceCents: null, pricedAt: null, priceFeed: null });
   });
 });
 

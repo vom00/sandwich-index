@@ -23,11 +23,15 @@ Visitors log what they paid, from a receipt, the menu board or the McDonald's
 app. The site can read the price off a photo of a receipt or an app screenshot.
 That reading happens in your browser, and the photo is never uploaded.
 
-The rest come from MenuPriceTracker, a site that says it reads its prices from
-the McDonald's app. Those prices are shown under its name, with a link to its
-page for that store. We asked MenuPriceTracker for permission to use them, but
-the email bounced and the site lists no other contact. If they ask us to stop,
-the feed comes down.
+The rest come from [Drive Thru Index](https://drivethruindex.com), which reads
+every McDonald's pickup prices from the McDonald's app each day and lets
+anyone quote its figures with credit. Each of those prices is shown under its
+name, with the day it was checked and a link to its page for that store. If
+Drive Thru Index asks us to stop, the feed comes down.
+
+Until 2026-10-22 some Dallas prices came from MenuPriceTracker. They were
+taken down once it turned out its prices were a single scrape from April
+2026, shown under a date that changed every time a page loaded.
 
 A price a visitor logs replaces an older listing. Old prices are marked as old
 and left out of the comparisons.

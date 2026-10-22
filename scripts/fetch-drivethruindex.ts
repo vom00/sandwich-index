@@ -27,7 +27,7 @@ import { dirname, resolve } from "node:path";
 
 import usStoreRows from "../src/data/us-stores.json";
 import { DTI_MIN_DELAY_SECONDS, DTI_ORIGIN, parseDtiStorePage, restaurantNumberFromPath } from "../src/lib/drivethruindex";
-import { isAllowed, parseRobots, type RobotsRules } from "../src/lib/menupricetracker";
+import { delaySeconds, isAllowed, parseRobots, type RobotsRules } from "../src/lib/robots";
 import type { ListedRow } from "../src/lib/store-list";
 
 const USER_AGENT = "sandwich-index/0.1 (+https://sandwich-index.vercel.app)";
@@ -71,7 +71,7 @@ function readProgress(file: string): Map<string, ProgressLine> {
 const sleep = (ms: number) => new Promise((done) => setTimeout(done, ms));
 
 function makeFetcher(rules: RobotsRules) {
-  const waitMs = Math.max(DTI_MIN_DELAY_SECONDS, rules.crawlDelaySeconds ?? 0) * 1000;
+  const waitMs = delaySeconds(rules, DTI_MIN_DELAY_SECONDS) * 1000;
   let last = Date.now();
   return async function get(path: string): Promise<string | null> {
     if (!isAllowed(path, rules)) {

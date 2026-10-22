@@ -75,12 +75,14 @@ export const FEEDS: Readonly<Record<string, FeedDefinition>> = {
     // day, so the import dates each price by when we read the page.
     dateVerb: "checked",
     licence: null,
-    unlicensedUse: {
-      decidedOn: "2026-10-11",
-      note:
-        "Owner's decision: show MenuPriceTracker's prices, named and linked, while the " +
-        "licensing request in research/feed-outreach.md is outstanding. Stop if they say no.",
-    },
+    // Shown from 2026-10-11 by the owner's decision, and removed by the owner
+    // on 2026-10-22, once research showed its prices were a single scrape
+    // published around 2026-04-16 under a date generated on every page view
+    // (reports/Accurate McChicken price sources.md). Inactive, its
+    // observations are no longer read (`getObservationsForStore`), so its
+    // prices are gone from every page; the definition stays so the id is
+    // never reused.
+    unlicensedUse: null,
     attribution: null,
     dateNote:
       "Its pages give a month rather than a day for each store, so its prices are dated by the day we read them, and say “checked”.",

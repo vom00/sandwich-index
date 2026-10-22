@@ -1,8 +1,8 @@
 /**
  * Import a price feed: match its rows to our stores and record what it saw.
  *
- *   npm run import:observations -- --feed menupricetracker --file research/tracker-samples.json
- *   npm run import:observations -- --feed menupricetracker --file <file> --write
+ *   npm run import:observations -- --feed drivethruindex --file <file>
+ *   npm run import:observations -- --feed drivethruindex --file <file> --write
  *
  * A dry run by default. It prints, row by row, which store each line of the
  * feed matched, what we currently show for that store, and what the feed says,

@@ -11,7 +11,7 @@
  * Pure parsing only; `scripts/fetch-drivethruindex.ts` does the reading.
  */
 
-import { decodeEntities } from "@/lib/menupricetracker";
+import { decodeEntities } from "@/lib/robots";
 
 export const DTI_ORIGIN = "https://drivethruindex.com";
 

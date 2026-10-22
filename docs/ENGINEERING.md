@@ -8,9 +8,11 @@ their own menu prices. Two stores four miles apart can differ by more than a
 dollar for an identical sandwich. Nobody publishes that data. This builds it
 from two kinds of evidence, always labelled apart: prices visitors logged from
 a receipt, a menu board or the app, and dated prices from outside price feeds.
-One feed is in use: MenuPriceTracker, shown under its own name with a link to
-its page, by the owner's decision of 2026-10-11 while a licensing request is
-outstanding; the request bounced. See [Price feeds](#price-feeds).
+One feed is in use: Drive Thru Index, which reads each store's pickup prices
+from the McDonald's app daily and lets anyone quote them with credit, shown
+under its own name with the day it checked and a link to its page, by the
+owner's decision of 2026-10-21. MenuPriceTracker was shown from 2026-10-11
+and removed on 2026-10-22. See [Price feeds](#price-feeds).
 
 > Sandwich Index is not affiliated with, endorsed by, or sponsored by
 > McDonald's Corporation. "McDonald's" and "McChicken" are trademarks of
@@ -32,27 +34,28 @@ outstanding; the request bounced. See [Price feeds](#price-feeds).
 | 4 | Store detail: price history chart, comparison strip, full log, submit modal | Done |
 | 5 | Landing page: live hero figure, leaderboards, editorial treatment | Done |
 | 6 | Polish: motion sweep, axe audit, error/empty states, offline | Done |
-| 7 | Price feeds: provenance, feed registry, import pipeline, labelled UI, MenuPriceTracker reader | Built; MenuPriceTracker in use, unlicensed |
+| 7 | Price feeds: provenance, feed registry, import pipeline, labelled UI, feed readers | Built; Drive Thru Index in use, MenuPriceTracker removed |
 | 8 | Design pass: three clay 3D scenes on the landing page, a site header, copy edit across the site | Done |
 | 9 | Reading a price from a photo: on-device OCR of receipts and app screenshots, store numbers | Built; tested on mock photos only |
 
 All nine phases are built, and the site has been live at
 https://sandwich-index.vercel.app since 2026-10-12 (see [Deployment](#deployment)).
-MenuPriceTracker's prices are in production by the owner's approval of the
-same day, served from a snapshot that ships with the server.
+Since 2026-10-21 it lists every US McDonald's, and its feed prices come from
+Drive Thru Index, served from a snapshot that ships with the server.
 
 Still open:
 
-- **A licence for MenuPriceTracker**, or its answer. The request bounced on
-  2026-10-12: their mail server refuses all inbound mail, and the site lists
-  no other contact (`research/feed-outreach.md`). Nobody there has seen it.
+- **Drive Thru Index can withdraw.** It names no operator and publishes no
+  terms beyond "free to quote with attribution". If it asks, the feed comes
+  down the way MenuPriceTracker's did (see [Price feeds](#price-feeds)).
 - **App Check** is off in production until the Fraud Defense (reCAPTCHA
   Enterprise) site key is set. See [App Check](#app-check).
 - **The photo reader** has only been tested on mock photos. Real receipts
   and screenshots may need tuning.
 
 A search on 2026-10-11 for an accurate price source that needs nothing from
-the owner found none (see `research/price-sources.md`).
+the owner found none (see `research/price-sources.md`); a second on
+2026-10-21 found Drive Thru Index (`reports/Accurate McChicken price sources.md`).
 
 ### Test results
 
@@ -529,7 +532,7 @@ npm run test:emulated
 | Suite | Count | Covers |
 | --- | --- | --- |
 | `tests/rules` | 37 | Range boundaries, float and string prices, backdated timestamps, ledger-skipping, cross-device tampering, ledger deletion, move-gate band edges, read visibility, feed observations readable but never client-writable, and the server-only sync log and Overpass budget. |
-| `tests/unit` | 198 | Set-price reconciliation, the move gate and corroboration bands, delivery exclusion, staleness vs. unmeasured, cents parsing and formatting, area comparison, OSM twin filtering, address composition and the store-label ladder, query-parameter coercion at the API boundary, feed observations in the replay, feed parsing and store matching, MenuPriceTracker page parsing and robots.txt rules, feed date wording, reading receipts and app screenshots (the plain McChicken only, per-unit price, OCR's colon-for-point), checking a photo's store by restaurant or street number, receipt age, store search (abbreviations, word-start matching, restaurant numbers), and sync-cell coverage at four latitudes. |
+| `tests/unit` | 198 | Set-price reconciliation, the move gate and corroboration bands, delivery exclusion, staleness vs. unmeasured, cents parsing and formatting, area comparison, OSM twin filtering, address composition and the store-label ladder, query-parameter coercion at the API boundary, feed observations in the replay, feed parsing and store matching, Drive Thru Index page parsing and robots.txt rules, feed date wording, reading receipts and app screenshots (the plain McChicken only, per-unit price, OCR's colon-for-point), checking a photo's store by restaurant or street number, receipt age, store search (abbreviations, word-start matching, restaurant numbers), and sync-cell coverage at four latitudes. |
 | `tests/integration` | 46 | Rollup recomputation, corroboration promotion written through to submission status, idempotency, re-sync not clobbering prices or addresses, geohash proximity, the Overpass sync gate including whole-cell coverage and the radius it reached, the site-wide Overpass budget, feed observations written through to the rollup, the address backfill's cap and retry window, index snapshot including stale exclusion. |
 
 The browser suites attack the same machinery from the outside: Phase 4 submits
@@ -567,10 +570,9 @@ logs one. The owner asked for accurate prices that don't depend on that.
   a McChicken, so no importer was written for it.
 
 So the app takes feed data the one way it can take it honestly, as a labelled,
-dated observation. On 2026-10-11 the owner chose MenuPriceTracker for now, in
-use without a licence while one is requested (see
-[MenuPriceTracker](#menupricetracker)). Drafts for the licensing emails, and
-what each reply has to settle, are in `research/feed-outreach.md`.
+dated observation. On 2026-10-11 the owner chose MenuPriceTracker; on
+2026-10-21 research found its prices were a single April scrape and found
+Drive Thru Index, and the owner switched (see [Drive Thru Index](#drive-thru-index)).
 
 ### How a feed price behaves
 
@@ -589,10 +591,12 @@ what each reply has to settle, are in `research/feed-outreach.md`.
   from when it was imported.
 
 Every surface that shows a price says where it came from. The store page reads
-"from MenuPriceTracker · checked 2 days ago" with a link to the feed's own
-page, and lists every feed price in a table of its own. The verb is the feed's
-`dateVerb`: "observed" for a feed that dates each price itself, "checked" for
-one, like MenuPriceTracker, whose only honest date is the day we read its page.
+"from Drive Thru Index · checked 2 days ago" with a link to the feed's own
+page and the feed's own credit line ("Source: Drive Thru Index
+(drivethruindex.com), prices checked 2026-10-21", `attribution` in
+`src/lib/feeds.ts`), and lists every feed price in a table of its own. The
+verb is the feed's `dateVerb`: "checked" for one that says which day it
+checked, "observed" otherwise.
 Site copy that would otherwise promise "every price was submitted by a person
 who saw it" is keyed off `HAS_ACTIVE_FEED` in `src/lib/feeds.ts`, so it
 changes by itself when a feed goes in or out of use.
@@ -600,7 +604,7 @@ changes by itself when a feed goes in or out of use.
 ### Importing a feed
 
 ```bash
-npm run import:observations -- --feed menupricetracker --file research/tracker-samples.json
+npm run import:observations -- --feed drivethruindex --file src/data/feeds/drivethruindex.json
 ```
 
 A dry run by default. Every row is printed as `MATCH` (with what we show now
@@ -612,54 +616,65 @@ is rejected rather than guessed at.
 
 **An unlicensed feed never leaves the emulator.** Feeds are declared in
 `src/lib/feeds.ts` with a `licence` field, and while it is null `--write`
-refuses anything that is not the local emulator. That includes
-MenuPriceTracker: its `unlicensedUse` changes what the site says, not what
-this script will write.
+refuses anything that is not the local emulator. An `unlicensedUse` changes
+what the site says, not what this script will write. Production gets feed
+prices from the bundled snapshots instead (see [Deployment](#deployment)).
 
 To add a real feed: get the licence; declare the feed with its name, method and
 licence; export its data in the `parseFeedFile` format, with an observation
 date on every row; dry-run; spot-check the matches against real receipts; then
 write.
 
-### MenuPriceTracker
+### Drive Thru Index
 
-In use by the owner's decision of 2026-10-11, recorded as `unlicensedUse` in
-`src/lib/feeds.ts`. The licensing email in `research/feed-outreach.md`
-bounced on 2026-10-12: their domain refuses all inbound mail, and the site
-publishes no other contact, so no request is actually pending. If they say no, set `unlicensedUse` to null and the
-site's copy reverts by itself; delete the observations to remove the prices.
+In use by the owner's decision of 2026-10-21, recorded in `src/lib/feeds.ts`.
+[Drive Thru Index](https://drivethruindex.com) reads every US McDonald's full
+menu from the McDonald's app each day and posts it with pickup and delivery
+prices and the day it checked. Its llms.txt says its "figures are free to
+quote with attribution", and its insights page gives the credit line, which
+the store page shows under every price it supplied. It names no operator and
+publishes no other terms; if it asks, the feed comes down like
+MenuPriceTracker's below.
 
 ```bash
-npm run fetch:menupricetracker
+npm run fetch:drivethruindex
 ```
 
 ```bash
-npm run import:observations -- --feed menupricetracker --file feeds/menupricetracker-YYYY-MM-DD.json --write
+npm run fetch:drivethruindex -- --merge
 ```
 
-The fetch reads the stores in whichever Firestore the environment points at,
-then reads MenuPriceTracker's public pages for them. It follows the site's
-robots.txt: it skips disallowed paths and waits the crawl-delay it asks of
-unnamed bots (10 seconds), never less than 10. It fetches one city page per
-city we have stores in, and then only the store pages whose street number and
-city match one of ours, so about one request per store. Prices come from each
-store page's schema.org data, where the item reads exactly "McChicken — $2.49".
-A meal or a Spicy McChicken never counts. Output goes to `feeds/`, which is
-gitignored, because it is their data, not ours to commit.
+The first finds store pages through its McDonald's sitemaps (about 15
+requests) and reads the ones whose restaurant number is in our list, about
+13,600. Its store URLs end in the McDonald's restaurant number
+(`mcdonalds-12751` is Restaurant #12751), so each row is pinned to
+`atp-<number>` with no address matching, and `pinnedOrMatched` gives a pin to
+the OSM store holding that number where the listed one was skipped as its
+duplicate. robots.txt asks for no delay; the reader waits 2 seconds between
+requests anyway, so a full read takes about 8 hours, and resumes where it
+stopped (`feeds/drivethruindex-<date>.jsonl`, gitignored). The price is the
+plain McChicken's pickup column (`src/lib/drivethruindex.ts`), dated by the
+day the page says it was checked. `--merge` writes the snapshot,
+`src/data/feeds/drivethruindex.json`, dropping the app's placeholder prices
+(about one store in 170 shows $19.99, $99.99 or $0.12) by keeping only $1 to
+$6.
 
-The site gives each store a month ("last verified October 2026"), never a day,
-and its footer's "Last updated" date is site-wide. So each price is dated by
-the moment its page was read, and the UI says "checked", not "observed". The
-month the site claims is kept in the file as `listedAs`. Visitors can always
-log their own price, and a newer visitor price replaces the feed's.
+### MenuPriceTracker (removed)
 
-First full run on 2026-10-12: 197 of our 222 Dallas–Fort Worth stores are on
-MenuPriceTracker, and all 197 had a McChicken price ($1.49 to $2.99). Every
-row matched exactly one store, and the import recorded 197 observations into
-the emulator, which was then saved as `.emulator-data`. The 25 stores it
-doesn't list (mostly airport terminals) keep whatever visitors reported. The
-parsers are tested against trimmed copies of real pages
-(`tests/unit/menupricetracker.test.ts`).
+Shown from 2026-10-11 by the owner's decision and removed by the owner on
+2026-10-22. Research that day (`reports/Accurate McChicken price sources.md`)
+found its prices were one scrape published around 2026-04-16: every page's
+"last verified" month is generated when the page is served, every price
+checked against archived copies was unchanged for months, and limited-time
+items from March were still listed. The site had been showing those prices
+as "checked 2026-10-12".
+
+Removing it took three things: `unlicensedUse` set to null, so the feed is
+inactive; its snapshot and readers deleted; and `getObservationsForStore`
+leaving out observations from inactive feeds. A store's next recompute then
+prices it from what remains, a visitor's report or Drive Thru Index, and its
+page stops listing the old figures. The observations themselves stay in
+Firestore, unread.
 
 A feed import also erases states the test suites need, and the saved data
 ages. `npm run seed:fixtures` keeps both in shape, and runs by itself before
@@ -679,7 +694,7 @@ run time, among stores with no feed price. The bulk-logging suite runs in
 **Waco**, about 100 miles from Coppell: `/log` lists unpriced stores first,
 so wherever it stands it logs prices to the nearest unpriced ones, and in
 Coppell those were the stores phase 3 needs unpriced. The saved data holds 13
-Waco stores for it, none on MenuPriceTracker. With that, the browser suite
+Waco stores for it, none with a feed price. With that, the browser suite
 passes twice in a row in one session, which it didn't before.
 
 ## Reading a price from a photo
@@ -689,7 +704,7 @@ button. A visitor picks a photo of their receipt, or a screenshot of the
 McChicken in the McDonald's app with their store selected, and the form fills
 in the price for them to check. Those are the two places an exact price
 exists: a receipt is what that store charged that day, and the app is what
-MenuPriceTracker says it copies. Researched and spiked on 2026-10-12; see
+Drive Thru Index reads. Researched and spiked on 2026-10-12; see
 `research/price-sources.md`, "Third sweep".
 
 - **On the device.** [tesseract.js](https://www.npmjs.com/package/tesseract.js)
@@ -1267,33 +1282,22 @@ against production should use small radii and few repeats. The Blaze plan
 keeps the same free allowance and bills reads past it at cents per hundred
 thousand, which removes the outage risk.
 
-**Feed prices in production.** MenuPriceTracker's prices (shown by the
-owner's decision of 2026-10-11, named and linked; see `src/lib/feeds.ts`)
-reach production the same way: the snapshot in
-`src/data/feeds/menupricetracker.json` ships with the server, and every sync
-records its rows for the stores around it with the import script's own
-parsing and matching (`backfillFeedObservations`). A store whose price is as
-new as the row, or newer, is skipped, so a visitor's later price always wins
-and an up-to-date area costs no extra reads. The import script's guard is
-unchanged: it still won't write an unlicensed feed anywhere but the emulator.
-To refresh: `npm run fetch:menupricetracker` (against the emulator), copy the
-new file over the snapshot, push.
+**Feed prices in production.** Drive Thru Index's prices (see
+[Drive Thru Index](#drive-thru-index)) reach production in a snapshot that
+ships with the server, `src/data/feeds/drivethruindex.json`, and every sync
+records its rows for the stores around it (`backfillFeedObservations`). Rows
+are pinned to stores by restaurant number, and rows pinned to stores outside
+the area are passed over before any matching, so a nationwide file costs a
+sync almost nothing. A store whose price is as new as the row, or newer, is
+skipped, so a visitor's later price always wins and an up-to-date area costs
+no extra reads. A sync from the store list hands its whole area to the
+backfills, so one sync prices every store it covers. To refresh: rerun the
+reader and `--merge`, push, then sync each area again within the day's read
+budget (a sync at a larger radius than the cell's last one runs again rather
+than answering from the cache).
 
-Rows are matched by city and street number, but the feed and OpenStreetMap
-sometimes give one restaurant different numbers ("190 Shiloh" and "7201 N
-President George Bush Hwy" are the same McDonald's). Such a row can carry a
-`storeId` pin, set only when the link by location is unambiguous: the row's
-address names one All The Places location, exactly one of our stores is
-within 75 m of it, and no other McDonald's is within 200 m of that store. A
-pin naming a store we don't have is a miss, never a fallback to the address
-(`pinnedOrMatched` in `lib/feed-match`).
-
-Coverage on 2026-10-12: of the live stores MenuPriceTracker was asked about,
-every one it lists with a McChicken price is in the snapshot. The ones it
-doesn't list can't have a price from it: the DFW airport terminals, a
-handful of standalone stores it simply doesn't carry, and OpenStreetMap
-entries with no McDonald's within 200 m in McDonald's own locator (likely
-closed). Those show "No prices yet" until a visitor logs one.
+Unpinned rows, which only the removed MenuPriceTracker feed had, are matched
+by city and street number (`matchFeedRow` in `lib/feed-match`).
 
 **Restaurant numbers in production.** Stores get their McDonald's number on
 the server, not by an import: `src/data/restaurant-numbers.json` (13,638 US

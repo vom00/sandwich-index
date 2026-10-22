@@ -46,9 +46,8 @@ import { buildNumberIndex, chooseNumbers, type NumberIndex, type NumberRow } fro
 import restaurantNumberRows from "@/data/restaurant-numbers.json";
 import usStoreRows from "@/data/us-stores.json";
 import driveThruIndexSnapshot from "@/data/feeds/drivethruindex.json";
-import menuPriceTrackerSnapshot from "@/data/feeds/menupricetracker.json";
 import { observationId, parseFeedFile, pinnedOrMatched, type FeedRow } from "@/lib/feed-match";
-import { FEEDS, isFeedActive, type FeedDefinition } from "@/lib/feeds";
+import { FEEDS, feedById, isFeedActive, type FeedDefinition } from "@/lib/feeds";
 import type { ObservationWithId, Store, StoreWithId, SubmissionWithId } from "@/types";
 
 /** Firestore batches cap at 500 operations. */
@@ -325,7 +324,15 @@ export async function getSubmissionsForStore(
     .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
 }
 
-/** Feed observations for one store, newest first. */
+/**
+ * Feed observations for one store, newest first.
+ *
+ * Observations from a feed the site has stopped showing (declared in
+ * `lib/feeds`, no longer active) are left out, so a removed feed's prices
+ * disappear from the store's price, its page and its chart at the next
+ * recompute without deleting anyone's records. A feed id the registry
+ * doesn't know is kept: that is a test or an old import, not a removal.
+ */
 export async function getObservationsForStore(
   storeId: string,
   db: Firestore = getAdminDb(),
@@ -337,6 +344,10 @@ export async function getObservationsForStore(
 
   return snapshot.docs
     .map((document) => toObservation(document.id, document.data()))
+    .filter((observation) => {
+      const feed = feedById(observation.feed);
+      return feed === null || isFeedActive(feed);
+    })
     .sort((a, b) => b.observedAt.localeCompare(a.observedAt));
 }
 
@@ -865,7 +876,6 @@ export interface BundledFeed {
 }
 
 const BUNDLED_FEEDS: readonly BundledFeed[] = [
-  { feed: FEEDS["menupricetracker"]!, file: menuPriceTrackerSnapshot },
   { feed: FEEDS["drivethruindex"]!, file: driveThruIndexSnapshot },
 ];
 
