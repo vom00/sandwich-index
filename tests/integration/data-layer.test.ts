@@ -238,6 +238,25 @@ describe("bundled feed prices", () => {
     expect(saved?.priceFeed).toBe("testfeed");
   });
 
+  it("lets a refreshed snapshot's unchanged prices stand for two weeks, and records a change at once", async () => {
+    const address = "125 South Denton Tap Road, Coppell, TX 75019";
+    await upsertStores([store("node-1", COPPELL, { address })], db);
+    const dated = (daysAgo: number, cents: number) => ({
+      rows: [{ address: "125 S Denton Tap Rd", city: "Coppell", mcchickenCents: cents, observedAt: new Date(Date.now() - daysAgo * DAY_MS).toISOString() }],
+    });
+    await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(true), file: dated(20, 249) }]);
+
+    const sameSoon = await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(true), file: dated(10, 249) }]);
+    expect(sameSoon.recorded).toBe(0);
+
+    const sameLater = await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(true), file: dated(1, 249) }]);
+    expect(sameLater.recorded).toBe(1);
+
+    const changed = await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(true), file: dated(0, 259) }]);
+    expect(changed.recorded).toBe(1);
+    expect((await getStore("node-1", db))?.priceCents).toBe(259);
+  });
+
   it("applies nothing from a feed the site may not show", async () => {
     await upsertStores([store("node-1", COPPELL, { address: "125 South Denton Tap Road, Coppell, TX 75019" })], db);
     expect(await backfillFeedObservations(COPPELL, milesToMeters(15), db, [{ feed: feed(false), file }])).toEqual({

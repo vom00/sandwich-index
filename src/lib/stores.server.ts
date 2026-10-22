@@ -64,6 +64,12 @@ const BATCH_LIMIT = 450;
 /** Store recomputes run together when a feed prices many stores at once. */
 const RECOMPUTE_CONCURRENCY = 6;
 
+/**
+ * How long a feed's unchanged price stands before a newer check of the same
+ * price is recorded. A changed price is recorded at once.
+ */
+const FEED_RECHECK_MS = 14 * 24 * 60 * 60 * 1000;
+
 /** Tracks when each geographic cell was last reconciled against OpenStreetMap. */
 const SYNC_LOG_COLLECTION = "syncLog";
 
@@ -1053,6 +1059,17 @@ async function recordFeedRows(
       const store = byId.get(match.storeId);
       if (store === undefined) continue;
       if (store.pricedAt !== null && store.pricedAt >= row.observedAt) continue;
+      // The same feed saying the same price again, soon after: nothing a
+      // visitor would see changes but the date, and re-recording a whole
+      // refreshed snapshot costs more writes than the free tier has in a day.
+      if (
+        store.priceFeed === feed.id &&
+        store.priceCents === row.priceCents &&
+        store.pricedAt !== null &&
+        Date.parse(row.observedAt) - Date.parse(store.pricedAt) < FEED_RECHECK_MS
+      ) {
+        continue;
+      }
 
       // Two rows for one store on one day must agree, or neither is trusted.
       const id = observationId(feed.id, store.id, row.observedAt);
