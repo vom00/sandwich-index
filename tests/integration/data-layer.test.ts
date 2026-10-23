@@ -31,6 +31,7 @@ import {
   getStoresNear,
   getSubmissionsForStore,
   recomputeStoreRollup,
+  recomputeStoreRollupReporting,
   recordObservations,
   syncAreaIfStale,
   upsertStores,
@@ -644,6 +645,15 @@ describe("rollup recomputation", () => {
     // And the timestamp round trip is exact, which is what makes the
     // comparison able to detect "nothing changed" at all.
     expect(second.data()?.["priceCents"]).toBe(329);
+  });
+
+  it("says whether a recompute wrote anything, so the public route can skip the landing rebuild", async () => {
+    await upsertStores([store("node-1", COPPELL)], db);
+    await addSubmission("node-1", 319, { daysAgo: 1 });
+
+    expect((await recomputeStoreRollupReporting("node-1", db))?.changed).toBe(true);
+    expect((await recomputeStoreRollupReporting("node-1", db))?.changed).toBe(false);
+    expect(await recomputeStoreRollupReporting("node-missing", db)).toBeNull();
   });
 
   it("still writes when a new submission actually changes the price", async () => {

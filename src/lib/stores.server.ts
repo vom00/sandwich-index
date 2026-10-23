@@ -459,6 +459,17 @@ export async function recomputeStoreRollup(
   storeId: string,
   db: Firestore = getAdminDb(),
 ): Promise<StoreRollup | null> {
+  return (await recomputeStoreRollupReporting(storeId, db))?.rollup ?? null;
+}
+
+/**
+ * `recomputeStoreRollup`, also saying whether anything was written, for
+ * callers whose next step costs something only worth paying on a change.
+ */
+export async function recomputeStoreRollupReporting(
+  storeId: string,
+  db: Firestore = getAdminDb(),
+): Promise<{ rollup: StoreRollup; changed: boolean } | null> {
   const storeRef = db.collection(STORES_COLLECTION).doc(storeId);
   const storeSnapshot = await storeRef.get();
   if (!storeSnapshot.exists) return null;
@@ -521,7 +532,7 @@ export async function recomputeStoreRollup(
     stored.pricedAt === rollup.pricedAt &&
     stored.priceFeed === rollup.priceFeed;
 
-  if (unchanged) return rollup;
+  if (unchanged) return { rollup, changed: false };
 
   const batch = db.batch();
 
@@ -543,7 +554,7 @@ export async function recomputeStoreRollup(
 
   await batch.commit();
 
-  return rollup;
+  return { rollup, changed: true };
 }
 
 /** One feed observation to record, already matched to a store. */

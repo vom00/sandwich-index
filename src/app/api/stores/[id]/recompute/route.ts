@@ -2,7 +2,7 @@ import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { INDEX_SNAPSHOT_TAG } from "@/lib/index-snapshot.server";
-import { recomputeStoreRollup } from "@/lib/stores.server";
+import { recomputeStoreRollupReporting } from "@/lib/stores.server";
 import { storeIdSchema } from "@/lib/validation";
 
 /**
@@ -32,17 +32,18 @@ export async function POST(
   }
 
   try {
-    const rollup = await recomputeStoreRollup(parsed.data);
+    const result = await recomputeStoreRollupReporting(parsed.data);
 
-    if (rollup === null) {
+    if (result === null) {
       return NextResponse.json({ error: "Store not found" }, { status: 404 });
     }
 
-    // A price may have changed, so the landing page's cached figures are
-    // marked stale; the next visit rebuilds them in the background.
-    revalidateTag(INDEX_SNAPSHOT_TAG, "max");
+    // A price changed, so the landing page's cached figures are marked
+    // stale; the next visit rebuilds them in the background. Only on a
+    // change: a rebuild reads about 500 stores, and this URL is public.
+    if (result.changed) revalidateTag(INDEX_SNAPSHOT_TAG, "max");
 
-    return NextResponse.json({ storeId: parsed.data, rollup });
+    return NextResponse.json({ storeId: parsed.data, rollup: result.rollup });
   } catch (error) {
     console.error("[api/stores/recompute] failed", error);
     return NextResponse.json({ error: "Recompute failed" }, { status: 500 });
