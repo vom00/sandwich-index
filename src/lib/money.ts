@@ -26,6 +26,13 @@ export function formatCents(cents: number): string {
   return USD.format(cents / 100);
 }
 
+const COUNT = new Intl.NumberFormat("en-US");
+
+/** A count of stores or reports for display: `13649` → `13,649`. */
+export function formatCount(count: number): string {
+  return COUNT.format(count);
+}
+
 /** Signed form for deltas against an area median, e.g. `+$0.30`, `-$0.12`, `$0.00`. */
 export function formatCentsDelta(cents: number): string {
   if (cents === 0) return USD.format(0);

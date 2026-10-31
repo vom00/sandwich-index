@@ -7,6 +7,7 @@
  *   npm run fetch:drivethruindex -- --limit 50   # at most 50 store pages this run
  *   npm run fetch:drivethruindex -- --retry-unparsed  # also re-read pages the parser could not read
  *   npm run fetch:drivethruindex -- --missing    # read the stores our list lacks, for us-stores-dti.json
+ *   npm run fetch:drivethruindex -- --unlisted   # try our stores its sitemaps leave out, at their usual path
  *   npm run fetch:drivethruindex -- --merge      # write the newest row per store, across runs, into the snapshot
  *
  * robots.txt first; it asks for no crawl delay, so this keeps its own
@@ -110,7 +111,25 @@ function makeFetcher(rules: RobotsRules) {
   };
 }
 
-async function read(limit: number, runDate: string, retryUnparsed: boolean, missing: boolean): Promise<void> {
+/**
+ * Drive Thru Index's path for one of our stores, built the way its own paths
+ * are (13,569 of 13,570 read on 2026-10-22 match; airport stores can sit
+ * under the airport's name instead). For stores its sitemaps leave out.
+ */
+function guessedPath(row: ListedRow): string | null {
+  const [ref, , , , city, state] = row;
+  if (city === null || state === null) return null;
+  const slug = city
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/['.]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `/restaurants/us/${state.toLowerCase()}/${slug}/mcdonalds-${ref}`;
+}
+
+async function read(limit: number, runDate: string, retryUnparsed: boolean, missing: boolean, unlisted: boolean): Promise<void> {
   const robots = await fetch(`${DTI_ORIGIN}/robots.txt`, { headers: { "User-Agent": USER_AGENT } });
   if (!robots.ok) {
     console.error(`robots.txt answered ${robots.status}; not reading without it.`);
@@ -123,12 +142,24 @@ async function read(limit: number, runDate: string, retryUnparsed: boolean, miss
   const file = progressFile(runDate);
   const done = readProgress(file);
 
-  const index = await get("/sitemap.xml");
+  const wanted: { path: string; number: string }[] = [];
+  if (unlisted) {
+    // Our stores with no page read this run: their sitemaps didn't list them.
+    // A page that doesn't exist answers 404 and is not recorded.
+    const alreadyRead = new Set([...done.keys()].map((path) => restaurantNumberFromPath(path)));
+    for (const row of ATP_ROWS) {
+      const number = String(Number(row[0]));
+      const path = guessedPath(row);
+      if (!alreadyRead.has(number) && path !== null) wanted.push({ path, number });
+    }
+    console.log(`${wanted.length} unlisted store pages to try.`);
+  }
+
+  const index = unlisted ? "" : await get("/sitemap.xml");
   if (index === null) process.exit(1);
   const maps = [...index.matchAll(/<loc>https:\/\/drivethruindex\.com(\/sitemaps\/restaurants-mcdonalds-\d+\.xml)<\/loc>/g)].map((m) => m[1]!);
   console.log(`${maps.length} McDonald's sitemaps.`);
 
-  const wanted: { path: string; number: string }[] = [];
   const seen = new Set<string>();
   for (const map of maps) {
     const xml = await get(map);
@@ -284,6 +315,7 @@ if (process.argv.includes("--merge")) {
     runDate,
     process.argv.includes("--retry-unparsed"),
     process.argv.includes("--missing"),
+    process.argv.includes("--unlisted"),
   ).catch((error: unknown) => {
     console.error(error);
     process.exit(1);

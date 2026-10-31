@@ -36,6 +36,22 @@
    "storeId": "atp-10008"
   },
   {
+   "address": "8333 S Lancaster Rd",
+   "city": "Dallas",
+   "mcchickenCents": 159,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tx/dallas/mcdonalds-10009",
+   "storeId": "atp-10009"
+  },
+  {
+   "address": "1835 E El Dorado",
+   "city": "Decatur",
+   "mcchickenCents": 259,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/il/decatur/mcdonalds-1001",
+   "storeId": "atp-1001"
+  },
+  {
    "address": "20 E Frederick St",
    "city": "Walkersville",
    "mcchickenCents": 249,
@@ -50,6 +66,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ok/grove/mcdonalds-10012",
    "storeId": "atp-10012"
+  },
+  {
+   "address": "907 S 6th Ave",
+   "city": "Wauchula",
+   "mcchickenCents": 189,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/fl/wauchula/mcdonalds-10013",
+   "storeId": "atp-10013"
   },
   {
    "address": "6330 Us Highway 98 N",
@@ -74,6 +98,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/il/south-holland/mcdonalds-10016",
    "storeId": "atp-10016"
+  },
+  {
+   "address": "607 Lewis Blvd",
+   "city": "Sioux City",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ia/sioux-city/mcdonalds-10018",
+   "storeId": "atp-10018"
   },
   {
    "address": "700 West 4th Street",
@@ -114,6 +146,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ca/victorville/mcdonalds-10023",
    "storeId": "atp-10023"
+  },
+  {
+   "address": "4706 W Irlo Bronson Memorial Hwy",
+   "city": "Kissimmee",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/fl/kissimmee/mcdonalds-10024",
+   "storeId": "atp-10024"
   },
   {
    "address": "7708 Landover Rd",
@@ -172,12 +212,28 @@
    "storeId": "atp-10034"
   },
   {
+   "address": "4280 W Jefferson St",
+   "city": "Joliet",
+   "mcchickenCents": 200,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/il/joliet/mcdonalds-10035",
+   "storeId": "atp-10035"
+  },
+  {
    "address": "1380 Fairgrove Church Rd",
    "city": "Conover",
    "mcchickenCents": 239,
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/nc/conover/mcdonalds-10036",
    "storeId": "atp-10036"
+  },
+  {
+   "address": "32 Main St W",
+   "city": "Rainsville",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/al/rainsville/mcdonalds-10037",
+   "storeId": "atp-10037"
   },
   {
    "address": "985 E Bloomingdale Ave",
@@ -250,6 +306,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ca/san-fernando/mcdonalds-1005",
    "storeId": "atp-1005"
+  },
+  {
+   "address": "2212 Nolensville Rd",
+   "city": "Nashville",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tn/nashville/mcdonalds-10050",
+   "storeId": "atp-10050"
   },
   {
    "address": "503 W Main St",
@@ -748,6 +812,14 @@
    "storeId": "atp-1013"
   },
   {
+   "address": "460 Rt 46 E",
+   "city": "Fairfield",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/nj/fairfield/mcdonalds-10130",
+   "storeId": "atp-10130"
+  },
+  {
    "address": "2950 Holcomb Bridge Rd",
    "city": "Alpharetta",
    "mcchickenCents": 219,
@@ -834,6 +906,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/fl/orlando/mcdonalds-10140",
    "storeId": "atp-10140"
+  },
+  {
+   "address": "6710 W Peoria Ave",
+   "city": "Peoria",
+   "mcchickenCents": 179,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/az/peoria/mcdonalds-10141",
+   "storeId": "atp-10141"
   },
   {
    "address": "1480 Old Bridge Rd",
@@ -1844,6 +1924,14 @@
    "storeId": "atp-10304"
   },
   {
+   "address": "903 S Springfield Ave",
+   "city": "Bolivar",
+   "mcchickenCents": 150,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mo/bolivar/mcdonalds-10308",
+   "storeId": "atp-10308"
+  },
+  {
    "address": "4131 Tates Creek Ctr",
    "city": "Lexington",
    "mcchickenCents": 189,
@@ -1882,6 +1970,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/il/carbondale/mcdonalds-10316",
    "storeId": "atp-10316"
+  },
+  {
+   "address": "18273 Flower Hill Way",
+   "city": "Gaithersburg",
+   "mcchickenCents": 200,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/md/gaithersburg/mcdonalds-10317",
+   "storeId": "atp-10317"
   },
   {
    "address": "11 Market Pl",
@@ -2138,6 +2234,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/tx/texarkana/mcdonalds-10357",
    "storeId": "atp-10357"
+  },
+  {
+   "address": "7850 Lichen Dr",
+   "city": "Citrus Heights",
+   "mcchickenCents": 249,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/citrus-heights/mcdonalds-10358",
+   "storeId": "atp-10358"
   },
   {
    "address": "13950 Midway Rd",
@@ -2506,6 +2610,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/tx/dallas/mcdonalds-10414",
    "storeId": "atp-10414"
+  },
+  {
+   "address": "7040 Denton Hwy",
+   "city": "Watauga",
+   "mcchickenCents": 150,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tx/watauga/mcdonalds-10415",
+   "storeId": "atp-10415"
   },
   {
    "address": "5315 Veterans Memorial Blvd",
@@ -3556,6 +3668,14 @@
    "storeId": "atp-10570"
   },
   {
+   "address": "2205 E Fletcher Ave",
+   "city": "Tampa",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/fl/tampa/mcdonalds-10571",
+   "storeId": "atp-10571"
+  },
+  {
    "address": "13100 Cortez Blvd",
    "city": "Brooksville",
    "mcchickenCents": 285,
@@ -3650,6 +3770,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/tx/san-antonio/mcdonalds-10586",
    "storeId": "atp-10586"
+  },
+  {
+   "address": "30 Rio Rancho Rd",
+   "city": "Pomona",
+   "mcchickenCents": 259,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/pomona/mcdonalds-10587",
+   "storeId": "atp-10587"
   },
   {
    "address": "301 Aaron Dr",
@@ -3978,6 +4106,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/nv/reno/mcdonalds-1064",
    "storeId": "atp-1064"
+  },
+  {
+   "address": "195 South Main Street",
+   "city": "Tuba City",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/az/tuba-city/mcdonalds-10640",
+   "storeId": "atp-10640"
   },
   {
    "address": "5341 Glenway Ave",
@@ -4428,6 +4564,14 @@
    "storeId": "atp-10711"
   },
   {
+   "address": "520 E Baltimore St",
+   "city": "Taneytown",
+   "mcchickenCents": 249,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/md/taneytown/mcdonalds-10713",
+   "storeId": "atp-10713"
+  },
+  {
    "address": "83 Bureau Dr",
    "city": "Gaithersburg",
    "mcchickenCents": 289,
@@ -4506,6 +4650,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ca/corning/mcdonalds-10722",
    "storeId": "atp-10722"
+  },
+  {
+   "address": "9751 W Broad St",
+   "city": "Glen Allen",
+   "mcchickenCents": 249,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/va/glen-allen/mcdonalds-10723",
+   "storeId": "atp-10723"
   },
   {
    "address": "141 N Ellington Pky",
@@ -5844,6 +5996,14 @@
    "storeId": "atp-10920"
   },
   {
+   "address": "108 E Cross Ave",
+   "city": "Tulare",
+   "mcchickenCents": 299,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/tulare/mcdonalds-10921",
+   "storeId": "atp-10921"
+  },
+  {
    "address": "903 E Milam Rd",
    "city": "Mexia",
    "mcchickenCents": 219,
@@ -5882,6 +6042,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/or/tigard/mcdonalds-10928",
    "storeId": "atp-10928"
+  },
+  {
+   "address": "504 E Randolph Rd",
+   "city": "Silver Spring",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/md/silver-spring/mcdonalds-1093",
+   "storeId": "atp-1093"
   },
   {
    "address": "4374 Admiral Peary Hwy",
@@ -6044,6 +6212,14 @@
    "storeId": "atp-10954"
   },
   {
+   "address": "4020 Colby Ave",
+   "city": "Everett",
+   "mcchickenCents": 299,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/wa/everett/mcdonalds-10955",
+   "storeId": "atp-10955"
+  },
+  {
    "address": "101 W Telegraph Rd",
    "city": "Bellingham",
    "mcchickenCents": 249,
@@ -6130,6 +6306,14 @@
    "observedAt": "2026-10-30T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/nc/fayetteville/mcdonalds-10978",
    "storeId": "atp-10978"
+  },
+  {
+   "address": "1050 W Valley Pky",
+   "city": "Escondido",
+   "mcchickenCents": 269,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/escondido/mcdonalds-10979",
+   "storeId": "atp-10979"
   },
   {
    "address": "7215 Sw 8th St",
@@ -6748,6 +6932,14 @@
    "storeId": "atp-11072"
   },
   {
+   "address": "8100 E 21st Ct",
+   "city": "Wichita",
+   "mcchickenCents": 169,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ks/wichita/mcdonalds-11073",
+   "storeId": "atp-11073"
+  },
+  {
    "address": "9251 E Shea Blvd",
    "city": "Scottsdale",
    "mcchickenCents": 219,
@@ -6988,6 +7180,14 @@
    "storeId": "atp-11109"
   },
   {
+   "address": "3224 Jefferson St",
+   "city": "Napa",
+   "mcchickenCents": 359,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/napa/mcdonalds-1111",
+   "storeId": "atp-1111"
+  },
+  {
    "address": "3611 Commerce Dr",
    "city": "Warsaw",
    "mcchickenCents": 199,
@@ -7058,6 +7258,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/az/scottsdale/mcdonalds-11120",
    "storeId": "atp-11120"
+  },
+  {
+   "address": "1083 Blanding Blvd",
+   "city": "Orange Park",
+   "mcchickenCents": 189,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/fl/orange-park/mcdonalds-11121",
+   "storeId": "atp-11121"
   },
   {
    "address": "2244 Chesnee Hwy",
@@ -7172,6 +7380,14 @@
    "storeId": "atp-11139"
   },
   {
+   "address": "1710 S Broadway",
+   "city": "Santa Maria",
+   "mcchickenCents": 249,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/santa-maria/mcdonalds-1114",
+   "storeId": "atp-1114"
+  },
+  {
    "address": "4021 Powder Springs Rd",
    "city": "Powder Springs",
    "mcchickenCents": 199,
@@ -7274,6 +7490,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/oh/bolivar/mcdonalds-11156",
    "storeId": "atp-11156"
+  },
+  {
+   "address": "3105 N Broadway",
+   "city": "Los Angeles",
+   "mcchickenCents": 269,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/los-angeles/mcdonalds-11157",
+   "storeId": "atp-11157"
   },
   {
    "address": "7950 Burnet Rd",
@@ -7444,6 +7668,14 @@
    "storeId": "atp-11180"
   },
   {
+   "address": "4260 Nobel Dr",
+   "city": "San Diego",
+   "mcchickenCents": 269,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/san-diego/mcdonalds-11181",
+   "storeId": "atp-11181"
+  },
+  {
    "address": "3840 E Wilder Rd",
    "city": "Bay City",
    "mcchickenCents": 229,
@@ -7458,6 +7690,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/mi/detroit/mcdonalds-11183",
    "storeId": "atp-11183"
+  },
+  {
+   "address": "1189 Eglin Pky",
+   "city": "Shalimar",
+   "mcchickenCents": 169,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/fl/shalimar/mcdonalds-11184",
+   "storeId": "atp-11184"
   },
   {
    "address": "1704 East Lebanon Rd",
@@ -7506,6 +7746,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/sc/columbia/mcdonalds-1119",
    "storeId": "atp-1119"
+  },
+  {
+   "address": "2001 Lincolnway E",
+   "city": "Goshen",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/in/goshen/mcdonalds-11190",
+   "storeId": "atp-11190"
   },
   {
    "address": "315 Meadow Dr",
@@ -7834,6 +8082,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/fl/saint-petersburg/mcdonalds-1124",
    "storeId": "atp-1124"
+  },
+  {
+   "address": "10970 Se Oak St",
+   "city": "Milwaukie",
+   "mcchickenCents": 200,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/or/milwaukie/mcdonalds-11240",
+   "storeId": "atp-11240"
   },
   {
    "address": "778 S Forest Ave",
@@ -8554,6 +8810,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ca/murrieta/mcdonalds-11347",
    "storeId": "atp-11347"
+  },
+  {
+   "address": "5389 W Us Hwy 10",
+   "city": "Ludington",
+   "mcchickenCents": 239,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mi/ludington/mcdonalds-11348",
+   "storeId": "atp-11348"
   },
   {
    "address": "1800 S Western Avenue",
@@ -9444,6 +9708,14 @@
    "storeId": "atp-11473"
   },
   {
+   "address": "155 Newburyport Tpk",
+   "city": "Rowley",
+   "mcchickenCents": 249,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ma/rowley/mcdonalds-11474",
+   "storeId": "atp-11474"
+  },
+  {
    "address": "4503 N Interstate 35",
    "city": "Lacy Lakeview",
    "mcchickenCents": 199,
@@ -9570,6 +9842,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/id/chubbuck/mcdonalds-11492",
    "storeId": "atp-11492"
+  },
+  {
+   "address": "2427 E Ave S",
+   "city": "Palmdale",
+   "mcchickenCents": 239,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/palmdale/mcdonalds-11493",
+   "storeId": "atp-11493"
   },
   {
    "address": "102 Enterprise Way",
@@ -10396,6 +10676,14 @@
    "storeId": "atp-1161"
   },
   {
+   "address": "201 S Washington Hwy",
+   "city": "Ashland",
+   "mcchickenCents": 150,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/va/ashland/mcdonalds-11611",
+   "storeId": "atp-11611"
+  },
+  {
    "address": "201 Rudy Cir",
    "city": "Nashville",
    "mcchickenCents": 219,
@@ -11180,6 +11468,14 @@
    "storeId": "atp-11721"
   },
   {
+   "address": "1615 N Atherton St",
+   "city": "State College",
+   "mcchickenCents": 229,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/pa/state-college/mcdonalds-11722",
+   "storeId": "atp-11722"
+  },
+  {
    "address": "3273 Manchester Road",
    "city": "Akron",
    "mcchickenCents": 239,
@@ -11284,6 +11580,14 @@
    "storeId": "atp-11738"
   },
   {
+   "address": "3207 W Indian School",
+   "city": "Phoenix",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/az/phoenix/mcdonalds-11739",
+   "storeId": "atp-11739"
+  },
+  {
    "address": "540 Beall Ave",
    "city": "Wooster",
    "mcchickenCents": 229,
@@ -11306,6 +11610,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ga/lagrange/mcdonalds-11743",
    "storeId": "atp-11743"
+  },
+  {
+   "address": "1480 S Mercey Springs Rd",
+   "city": "Los Banos",
+   "mcchickenCents": 259,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/los-banos/mcdonalds-11744",
+   "storeId": "atp-11744"
   },
   {
    "address": "6815 Valley Way",
@@ -11980,6 +12292,14 @@
    "storeId": "atp-11855"
   },
   {
+   "address": "265 S Main St",
+   "city": "Oberlin",
+   "mcchickenCents": 229,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/oh/oberlin/mcdonalds-11856",
+   "storeId": "atp-11856"
+  },
+  {
    "address": "6380 Grand Ave",
    "city": "Gurnee",
    "mcchickenCents": 219,
@@ -12604,6 +12924,14 @@
    "storeId": "atp-11961"
   },
   {
+   "address": "1190 Washington Ave",
+   "city": "Holland",
+   "mcchickenCents": 169,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mi/holland/mcdonalds-11962",
+   "storeId": "atp-11962"
+  },
+  {
    "address": "2290 N 600 W",
    "city": "Greenfield",
    "mcchickenCents": 199,
@@ -13106,6 +13434,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/tx/fairfield/mcdonalds-12041",
    "storeId": "atp-12041"
+  },
+  {
+   "address": "3009 Hwy 10 E",
+   "city": "Moorhead",
+   "mcchickenCents": 249,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mn/moorhead/mcdonalds-12042",
+   "storeId": "atp-12042"
   },
   {
    "address": "5517 Ne Gher Rd",
@@ -13676,6 +14012,14 @@
    "storeId": "atp-12131"
   },
   {
+   "address": "9846 Winche Ster Road",
+   "city": "Front Royal",
+   "mcchickenCents": 279,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/va/front-royal/mcdonalds-12132",
+   "storeId": "atp-12132"
+  },
+  {
    "address": "12091 Strang Line Rd",
    "city": "Olathe",
    "mcchickenCents": 199,
@@ -13794,6 +14138,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/wi/mequon/mcdonalds-12157",
    "storeId": "atp-12157"
+  },
+  {
+   "address": "2347 Randleman Rd",
+   "city": "Greensboro",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/nc/greensboro/mcdonalds-1216",
+   "storeId": "atp-1216"
   },
   {
    "address": "1750 Sw Saint Lucie West Blvd",
@@ -14090,6 +14442,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/tx/lubbock/mcdonalds-1221",
    "storeId": "atp-1221"
+  },
+  {
+   "address": "2750 Taylor Rd",
+   "city": "Montgomery",
+   "mcchickenCents": 189,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/al/montgomery/mcdonalds-12210",
+   "storeId": "atp-12210"
   },
   {
    "address": "805 N. Grand Canyon Blvd.",
@@ -15276,6 +15636,14 @@
    "storeId": "atp-12401"
   },
   {
+   "address": "3929 Lockport Olcott Rd",
+   "city": "Lockport",
+   "mcchickenCents": 150,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ny/lockport/mcdonalds-12402",
+   "storeId": "atp-12402"
+  },
+  {
    "address": "4990 Bayou Rd",
    "city": "Pensacola",
    "mcchickenCents": 299,
@@ -15644,6 +16012,14 @@
    "storeId": "atp-12500"
   },
   {
+   "address": "700 Us Highway 491",
+   "city": "Gallup",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/nm/gallup/mcdonalds-12501",
+   "storeId": "atp-12501"
+  },
+  {
    "address": "4264 Washington Road",
    "city": "Evans",
    "mcchickenCents": 229,
@@ -15802,6 +16178,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ct/bridgeport/mcdonalds-12533",
    "storeId": "atp-12533"
+  },
+  {
+   "address": "2882 N Scottsdale Rd",
+   "city": "Scottsdale",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/az/scottsdale/mcdonalds-12536",
+   "storeId": "atp-12536"
   },
   {
    "address": "7337 Wooster Pike",
@@ -16058,6 +16442,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/pa/mcconnellsburg/mcdonalds-12608",
    "storeId": "atp-12608"
+  },
+  {
+   "address": "15476 State Hwy 105",
+   "city": "Montgomery",
+   "mcchickenCents": 159,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tx/montgomery/mcdonalds-12609",
+   "storeId": "atp-12609"
   },
   {
    "address": "2911 Clintmoore Rd",
@@ -17164,6 +17556,14 @@
    "storeId": "atp-1289"
   },
   {
+   "address": "1435 Plymouth St",
+   "city": "Bremen",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/in/bremen/mcdonalds-12890",
+   "storeId": "atp-12890"
+  },
+  {
    "address": "132 Malabar Rd Sw",
    "city": "Palm Bay",
    "mcchickenCents": 189,
@@ -17618,6 +18018,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ma/needham/mcdonalds-1302",
    "storeId": "atp-1302"
+  },
+  {
+   "address": "5641 E Belknap",
+   "city": "Haltom City",
+   "mcchickenCents": 159,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tx/haltom-city/mcdonalds-13021",
+   "storeId": "atp-13021"
   },
   {
    "address": "11110 West 31st Street",
@@ -18674,6 +19082,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/tx/fort-worth/mcdonalds-13381",
    "storeId": "atp-13381"
+  },
+  {
+   "address": "2541 Castle Hayne Rd",
+   "city": "Wilmington",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/nc/wilmington/mcdonalds-13382",
+   "storeId": "atp-13382"
   },
   {
    "address": "450 Town Line Rd",
@@ -20556,6 +20972,14 @@
    "storeId": "atp-1388"
   },
   {
+   "address": "1604 W Cape Coral Pky",
+   "city": "Cape Coral",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/fl/cape-coral/mcdonalds-13880",
+   "storeId": "atp-13880"
+  },
+  {
    "address": "13731 Round Lake Blvd",
    "city": "Andover",
    "mcchickenCents": 299,
@@ -20922,6 +21346,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/tx/el-paso/mcdonalds-1399",
    "storeId": "atp-1399"
+  },
+  {
+   "address": "1275 N Rt 83",
+   "city": "Grayslake",
+   "mcchickenCents": 299,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/il/grayslake/mcdonalds-13990",
+   "storeId": "atp-13990"
   },
   {
    "address": "431 E Grand",
@@ -21628,6 +22060,14 @@
    "storeId": "atp-14204"
   },
   {
+   "address": "516 N Main St",
+   "city": "Bridgewater",
+   "mcchickenCents": 269,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/va/bridgewater/mcdonalds-14205",
+   "storeId": "atp-14205"
+  },
+  {
    "address": "2612 8th Avenue South",
    "city": "Nashville",
    "mcchickenCents": 219,
@@ -22300,6 +22740,14 @@
    "storeId": "atp-14409"
   },
   {
+   "address": "225 N Kimball",
+   "city": "Southlake",
+   "mcchickenCents": 150,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tx/southlake/mcdonalds-14416",
+   "storeId": "atp-14416"
+  },
+  {
    "address": "14770 Preston Rd",
    "city": "Dallas",
    "mcchickenCents": 189,
@@ -22602,6 +23050,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/sc/columbia/mcdonalds-14497",
    "storeId": "atp-14497"
+  },
+  {
+   "address": "110 W Fourth St",
+   "city": "Adel",
+   "mcchickenCents": 259,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ga/adel/mcdonalds-14499",
+   "storeId": "atp-14499"
   },
   {
    "address": "1 Traders Way",
@@ -23652,6 +24108,14 @@
    "storeId": "atp-14966"
   },
   {
+   "address": "401 Park Ave S",
+   "city": "New York",
+   "mcchickenCents": 269,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ny/new-york/mcdonalds-14971",
+   "storeId": "atp-14971"
+  },
+  {
    "address": "1796 E Lugonia Ave",
    "city": "Redlands",
    "mcchickenCents": 249,
@@ -23930,6 +24394,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/al/rogersville/mcdonalds-15113",
    "storeId": "atp-15113"
+  },
+  {
+   "address": "3020 Cranberry Hwy",
+   "city": "Bourne",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ma/bourne/mcdonalds-1512",
+   "storeId": "atp-1512"
   },
   {
    "address": "1010 N State St",
@@ -24330,6 +24802,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ca/foothill-ranch/mcdonalds-15292",
    "storeId": "atp-15292"
+  },
+  {
+   "address": "116 S Division",
+   "city": "Bellaire",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mi/bellaire/mcdonalds-15295",
+   "storeId": "atp-15295"
   },
   {
    "address": "8531 Homestead Drive",
@@ -25668,6 +26148,14 @@
    "storeId": "atp-15844"
   },
   {
+   "address": "612 Tennessee Ave",
+   "city": "Dalhart",
+   "mcchickenCents": 229,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tx/dalhart/mcdonalds-15846",
+   "storeId": "atp-15846"
+  },
+  {
    "address": "1509 E Jackson",
    "city": "Hugo",
    "mcchickenCents": 169,
@@ -26522,6 +27010,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/hi/waianae/mcdonalds-1621",
    "storeId": "atp-1621"
+  },
+  {
+   "address": "1960 E Main",
+   "city": "Mesa",
+   "mcchickenCents": 229,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/az/mesa/mcdonalds-16217",
+   "storeId": "atp-16217"
   },
   {
    "address": "555 Jurassic Ct",
@@ -27700,6 +28196,14 @@
    "storeId": "atp-16833"
   },
   {
+   "address": "29682 Sw Town Center Loop W",
+   "city": "Wilsonville",
+   "mcchickenCents": 250,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/or/wilsonville/mcdonalds-16834",
+   "storeId": "atp-16834"
+  },
+  {
    "address": "2196 38th Ave",
    "city": "Longview",
    "mcchickenCents": 219,
@@ -28084,6 +28588,14 @@
    "storeId": "atp-16997"
   },
   {
+   "address": "3324 Northside Pkwy N",
+   "city": "Atlanta",
+   "mcchickenCents": 249,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ga/atlanta/mcdonalds-1700",
+   "storeId": "atp-1700"
+  },
+  {
    "address": "2530 E Jolly Road",
    "city": "Lansing",
    "mcchickenCents": 189,
@@ -28122,6 +28634,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/fl/coconut-creek/mcdonalds-17010",
    "storeId": "atp-17010"
+  },
+  {
+   "address": "15715 Sw 88th St",
+   "city": "Miami",
+   "mcchickenCents": 259,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/fl/miami/mcdonalds-17014",
+   "storeId": "atp-17014"
   },
   {
    "address": "20405 Conant Avenue",
@@ -28226,6 +28746,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ne/omaha/mcdonalds-17082",
    "storeId": "atp-17082"
+  },
+  {
+   "address": "118 Highway 332 W",
+   "city": "Lake Jackson",
+   "mcchickenCents": 159,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tx/lake-jackson/mcdonalds-17084",
+   "storeId": "atp-17084"
   },
   {
    "address": "3615 W Cumberland Ave",
@@ -30532,6 +31060,14 @@
    "storeId": "atp-17895"
   },
   {
+   "address": "1444 S Beltline Rd",
+   "city": "Mesquite",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tx/mesquite/mcdonalds-17897",
+   "storeId": "atp-17897"
+  },
+  {
    "address": "1149 S Cloverdale Blvd",
    "city": "Cloverdale",
    "mcchickenCents": 299,
@@ -31300,6 +31836,14 @@
    "storeId": "atp-18187"
   },
   {
+   "address": "1611 N State St",
+   "city": "Orem",
+   "mcchickenCents": 170,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ut/orem/mcdonalds-18188",
+   "storeId": "atp-18188"
+  },
+  {
    "address": "1016 W Flagler St",
    "city": "Miami",
    "mcchickenCents": 189,
@@ -31474,6 +32018,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/va/manassas/mcdonalds-18265",
    "storeId": "atp-18265"
+  },
+  {
+   "address": "44961 Woodward Ave",
+   "city": "Pontiac",
+   "mcchickenCents": 229,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mi/pontiac/mcdonalds-18269",
+   "storeId": "atp-18269"
   },
   {
    "address": "8300 Richardson Rd",
@@ -33412,6 +33964,14 @@
    "storeId": "atp-19123"
   },
   {
+   "address": "726 Connecticut Ave",
+   "city": "Norwalk",
+   "mcchickenCents": 239,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ct/norwalk/mcdonalds-1913",
+   "storeId": "atp-1913"
+  },
+  {
    "address": "12253 Governor Gc Perry Hwy",
    "city": "Pounding Mill",
    "mcchickenCents": 199,
@@ -34516,6 +35076,14 @@
    "storeId": "atp-19632"
   },
   {
+   "address": "1896 E 9400 S",
+   "city": "Sandy",
+   "mcchickenCents": 229,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ut/sandy/mcdonalds-19635",
+   "storeId": "atp-19635"
+  },
+  {
    "address": "912 Central Ave",
    "city": "Dover",
    "mcchickenCents": 299,
@@ -34994,6 +35562,14 @@
    "observedAt": "2026-10-30T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/or/gladstone/mcdonalds-19905",
    "storeId": "atp-19905"
+  },
+  {
+   "address": "3250 E Chestnut Expy",
+   "city": "Springfield",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mo/springfield/mcdonalds-19907",
+   "storeId": "atp-19907"
   },
   {
    "address": "715 Central Ave",
@@ -36276,6 +36852,14 @@
    "storeId": "atp-20505"
   },
   {
+   "address": "7265 Arlington Blvd",
+   "city": "Falls Church",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/va/falls-church/mcdonalds-20506",
+   "storeId": "atp-20506"
+  },
+  {
    "address": "275 S Sterling Blvd",
    "city": "Sterling",
    "mcchickenCents": 219,
@@ -37380,6 +37964,14 @@
    "storeId": "atp-2104"
   },
   {
+   "address": "35025 Harper Avenue",
+   "city": "Clinton Township",
+   "mcchickenCents": 269,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mi/clinton-township/mcdonalds-21049",
+   "storeId": "atp-21049"
+  },
+  {
    "address": "19230 Woodfield Rd",
    "city": "Gaithersburg",
    "mcchickenCents": 239,
@@ -37924,6 +38516,14 @@
    "storeId": "atp-2130"
   },
   {
+   "address": "9437 Lee Rd",
+   "city": "Brighton",
+   "mcchickenCents": 189,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mi/brighton/mcdonalds-21302",
+   "storeId": "atp-21302"
+  },
+  {
    "address": "4211 Sierra College Blvd",
    "city": "Rocklin",
    "mcchickenCents": 259,
@@ -38082,6 +38682,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/co/parker/mcdonalds-21389",
    "storeId": "atp-21389"
+  },
+  {
+   "address": "9800 S Yosemite",
+   "city": "Lone Tree",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/co/lone-tree/mcdonalds-21390",
+   "storeId": "atp-21390"
   },
   {
    "address": "2101 Viers Mill Rd",
@@ -38370,6 +38978,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/tx/waco/mcdonalds-21589",
    "storeId": "atp-21589"
+  },
+  {
+   "address": "927 S High St",
+   "city": "West Chester",
+   "mcchickenCents": 229,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/pa/west-chester/mcdonalds-2159",
+   "storeId": "atp-2159"
   },
   {
    "address": "6330 N Eldridge Pky",
@@ -40092,6 +40708,14 @@
    "storeId": "atp-22433"
   },
   {
+   "address": "3116 S 7 Highway",
+   "city": "Blue Springs",
+   "mcchickenCents": 169,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mo/blue-springs/mcdonalds-22445",
+   "storeId": "atp-22445"
+  },
+  {
    "address": "1400 Royal Palm Beach Boulevard",
    "city": "Royal Palm Beach",
    "mcchickenCents": 219,
@@ -41132,6 +41756,14 @@
    "storeId": "atp-22911"
   },
   {
+   "address": "2049 Broadway",
+   "city": "New York",
+   "mcchickenCents": 299,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ny/new-york/mcdonalds-2292",
+   "storeId": "atp-2292"
+  },
+  {
    "address": "80-03 Queens Blvd",
    "city": "Elmhurst",
    "mcchickenCents": 259,
@@ -41378,6 +42010,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/nv/las-vegas/mcdonalds-23039",
    "storeId": "atp-23039"
+  },
+  {
+   "address": "407 N Central Park Ave",
+   "city": "Hartsdale",
+   "mcchickenCents": 249,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ny/hartsdale/mcdonalds-2304",
+   "storeId": "atp-2304"
   },
   {
    "address": "910 Strong Dr",
@@ -43196,6 +43836,14 @@
    "storeId": "atp-23767"
   },
   {
+   "address": "828 N Wendy Dr",
+   "city": "Newbury Park",
+   "mcchickenCents": 299,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/newbury-park/mcdonalds-2378",
+   "storeId": "atp-2378"
+  },
+  {
    "address": "2911 Colorado Blvd",
    "city": "Idaho Springs",
    "mcchickenCents": 200,
@@ -44564,6 +45212,14 @@
    "storeId": "atp-24376"
   },
   {
+   "address": "401 Manchester Blvd",
+   "city": "Inglewood",
+   "mcchickenCents": 259,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/inglewood/mcdonalds-24379",
+   "storeId": "atp-24379"
+  },
+  {
    "address": "1615 S Riverside",
    "city": "Rialto",
    "mcchickenCents": 299,
@@ -44754,6 +45410,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ca/fontana/mcdonalds-24473",
    "storeId": "atp-24473"
+  },
+  {
+   "address": "4450 Gus Thomasson Rd",
+   "city": "Mesquite",
+   "mcchickenCents": 179,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tx/mesquite/mcdonalds-24477",
+   "storeId": "atp-24477"
   },
   {
    "address": "1220 S Saint Louis",
@@ -45260,6 +45924,14 @@
    "storeId": "atp-24689"
   },
   {
+   "address": "503 N Lincoln Rd",
+   "city": "Escanaba",
+   "mcchickenCents": 299,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mi/escanaba/mcdonalds-2469",
+   "storeId": "atp-2469"
+  },
+  {
    "address": "6645 Lyndale Ave S",
    "city": "Richfield",
    "mcchickenCents": 219,
@@ -45412,6 +46084,14 @@
    "storeId": "atp-24736"
   },
   {
+   "address": "1871 2nd Ave",
+   "city": "New York",
+   "mcchickenCents": 299,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ny/new-york/mcdonalds-24739",
+   "storeId": "atp-24739"
+  },
+  {
    "address": "400 Battlefield Blvd S",
    "city": "Chesapeake",
    "mcchickenCents": 239,
@@ -45546,6 +46226,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/mn/brooklyn-park/mcdonalds-24799",
    "storeId": "atp-24799"
+  },
+  {
+   "address": "3814 Plainfield Ave Ne",
+   "city": "Grand Rapids",
+   "mcchickenCents": 159,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mi/grand-rapids/mcdonalds-248",
+   "storeId": "atp-248"
   },
   {
    "address": "2220 S Sherwood Forest Blvd",
@@ -47436,6 +48124,14 @@
    "storeId": "atp-25492"
   },
   {
+   "address": "4926 Old Dixie Hwy",
+   "city": "Forest Park",
+   "mcchickenCents": 189,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ga/forest-park/mcdonalds-25499",
+   "storeId": "atp-25499"
+  },
+  {
    "address": "746 San Souci Hwy",
    "city": "Wilkes Barre",
    "mcchickenCents": 269,
@@ -47524,6 +48220,14 @@
    "storeId": "atp-25539"
   },
   {
+   "address": "1300 E 2nd St",
+   "city": "Edmond",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ok/edmond/mcdonalds-25542",
+   "storeId": "atp-25542"
+  },
+  {
    "address": "1696 Sternberg Road",
    "city": "Muskegon",
    "mcchickenCents": 179,
@@ -47604,6 +48308,14 @@
    "storeId": "atp-25571"
   },
   {
+   "address": "5890 S 27th St",
+   "city": "Milwaukee",
+   "mcchickenCents": 239,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/wi/milwaukee/mcdonalds-25573",
+   "storeId": "atp-25573"
+  },
+  {
    "address": "8220 W Hampton Ave",
    "city": "Milwaukee",
    "mcchickenCents": 219,
@@ -47682,6 +48394,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ca/sacramento/mcdonalds-25599",
    "storeId": "atp-25599"
+  },
+  {
+   "address": "1711 S Saginaw Rd",
+   "city": "Midland",
+   "mcchickenCents": 229,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mi/midland/mcdonalds-256",
+   "storeId": "atp-256"
   },
   {
    "address": "515 E Main St",
@@ -48068,6 +48788,14 @@
    "storeId": "atp-25723"
   },
   {
+   "address": "5554 Fruitville Rd",
+   "city": "Sarasota",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/fl/sarasota/mcdonalds-25724",
+   "storeId": "atp-25724"
+  },
+  {
    "address": "8940 W Sam Houston Pky",
    "city": "Houston",
    "mcchickenCents": 199,
@@ -48170,6 +48898,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/in/evansville/mcdonalds-25751",
    "storeId": "atp-25751"
+  },
+  {
+   "address": "768 Winchester Rd",
+   "city": "Lexington",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ky/lexington/mcdonalds-25755",
+   "storeId": "atp-25755"
   },
   {
    "address": "11001 Maumelle Blvd",
@@ -48810,6 +49546,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/pa/brookhaven/mcdonalds-2607",
    "storeId": "atp-2607"
+  },
+  {
+   "address": "1105 W Frontage Rd",
+   "city": "Owatonna",
+   "mcchickenCents": 269,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mn/owatonna/mcdonalds-26074",
+   "storeId": "atp-26074"
   },
   {
    "address": "7518 North Fwy",
@@ -50820,6 +51564,14 @@
    "storeId": "atp-26778"
   },
   {
+   "address": "904 Manhattan Ave",
+   "city": "Brooklyn",
+   "mcchickenCents": 299,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ny/brooklyn/mcdonalds-2678",
+   "storeId": "atp-2678"
+  },
+  {
    "address": "706 Supercenter Dr",
    "city": "Calera",
    "mcchickenCents": 229,
@@ -52716,6 +53468,22 @@
    "storeId": "atp-27597"
   },
   {
+   "address": "1610 S Highway 29",
+   "city": "Cantonment",
+   "mcchickenCents": 150,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/fl/cantonment/mcdonalds-27599",
+   "storeId": "atp-27599"
+  },
+  {
+   "address": "1787 State Rd",
+   "city": "Cuyahoga Falls",
+   "mcchickenCents": 279,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/oh/cuyahoga-falls/mcdonalds-276",
+   "storeId": "atp-276"
+  },
+  {
    "address": "110 Addison Ave West",
    "city": "Twin Falls",
    "mcchickenCents": 239,
@@ -52994,6 +53762,22 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/tn/murfreesboro/mcdonalds-27733",
    "storeId": "atp-27733"
+  },
+  {
+   "address": "606 E Main St",
+   "city": "Charleston",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ms/charleston/mcdonalds-27734",
+   "storeId": "atp-27734"
+  },
+  {
+   "address": "333 N Dupont Hwy",
+   "city": "Smyrna",
+   "mcchickenCents": 290,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/de/smyrna/mcdonalds-2774",
+   "storeId": "atp-2774"
   },
   {
    "address": "6770 Jordan Rd",
@@ -54460,12 +55244,28 @@
    "storeId": "atp-28635"
   },
   {
+   "address": "4830 N Federal Hwy",
+   "city": "Lighthouse Point",
+   "mcchickenCents": 279,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/fl/lighthouse-point/mcdonalds-2864",
+   "storeId": "atp-2864"
+  },
+  {
    "address": "1505 S Semoran Blvd",
    "city": "Orlando",
    "mcchickenCents": 199,
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/fl/orlando/mcdonalds-2865",
    "storeId": "atp-2865"
+  },
+  {
+   "address": "1409 N Main Street",
+   "city": "Fuquay-Varina",
+   "mcchickenCents": 150,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/nc/fuquay-varina/mcdonalds-28653",
+   "storeId": "atp-28653"
   },
   {
    "address": "25200 Interstate 10 W Lot 2",
@@ -55164,6 +55964,14 @@
    "storeId": "atp-2912"
   },
   {
+   "address": "1695 E Kemper Rd",
+   "city": "Sharonville",
+   "mcchickenCents": 289,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/oh/sharonville/mcdonalds-2913",
+   "storeId": "atp-2913"
+  },
+  {
    "address": "5 Sugar Run Rd",
    "city": "Waynesburg",
    "mcchickenCents": 299,
@@ -55482,6 +56290,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/nc/charlotte/mcdonalds-29327",
    "storeId": "atp-29327"
+  },
+  {
+   "address": "9346 S 700 E",
+   "city": "Sandy",
+   "mcchickenCents": 160,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ut/sandy/mcdonalds-2933",
+   "storeId": "atp-2933"
   },
   {
    "address": "7830 32nd St N",
@@ -56916,6 +57732,14 @@
    "storeId": "atp-3041"
   },
   {
+   "address": "6360 Power Ferry Rd",
+   "city": "Atlanta",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ga/atlanta/mcdonalds-3042",
+   "storeId": "atp-3042"
+  },
+  {
    "address": "2061 South Queen Street",
    "city": "York",
    "mcchickenCents": 199,
@@ -57418,6 +58242,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/tx/mount-vernon/mcdonalds-30764",
    "storeId": "atp-30764"
+  },
+  {
+   "address": "79-225 HWY 111 (Walmart #1805",
+   "city": "La Quinta",
+   "mcchickenCents": 249,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/la-quinta/mcdonalds-30769",
+   "storeId": "atp-30769"
   },
   {
    "address": "741 E Dixie Dr",
@@ -58274,6 +59106,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/tx/kingsville/mcdonalds-31226",
    "storeId": "atp-31226"
+  },
+  {
+   "address": "3501 Branch Ave",
+   "city": "Temple Hills",
+   "mcchickenCents": 200,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/md/temple-hills/mcdonalds-3123",
+   "storeId": "atp-3123"
   },
   {
    "address": "729 Ocean Beach Highway",
@@ -61092,6 +61932,14 @@
    "storeId": "atp-32134"
   },
   {
+   "address": "98 S Carlton St",
+   "city": "Harrisonburg",
+   "mcchickenCents": 269,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/va/harrisonburg/mcdonalds-3214",
+   "storeId": "atp-3214"
+  },
+  {
    "address": "801 N Cross St",
    "city": "Albany",
    "mcchickenCents": 169,
@@ -61594,6 +62442,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/nc/gastonia/mcdonalds-32328",
    "storeId": "atp-32328"
+  },
+  {
+   "address": "4423 S Laburnun Ave",
+   "city": "Richmond",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/va/richmond/mcdonalds-32329",
+   "storeId": "atp-32329"
   },
   {
    "address": "14271 Gratiot Ave",
@@ -62116,6 +62972,14 @@
    "storeId": "atp-32523"
   },
   {
+   "address": "2539 W Broadway Ave",
+   "city": "Sulphur",
+   "mcchickenCents": 169,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ok/sulphur/mcdonalds-32525",
+   "storeId": "atp-32525"
+  },
+  {
    "address": "3250 Heritage Trace Pkwy",
    "city": "Fort Worth",
    "mcchickenCents": 269,
@@ -62162,6 +63026,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/pa/ephrata/mcdonalds-3255",
    "storeId": "atp-3255"
+  },
+  {
+   "address": "12387 Plank Road",
+   "city": "Baton Rouge",
+   "mcchickenCents": 229,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/la/baton-rouge/mcdonalds-32550",
+   "storeId": "atp-32550"
   },
   {
    "address": "4447 Hwy 7 N",
@@ -62684,6 +63556,14 @@
    "storeId": "atp-32721"
   },
   {
+   "address": "11671 Se Federal Hwy",
+   "city": "Hobe Sound",
+   "mcchickenCents": 249,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/fl/hobe-sound/mcdonalds-32726",
+   "storeId": "atp-32726"
+  },
+  {
    "address": "2012 New Castle Road",
    "city": "Portersville",
    "mcchickenCents": 229,
@@ -62898,6 +63778,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ky/lawrenceburg/mcdonalds-32802",
    "storeId": "atp-32802"
+  },
+  {
+   "address": "2101 180th Ave",
+   "city": "Zumbrota",
+   "mcchickenCents": 289,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mn/zumbrota/mcdonalds-32805",
+   "storeId": "atp-32805"
   },
   {
    "address": "2224 Warrensville Center Rd",
@@ -63604,6 +64492,14 @@
    "storeId": "atp-33062"
   },
   {
+   "address": "3853 Portola Parkway",
+   "city": "Irvine",
+   "mcchickenCents": 279,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/irvine/mcdonalds-33067",
+   "storeId": "atp-33067"
+  },
+  {
    "address": "323 Bedford St",
    "city": "Whitman",
    "mcchickenCents": 219,
@@ -63818,6 +64714,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/nc/west-end/mcdonalds-33126",
    "storeId": "atp-33126"
+  },
+  {
+   "address": "36 Lowe S Drive",
+   "city": "Pittsboro",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/nc/pittsboro/mcdonalds-33127",
+   "storeId": "atp-33127"
   },
   {
    "address": "479 Cc Camp Road",
@@ -65556,6 +66460,14 @@
    "storeId": "atp-33757"
   },
   {
+   "address": "811 Broadway Dr",
+   "city": "Hattiesburg",
+   "mcchickenCents": 229,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ms/hattiesburg/mcdonalds-3376",
+   "storeId": "atp-3376"
+  },
+  {
    "address": "227 Old Pipers Gap Road",
    "city": "Lambsburg",
    "mcchickenCents": 239,
@@ -65738,6 +66650,14 @@
    "observedAt": "2026-10-30T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ms/tupelo/mcdonalds-33846",
    "storeId": "atp-33846"
+  },
+  {
+   "address": "1119 Airport Fernwood Road",
+   "city": "Mccomb",
+   "mcchickenCents": 229,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ms/mccomb/mcdonalds-33847",
+   "storeId": "atp-33847"
   },
   {
    "address": "520 S Thompson",
@@ -68620,6 +69540,14 @@
    "storeId": "atp-34979"
   },
   {
+   "address": "222 S White Sands Rd",
+   "city": "Alamogordo",
+   "mcchickenCents": 259,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/nm/alamogordo/mcdonalds-3498",
+   "storeId": "atp-3498"
+  },
+  {
    "address": "1761 State Hwy 46 W",
    "city": "New Braunfels",
    "mcchickenCents": 229,
@@ -68738,6 +69666,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ga/snellville/mcdonalds-35032",
    "storeId": "atp-35032"
+  },
+  {
+   "address": "12101 S Waco Ave",
+   "city": "Glenpool",
+   "mcchickenCents": 169,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ok/glenpool/mcdonalds-35035",
+   "storeId": "atp-35035"
   },
   {
    "address": "319 University Drive",
@@ -69748,6 +70684,14 @@
    "storeId": "atp-3543"
   },
   {
+   "address": "2699 Union Avenue",
+   "city": "San Jose",
+   "mcchickenCents": 299,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/san-jose/mcdonalds-35435",
+   "storeId": "atp-35435"
+  },
+  {
    "address": "573 E Main St",
    "city": "Batavia",
    "mcchickenCents": 229,
@@ -69922,6 +70866,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/nv/laughlin/mcdonalds-35508",
    "storeId": "atp-35508"
+  },
+  {
+   "address": "1313 W County Road E",
+   "city": "Arden Hills",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mn/arden-hills/mcdonalds-3551",
+   "storeId": "atp-3551"
   },
   {
    "address": "603 Hennessy Way",
@@ -70154,6 +71106,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ca/port-hueneme/mcdonalds-3562",
    "storeId": "atp-3562"
+  },
+  {
+   "address": "10320 Lake June Road",
+   "city": "Dallas",
+   "mcchickenCents": 149,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tx/dallas/mcdonalds-35628",
+   "storeId": "atp-35628"
   },
   {
    "address": "10303 Alameda Ave",
@@ -70484,6 +71444,14 @@
    "storeId": "atp-35719"
   },
   {
+   "address": "639 Highway 45e South",
+   "city": "Medina",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tn/medina/mcdonalds-35721",
+   "storeId": "atp-35721"
+  },
+  {
    "address": "10 Briar Creek Plaza",
    "city": "Berwick",
    "mcchickenCents": 219,
@@ -70708,6 +71676,14 @@
    "storeId": "atp-35783"
   },
   {
+   "address": "1013 Front Place",
+   "city": "North Port",
+   "mcchickenCents": 189,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/fl/north-port/mcdonalds-35784",
+   "storeId": "atp-35784"
+  },
+  {
    "address": "83 Carl Cannon Blvd",
    "city": "Jasper",
    "mcchickenCents": 150,
@@ -70898,6 +71874,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/tx/katy/mcdonalds-35856",
    "storeId": "atp-35856"
+  },
+  {
+   "address": "7805 W Grand Parkway South",
+   "city": "Richmond",
+   "mcchickenCents": 169,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tx/richmond/mcdonalds-35857",
+   "storeId": "atp-35857"
   },
   {
    "address": "8819 State Hwy 151",
@@ -71204,6 +72188,14 @@
    "storeId": "atp-35949"
   },
   {
+   "address": "3501 W 86th St",
+   "city": "Indianapolis",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/in/indianapolis/mcdonalds-3595",
+   "storeId": "atp-3595"
+  },
+  {
    "address": "4643 Belden Village Rd Nw",
    "city": "Canton",
    "mcchickenCents": 219,
@@ -71266,6 +72258,14 @@
    "observedAt": "2026-10-30T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ga/atlanta/mcdonalds-35978",
    "storeId": "atp-35978"
+  },
+  {
+   "address": "5100 York Rd",
+   "city": "Baltimore",
+   "mcchickenCents": 200,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/md/baltimore/mcdonalds-3598",
+   "storeId": "atp-3598"
   },
   {
    "address": "1335 Cooper Point Road Sw",
@@ -71426,6 +72426,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/mo/charleston/mcdonalds-36058",
    "storeId": "atp-36058"
+  },
+  {
+   "address": "1108 S Cass Street",
+   "city": "Corinth",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ms/corinth/mcdonalds-3606",
+   "storeId": "atp-3606"
   },
   {
    "address": "1059 E Tucson Marketplace Blvd",
@@ -71818,6 +72826,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/tx/cypress/mcdonalds-36227",
    "storeId": "atp-36227"
+  },
+  {
+   "address": "236 E 11th Street",
+   "city": "Tracy",
+   "mcchickenCents": 289,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/tracy/mcdonalds-36229",
+   "storeId": "atp-36229"
   },
   {
    "address": "250 Highland Ave",
@@ -72708,6 +73724,14 @@
    "storeId": "atp-36589"
   },
   {
+   "address": "773 W Dixie Dr",
+   "city": "Asheboro",
+   "mcchickenCents": 169,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/nc/asheboro/mcdonalds-3659",
+   "storeId": "atp-3659"
+  },
+  {
    "address": "110 South John Redditt Drive",
    "city": "Lufkin",
    "mcchickenCents": 199,
@@ -73074,6 +74098,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/oh/strongsville/mcdonalds-36762",
    "storeId": "atp-36762"
+  },
+  {
+   "address": "3439 Whipple Ave Nw",
+   "city": "Canton",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/oh/canton/mcdonalds-36763",
+   "storeId": "atp-36763"
   },
   {
    "address": "8915 Johnson Dr",
@@ -74716,6 +75748,14 @@
    "storeId": "atp-37524"
   },
   {
+   "address": "90 Dayton Avenue",
+   "city": "Passaic",
+   "mcchickenCents": 239,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/nj/passaic/mcdonalds-37528",
+   "storeId": "atp-37528"
+  },
+  {
    "address": "29 Hickories Park Rd",
    "city": "Owego",
    "mcchickenCents": 179,
@@ -74906,6 +75946,14 @@
    "observedAt": "2026-10-30T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/la/shreveport/mcdonalds-37640",
    "storeId": "atp-37640"
+  },
+  {
+   "address": "1613 Kansas Plz",
+   "city": "Garden City",
+   "mcchickenCents": 239,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ks/garden-city/mcdonalds-3765",
+   "storeId": "atp-3765"
   },
   {
    "address": "2270 W Higgins Rd",
@@ -75396,6 +76444,14 @@
    "storeId": "atp-37987"
   },
   {
+   "address": "11929 Us Hwy 19",
+   "city": "Port Richey",
+   "mcchickenCents": 189,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/fl/port-richey/mcdonalds-37988",
+   "storeId": "atp-37988"
+  },
+  {
    "address": "110 Eagles Landing Pkwy",
    "city": "Stockbridge",
    "mcchickenCents": 169,
@@ -75754,6 +76810,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ca/san-marcos/mcdonalds-3826",
    "storeId": "atp-3826"
+  },
+  {
+   "address": "120 W I-20",
+   "city": "Duncanville",
+   "mcchickenCents": 179,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tx/duncanville/mcdonalds-38268",
+   "storeId": "atp-38268"
   },
   {
    "address": "1212 W Maple Rd",
@@ -76300,6 +77364,14 @@
    "storeId": "atp-38647"
   },
   {
+   "address": "1709 N Turner",
+   "city": "Hobbs",
+   "mcchickenCents": 159,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/nm/hobbs/mcdonalds-3865",
+   "storeId": "atp-3865"
+  },
+  {
    "address": "4929 Gattis School Road",
    "city": "Hutto",
    "mcchickenCents": 150,
@@ -76826,6 +77898,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/az/mesa/mcdonalds-38956",
    "storeId": "atp-38956"
+  },
+  {
+   "address": "2512 W Loop 1604 S",
+   "city": "San Antonio",
+   "mcchickenCents": 189,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tx/san-antonio/mcdonalds-38958",
+   "storeId": "atp-38958"
   },
   {
    "address": "6875 Sandlake Rd",
@@ -78956,6 +80036,14 @@
    "storeId": "atp-39771"
   },
   {
+   "address": "2909 West 5th North Street",
+   "city": "Summerville",
+   "mcchickenCents": 299,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/sc/summerville/mcdonalds-39777",
+   "storeId": "atp-39777"
+  },
+  {
    "address": "701 Utica Ave",
    "city": "Brooklyn",
    "mcchickenCents": 279,
@@ -79114,6 +80202,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/nm/albuquerque/mcdonalds-39840",
    "storeId": "atp-39840"
+  },
+  {
+   "address": "1180 East Craig Road",
+   "city": "North Las Vegas",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/nv/north-las-vegas/mcdonalds-39844",
+   "storeId": "atp-39844"
   },
   {
    "address": "2113 Enterprise Drive",
@@ -80292,6 +81388,14 @@
    "storeId": "atp-40596"
   },
   {
+   "address": "12565 Yellow Bluff Rd",
+   "city": "Jacksonville",
+   "mcchickenCents": 299,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/fl/jacksonville/mcdonalds-40598",
+   "storeId": "atp-40598"
+  },
+  {
    "address": "633 New Brunswick Ave",
    "city": "Perth Amboy",
    "mcchickenCents": 219,
@@ -80562,6 +81666,14 @@
    "observedAt": "2026-10-30T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/mo/kansas-city/mcdonalds-40718",
    "storeId": "atp-40718"
+  },
+  {
+   "address": "2805 Gracy Center Way",
+   "city": "Moon Township",
+   "mcchickenCents": 299,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/pa/moon-township/mcdonalds-4072",
+   "storeId": "atp-4072"
   },
   {
    "address": "749 Fish Creek Thoroughfare",
@@ -85188,6 +86300,14 @@
    "storeId": "atp-44001"
   },
   {
+   "address": "222 Richmond St",
+   "city": "Ottumwa",
+   "mcchickenCents": 189,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ia/ottumwa/mcdonalds-4401",
+   "storeId": "atp-4401"
+  },
+  {
    "address": "1500 W Main St (Us Rte 50",
    "city": "Salem",
    "mcchickenCents": 179,
@@ -85522,6 +86642,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/az/safford/mcdonalds-4440",
    "storeId": "atp-4440"
+  },
+  {
+   "address": "5750 W Thomas Rd",
+   "city": "Phoenix",
+   "mcchickenCents": 189,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/az/phoenix/mcdonalds-4441",
+   "storeId": "atp-4441"
   },
   {
    "address": "266 Council Drive",
@@ -86522,6 +87650,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/sc/bennettsville/mcdonalds-4609",
    "storeId": "atp-4609"
+  },
+  {
+   "address": "9649 Foothill Blvd",
+   "city": "Rancho Cucamonga",
+   "mcchickenCents": 259,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/rancho-cucamonga/mcdonalds-4610",
+   "storeId": "atp-4610"
   },
   {
    "address": "1006 Cuba Road",
@@ -87604,6 +88740,14 @@
    "storeId": "atp-4788"
   },
   {
+   "address": "1422-32 Mount Hope Ave",
+   "city": "Rochester",
+   "mcchickenCents": 259,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ny/rochester/mcdonalds-4789",
+   "storeId": "atp-4789"
+  },
+  {
    "address": "10 E Sycamore",
    "city": "Canton",
    "mcchickenCents": 219,
@@ -87874,6 +89018,14 @@
    "observedAt": "2026-10-30T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/nj/hasbrouck-heights/mcdonalds-4835",
    "storeId": "atp-4835"
+  },
+  {
+   "address": "390 Niagara St",
+   "city": "Buffalo",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ny/buffalo/mcdonalds-4836",
+   "storeId": "atp-4836"
   },
   {
    "address": "1240 Bristol Pike",
@@ -89164,6 +90316,14 @@
    "storeId": "atp-5050"
   },
   {
+   "address": "5500 Sunrise Hwy",
+   "city": "Massapequa",
+   "mcchickenCents": 249,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ny/massapequa/mcdonalds-5051",
+   "storeId": "atp-5051"
+  },
+  {
    "address": "10760 Belleville Rd",
    "city": "Van Buren Township",
    "mcchickenCents": 159,
@@ -89442,6 +90602,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ky/maysville/mcdonalds-5099",
    "storeId": "atp-5099"
+  },
+  {
+   "address": "619 Harrisburg Pike",
+   "city": "Columbus",
+   "mcchickenCents": 269,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/oh/columbus/mcdonalds-5100",
+   "storeId": "atp-5100"
   },
   {
    "address": "3050 Carnegie Ave",
@@ -89740,6 +90908,14 @@
    "storeId": "atp-5157"
   },
   {
+   "address": "706 Sainte Genevieve Dr",
+   "city": "Sainte Genevieve",
+   "mcchickenCents": 179,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/mo/sainte-genevieve/mcdonalds-5158",
+   "storeId": "atp-5158"
+  },
+  {
    "address": "1819 E North Ave",
    "city": "Belton",
    "mcchickenCents": 199,
@@ -89890,6 +91066,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ok/chickasha/mcdonalds-5183",
    "storeId": "atp-5183"
+  },
+  {
+   "address": "2424 S Country Club Dr",
+   "city": "El Reno",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ok/el-reno/mcdonalds-5184",
+   "storeId": "atp-5184"
   },
   {
    "address": "2961 Breckenridge Ln",
@@ -90602,6 +91786,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/mi/grand-rapids/mcdonalds-5302",
    "storeId": "atp-5302"
+  },
+  {
+   "address": "2000 82 By-Pass",
+   "city": "Northport",
+   "mcchickenCents": 189,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/al/northport/mcdonalds-5305",
+   "storeId": "atp-5305"
   },
   {
    "address": "1125 Merchants Drive",
@@ -91612,12 +92804,28 @@
    "storeId": "atp-5489"
   },
   {
+   "address": "718 American Lgn Hwy",
+   "city": "Roslindale",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ma/roslindale/mcdonalds-549",
+   "storeId": "atp-549"
+  },
+  {
    "address": "5725 Dry Creek Ln Ne",
    "city": "Cedar Rapids",
    "mcchickenCents": 219,
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ia/cedar-rapids/mcdonalds-5490",
    "storeId": "atp-5490"
+  },
+  {
+   "address": "542361 Us Highway 1",
+   "city": "Callahan",
+   "mcchickenCents": 179,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/fl/callahan/mcdonalds-5492",
+   "storeId": "atp-5492"
   },
   {
    "address": "5165 Manchester Rd",
@@ -91634,6 +92842,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/il/sparta/mcdonalds-5495",
    "storeId": "atp-5495"
+  },
+  {
+   "address": "7850 Ogden Ave",
+   "city": "Lyons",
+   "mcchickenCents": 249,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/il/lyons/mcdonalds-5496",
+   "storeId": "atp-5496"
   },
   {
    "address": "364 West Us Hwy 6",
@@ -92228,6 +93444,14 @@
    "storeId": "atp-5589"
   },
   {
+   "address": "8315 Montgomery Ne",
+   "city": "Albuquerque",
+   "mcchickenCents": 189,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/nm/albuquerque/mcdonalds-5590",
+   "storeId": "atp-5590"
+  },
+  {
    "address": "1705 E Commercial",
    "city": "Lowell",
    "mcchickenCents": 239,
@@ -92466,6 +93690,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/nc/charlotte/mcdonalds-563",
    "storeId": "atp-563"
+  },
+  {
+   "address": "1786 Hooper Ave",
+   "city": "Toms River",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/nj/toms-river/mcdonalds-5630",
+   "storeId": "atp-5630"
   },
   {
    "address": "4825 Merle Hay Rd",
@@ -92714,6 +93946,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/pa/philadelphia/mcdonalds-5674",
    "storeId": "atp-5674"
+  },
+  {
+   "address": "3301 N Chadam Ln",
+   "city": "Muncie",
+   "mcchickenCents": 179,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/in/muncie/mcdonalds-5675",
+   "storeId": "atp-5675"
   },
   {
    "address": "1300 N Coast Hwy",
@@ -94980,6 +96220,14 @@
    "storeId": "atp-6050"
   },
   {
+   "address": "99 N Milpitas Blvd",
+   "city": "Milpitas",
+   "mcchickenCents": 299,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ca/milpitas/mcdonalds-6053",
+   "storeId": "atp-6053"
+  },
+  {
    "address": "708 Scioto St",
    "city": "Urbana",
    "mcchickenCents": 179,
@@ -95354,6 +96602,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ky/lexington/mcdonalds-6111",
    "storeId": "atp-6111"
+  },
+  {
+   "address": "4700 Charlotte Ave",
+   "city": "Nashville",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tn/nashville/mcdonalds-6112",
+   "storeId": "atp-6112"
   },
   {
    "address": "70 E Garfield",
@@ -95778,6 +97034,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/oh/dayton/mcdonalds-6183",
    "storeId": "atp-6183"
+  },
+  {
+   "address": "547 Pa 940",
+   "city": "White Haven",
+   "mcchickenCents": 239,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/pa/white-haven/mcdonalds-6185",
+   "storeId": "atp-6185"
   },
   {
    "address": "28215 Tamiami Trl",
@@ -97356,6 +98620,14 @@
    "storeId": "atp-6475"
   },
   {
+   "address": "3606 S 84th",
+   "city": "Omaha",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ne/omaha/mcdonalds-6476",
+   "storeId": "atp-6476"
+  },
+  {
    "address": "4300 E 4th Ave",
    "city": "Hialeah",
    "mcchickenCents": 219,
@@ -98900,6 +100172,14 @@
    "storeId": "atp-6749"
   },
   {
+   "address": "187 Cambridge St",
+   "city": "Woburn",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ma/woburn/mcdonalds-6750",
+   "storeId": "atp-6750"
+  },
+  {
    "address": "78 Rt 9",
    "city": "Englishtown",
    "mcchickenCents": 299,
@@ -99098,6 +100378,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/sc/goose-creek/mcdonalds-6782",
    "storeId": "atp-6782"
+  },
+  {
+   "address": "7420 Kennedy Ave",
+   "city": "Hammond",
+   "mcchickenCents": 249,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/in/hammond/mcdonalds-6783",
+   "storeId": "atp-6783"
   },
   {
    "address": "3321 Saint Charles Ave",
@@ -99578,6 +100866,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ny/oneonta/mcdonalds-6871",
    "storeId": "atp-6871"
+  },
+  {
+   "address": "8841 Madison Blvd",
+   "city": "Madison",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/al/madison/mcdonalds-6873",
+   "storeId": "atp-6873"
   },
   {
    "address": "50 Maplewood Ave",
@@ -100828,6 +102124,14 @@
    "storeId": "atp-7102"
   },
   {
+   "address": "803 Foothills Dr",
+   "city": "Maryville",
+   "mcchickenCents": 169,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tn/maryville/mcdonalds-7103",
+   "storeId": "atp-7103"
+  },
+  {
    "address": "8380 Broadmoor Road",
    "city": "Mentor",
    "mcchickenCents": 299,
@@ -101980,6 +103284,14 @@
    "storeId": "atp-73"
   },
   {
+   "address": "306 Cox Creek Pky",
+   "city": "Florence",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/al/florence/mcdonalds-7300",
+   "storeId": "atp-7300"
+  },
+  {
    "address": "9870 Us Hwy 301",
    "city": "Riverview",
    "mcchickenCents": 199,
@@ -102298,6 +103610,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/tx/liberty/mcdonalds-7364",
    "storeId": "atp-7364"
+  },
+  {
+   "address": "304 Lubbock Hwy",
+   "city": "Brownfield",
+   "mcchickenCents": 159,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tx/brownfield/mcdonalds-7365",
+   "storeId": "atp-7365"
   },
   {
    "address": "521 Tusculum Blvd",
@@ -102682,6 +104002,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ga/norcross/mcdonalds-7427",
    "storeId": "atp-7427"
+  },
+  {
+   "address": "3418 Kohler Memorial Dr",
+   "city": "Sheboygan",
+   "mcchickenCents": 229,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/wi/sheboygan/mcdonalds-7428",
+   "storeId": "atp-7428"
   },
   {
    "address": "316 Butler Rd",
@@ -103828,6 +105156,14 @@
    "storeId": "atp-7622"
   },
   {
+   "address": "800 N Main St",
+   "city": "Wellington",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/oh/wellington/mcdonalds-7623",
+   "storeId": "atp-7623"
+  },
+  {
    "address": "14480 San Pablo Ave",
    "city": "San Pablo",
    "mcchickenCents": 269,
@@ -104810,6 +106146,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/la/rayville/mcdonalds-7786",
    "storeId": "atp-7786"
+  },
+  {
+   "address": "957 Gear St",
+   "city": "Galena",
+   "mcchickenCents": 249,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/il/galena/mcdonalds-7787",
+   "storeId": "atp-7787"
   },
   {
    "address": "2005 W Chicago Ave",
@@ -106532,6 +107876,14 @@
    "storeId": "atp-8133"
   },
   {
+   "address": "5802 S Broadway",
+   "city": "Tyler",
+   "mcchickenCents": 159,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/tx/tyler/mcdonalds-8135",
+   "storeId": "atp-8135"
+  },
+  {
    "address": "699 Beck Ave",
    "city": "Fairfield",
    "mcchickenCents": 269,
@@ -107116,6 +108468,14 @@
    "storeId": "atp-866"
   },
   {
+   "address": "2310 E 2100 S",
+   "city": "Salt Lake City",
+   "mcchickenCents": 199,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/ut/salt-lake-city/mcdonalds-867",
+   "storeId": "atp-867"
+  },
+  {
    "address": "1570 E Northwest Hwy",
    "city": "Palatine",
    "mcchickenCents": 199,
@@ -107514,6 +108874,14 @@
    "observedAt": "2026-10-22T08:00:00.000Z",
    "url": "https://drivethruindex.com/restaurants/us/ca/san-leandro/mcdonalds-939",
    "storeId": "atp-939"
+  },
+  {
+   "address": "1443 Madison Rd",
+   "city": "Beloit",
+   "mcchickenCents": 219,
+   "observedAt": "2026-10-31T08:00:00.000Z",
+   "url": "https://drivethruindex.com/restaurants/us/wi/beloit/mcdonalds-94",
+   "storeId": "atp-94"
   },
   {
    "address": "769 Montauk Hwy",

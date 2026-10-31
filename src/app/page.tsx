@@ -4,7 +4,7 @@ import Link from "next/link";
 import { CountUpPrice } from "@/components/landing/CountUpPrice";
 import { ClayScene } from "@/components/landing/scenes/ClayScene";
 import { ACTIVE_FEEDS, HAS_ACTIVE_FEED } from "@/lib/feeds";
-import { formatCents } from "@/lib/money";
+import { formatCents, formatCount } from "@/lib/money";
 import { priceAge, provenanceSummary } from "@/lib/provenance";
 import { getCachedIndexSnapshot } from "@/lib/index-snapshot.server";
 import { type IndexSnapshot } from "@/lib/stores.server";
@@ -57,8 +57,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "Sandwich Index — what a McChicken actually costs",
     description:
       snapshot.spreadCents === null
-        ? `Tracking McChicken prices across ${snapshot.trackedStoreCount} McDonald's locations. ${HAS_ACTIVE_FEED ? "Every price either logged by a visitor or listed by a named price tracker." : "Every price submitted by somebody who saw it."}`
-        : `${formatCents(snapshot.spreadCents)} separates the cheapest McChicken in the index from the priciest, across ${snapshot.pricedStoreCount} stores with current prices.`,
+        ? `Tracking McChicken prices across ${formatCount(snapshot.trackedStoreCount)} McDonald's locations. ${HAS_ACTIVE_FEED ? "Every price either logged by a visitor or listed by a named price tracker." : "Every price submitted by somebody who saw it."}`
+        : `${formatCents(snapshot.spreadCents)} separates the cheapest McChicken in the index from the priciest, across ${formatCount(snapshot.pricedStoreCount)} stores with current prices.`,
   };
 }
 
@@ -97,8 +97,8 @@ function Hero({ snapshot }: { snapshot: IndexSnapshot }) {
   return (
     <section className="border-b border-rule pb-14 pt-12 sm:pt-16">
       <Eyebrow className="reveal">
-        {snapshot.trackedStoreCount} stores tracked ·{" "}
-        {snapshot.pricedStoreCount} with a current price
+        {formatCount(snapshot.trackedStoreCount)} stores tracked ·{" "}
+        {formatCount(snapshot.pricedStoreCount)} with a current price
       </Eyebrow>
 
       {spreadCents === null ? (
@@ -116,7 +116,7 @@ function Hero({ snapshot }: { snapshot: IndexSnapshot }) {
               className="reveal mt-6 max-w-xl text-lg leading-relaxed text-ink-muted"
               style={{ animationDelay: "150ms" }}
             >
-              There are {snapshot.trackedStoreCount} restaurants on file and not one
+              There are {formatCount(snapshot.trackedStoreCount)} restaurants on file and not one
               price among them yet.{" "}
               {HAS_ACTIVE_FEED
                 ? "The first number on this page will be one somebody logged or a tracker listed, and it will say which."
@@ -238,7 +238,7 @@ function IntervalBar({
       </div>
 
       <p className="mt-3 text-sm text-ink-subtle">
-        Across {storeCount} {storeCount === 1 ? "store" : "stores"} with a price
+        Across {formatCount(storeCount)} {storeCount === 1 ? "store" : "stores"} with a price
         from the last three months. Stores whose latest price is older than that
         are left out of this figure.
       </p>
@@ -334,7 +334,7 @@ function LiveProof({ snapshot }: { snapshot: IndexSnapshot }) {
           href="/map"
           className="hover-accent inline-flex min-h-11 items-center text-sm underline decoration-rule underline-offset-4"
         >
-          See all {snapshot.trackedStoreCount} on the map
+          See all {formatCount(snapshot.trackedStoreCount)} on the map
         </Link>
       </div>
 
@@ -358,7 +358,7 @@ function LiveProof({ snapshot }: { snapshot: IndexSnapshot }) {
 
       {snapshot.staleStoreCount > 0 ? (
         <p className="mt-10 text-sm text-ink-subtle">
-          {snapshot.staleStoreCount} more{" "}
+          {formatCount(snapshot.staleStoreCount)} more{" "}
           {snapshot.staleStoreCount === 1 ? "store has" : "stores have"} a price on
           file more than three months old. Those are on the map, marked as such,
           and kept out of every figure on this page.
@@ -515,7 +515,7 @@ function Contribute({ snapshot }: { snapshot: IndexSnapshot }) {
           <p className="mt-5 max-w-lg leading-relaxed text-paper-muted">
             {blank > 0 ? (
               <>
-                {blank} of the {snapshot.trackedStoreCount} restaurants on file have
+                {formatCount(blank)} of the {formatCount(snapshot.trackedStoreCount)} restaurants on file have
                 no current price at all. Each one is blank because nobody has
                 logged a price there yet.
               </>
