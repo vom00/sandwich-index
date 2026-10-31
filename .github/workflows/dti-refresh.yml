@@ -1,0 +1,129 @@
+# Refresh the Drive Thru Index price snapshot twice a month and open a pull
+# request with it. Nothing reaches the live site until the PR is merged.
+#
+# A full read is ~13,800 store pages at one request every 2 seconds (the
+# reader's own floor; drivethruindex.com asks for no crawl delay), about 7.5
+# hours: longer than one job may run. So two jobs read every other store, one
+# after the other, never together, and a third tidies up (pages that failed,
+# stores the sitemaps leave out, stores our list lacks), merges, runs the unit
+# tests (which include "the snapshot parses whole") and opens the PR.
+#
+# Once merged and deployed, map visits and syncs record only prices that
+# changed, or that are more than two weeks newer (`FEED_RECHECK_MS`), so a
+# refresh costs a few thousand Firestore writes, not one per store.
+name: Drive Thru Index refresh
+
+on:
+  schedule:
+    - cron: "0 9 1,15 * *"
+  workflow_dispatch:
+
+concurrency:
+  group: dti-refresh
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.date.outputs.run }}
+    steps:
+      - id: date
+        run: echo "run=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+
+  read-1:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 345
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run fetch:drivethruindex -- --run ${{ needs.plan.outputs.run }} --shard 1/2
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: part-1
+          path: feeds/drivethruindex-${{ needs.plan.outputs.run }}.jsonl
+          if-no-files-found: ignore
+
+  read-2:
+    needs: [plan, read-1]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 345
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run fetch:drivethruindex -- --run ${{ needs.plan.outputs.run }} --shard 2/2
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: part-2
+          path: feeds/drivethruindex-${{ needs.plan.outputs.run }}.jsonl
+          if-no-files-found: ignore
+
+  finish:
+    needs: [plan, read-1, read-2]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      RUN: ${{ needs.plan.outputs.run }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: part-*
+          path: parts
+      - name: Join the two halves into one run
+        run: |
+          mkdir -p feeds
+          cat parts/*/*.jsonl > "feeds/drivethruindex-$RUN.jsonl" 2>/dev/null || true
+          wc -l "feeds/drivethruindex-$RUN.jsonl" || true
+      # Each pass is capped so a half that failed can't push this job past its
+      # limit; anything left over keeps its last price via the merge.
+      - run: npm run fetch:drivethruindex -- --run "$RUN" --retry-unparsed --limit 1500
+      - run: npm run fetch:drivethruindex -- --run "$RUN" --unlisted --limit 400
+      - run: npm run fetch:drivethruindex -- --run "$RUN" --missing --limit 400
+      - id: merge
+        run: |
+          npm run fetch:drivethruindex -- --merge | tee merge.log
+          echo "summary=$(grep -E '^Wrote [0-9]+ priced' merge.log)" >> "$GITHUB_OUTPUT"
+      - run: npm test
+      - name: Open a pull request if anything changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- src/data; then
+            echo "Snapshot unchanged."
+            exit 0
+          fi
+          branch="dti-refresh/$RUN"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add src/data/feeds/drivethruindex.json src/data/us-stores-dti.json
+          git commit -m "Drive Thru Index snapshot, read $RUN" -m "${{ steps.merge.outputs.summary }}"
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" \
+            --title "Drive Thru Index prices, read $RUN" \
+            --body "Scheduled refresh of the Drive Thru Index snapshot (read $RUN). ${{ steps.merge.outputs.summary }} Unit tests passed, including the check that every row parses. Merging deploys it; syncs then record only changed prices."

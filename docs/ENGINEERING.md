@@ -654,10 +654,28 @@ duplicate. robots.txt asks for no delay; the reader waits 2 seconds between
 requests anyway, so a full read takes about 8 hours, and resumes where it
 stopped (`feeds/drivethruindex-<date>.jsonl`, gitignored). The price is the
 plain McChicken's pickup column (`src/lib/drivethruindex.ts`), dated by the
-day the page says it was checked. `--merge` writes the snapshot,
-`src/data/feeds/drivethruindex.json`, dropping the app's placeholder prices
-(about one store in 170 shows $19.99, $99.99 or $0.12) by keeping only $1 to
-$6.
+day the page says it was checked. Where a menu lists "McChicken" twice
+(about one in fifteen), the dearer line is the sandwich and the cheaper one
+its share of a bundle. `--merge` writes the snapshot,
+`src/data/feeds/drivethruindex.json`, starting from the snapshot as it stands
+and taking each store's newest row from the runs in `feeds/`, so a page one
+read misses keeps its last price. It drops the app's placeholder prices
+(about one store in 170 shows $19.99, $99.99 or $0.12) by keeping only $1.01
+to $6, and refuses to write a row the server would reject.
+
+Three more passes close the gaps: `--retry-unparsed` re-reads pages that came
+back without a menu; `--unlisted` tries our stores DTI's sitemaps leave out at
+the path its pages follow (171 of 239 had one on 2026-10-31; the rest answer
+404, most likely closed); `--missing` reads stores All The Places lacks, and
+`--merge` places them in `src/data/us-stores-dti.json`, which syncs read with
+the main list ("Location from Drive Thru Index"). On 2026-10-31 the snapshot
+priced 13,649 of the 13,806 bundled stores.
+
+`.github/workflows/dti-refresh.yml` does all of this on the 1st and 15th of
+each month: two jobs read alternate stores (`--shard 1/2`, then `2/2`), one
+after the other, a third runs the passes, merges, runs the unit tests and
+opens a pull request. Merging it deploys the new prices; syncs then record
+only prices that changed or are more than two weeks newer.
 
 ### MenuPriceTracker (removed)
 

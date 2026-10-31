@@ -8,6 +8,7 @@
  *   npm run fetch:drivethruindex -- --retry-unparsed  # also re-read pages the parser could not read
  *   npm run fetch:drivethruindex -- --missing    # read the stores our list lacks, for us-stores-dti.json
  *   npm run fetch:drivethruindex -- --unlisted   # try our stores its sitemaps leave out, at their usual path
+ *   npm run fetch:drivethruindex -- --shard 1/2  # read every other store (the scheduled refresh runs 1/2, then 2/2)
  *   npm run fetch:drivethruindex -- --merge      # write the newest row per store, across runs, into the snapshot
  *
  * robots.txt first; it asks for no crawl delay, so this keeps its own
@@ -129,7 +130,15 @@ function guessedPath(row: ListedRow): string | null {
   return `/restaurants/us/${state.toLowerCase()}/${slug}/mcdonalds-${ref}`;
 }
 
-async function read(limit: number, runDate: string, retryUnparsed: boolean, missing: boolean, unlisted: boolean): Promise<void> {
+async function read(
+  limit: number,
+  runDate: string,
+  retryUnparsed: boolean,
+  missing: boolean,
+  unlisted: boolean,
+  /** Read only every n-th store (by number), so one read can span several machines in turn. */
+  shard: { index: number; count: number } = { index: 0, count: 1 },
+): Promise<void> {
   const robots = await fetch(`${DTI_ORIGIN}/robots.txt`, { headers: { "User-Agent": USER_AGENT } });
   if (!robots.ok) {
     console.error(`robots.txt answered ${robots.status}; not reading without it.`);
@@ -175,6 +184,11 @@ async function read(limit: number, runDate: string, retryUnparsed: boolean, miss
     }
     console.log(`MAP     ${map}: ${wanted.length} to read so far`);
   }
+  if (shard.count > 1) {
+    const mine = wanted.filter(({ number }) => Number(number) % shard.count === shard.index);
+    console.log(`Shard ${shard.index + 1} of ${shard.count}: ${mine.length} of ${wanted.length}.`);
+    wanted.splice(0, wanted.length, ...mine);
+  }
   console.log(`\n${wanted.length} store pages to read (${done.size} already read in this run).`);
   mkdirSync(dirname(file), { recursive: true });
 
@@ -208,10 +222,12 @@ async function read(limit: number, runDate: string, retryUnparsed: boolean, miss
 }
 
 /**
- * Replace the snapshot with each store's newest row across every run, so a
- * page the latest run missed (gone from a sitemap that day, or unreadable)
- * keeps the last price read for it. A page that was read but showed no
- * McChicken counts as read: no older price is put back under it.
+ * Replace the snapshot with each store's newest row: the snapshot as it stands,
+ * then every run in `feeds/` in date order. A page a run missed (gone from a
+ * sitemap that day, or unreadable) keeps the last price read for it, even on
+ * a machine that only has the latest run (the scheduled refresh). A page that
+ * was read but showed no McChicken counts as read: no older price is put back
+ * under it.
  */
 function merge(): void {
   const runs = readdirSync(FEEDS_DIR).filter((name) => /^drivethruindex-\d{4}-\d{2}-\d{2}\.jsonl$/.test(name)).sort();
@@ -221,6 +237,10 @@ function merge(): void {
     process.exit(1);
   }
   const newest = new Map<string, ProgressLine>();
+  if (existsSync(SNAPSHOT)) {
+    const current = JSON.parse(readFileSync(SNAPSHOT, "utf8")) as { rows?: Row[] };
+    for (const row of current.rows ?? []) newest.set(row.url.slice(DTI_ORIGIN.length), { path: row.url.slice(DTI_ORIGIN.length), row });
+  }
   for (const run of runs) {
     for (const line of readProgress(resolve(FEEDS_DIR, run)).values()) {
       // A page's path ends in its restaurant number, so it names one store.
@@ -283,7 +303,8 @@ function merge(): void {
  * store is that store under another number, and is left out.
  */
 function writeStoreSupplement(lines: readonly ProgressLine[]): number {
-  const supplement: ListedRow[] = [];
+  // Stores placed before stay unless a newer read places them again.
+  const byRef = new Map((dtiStoreRows as unknown as ListedRow[]).map((row) => [row[0], row]));
   for (const { row } of lines) {
     if (row === null || row.location === undefined) continue;
     const ref = row.storeId.replace(/^atp-/, "");
@@ -297,12 +318,25 @@ function writeStoreSupplement(lines: readonly ProgressLine[]): number {
       console.log(`SKIP    #${ref} ${row.address}, ${row.city}: within ${LISTED_DUPLICATE_METERS} m of a listed store`);
       continue;
     }
-    supplement.push([ref, at.lat, at.lng, row.address, row.city, row.location.state, row.location.postcode]);
+    byRef.set(ref, [ref, at.lat, at.lng, row.address, row.city, row.location.state, row.location.postcode]);
   }
+  const supplement = [...byRef.values()];
   supplement.sort((a, b) => Number(a[0]) - Number(b[0]));
   const body = supplement.map((entry) => JSON.stringify(entry)).join(",\n");
   writeFileSync(DTI_STORES, supplement.length === 0 ? "[]\n" : `[\n${body}\n]\n`);
   return supplement.length;
+}
+
+/** `--shard 2/3` → the second of three; absent → all of it. */
+function parseShard(value: string | undefined): { index: number; count: number } {
+  if (value === undefined) return { index: 0, count: 1 };
+  const match = /^(\d+)\/(\d+)$/.exec(value);
+  const [n, of] = match === null ? [0, 0] : [Number(match[1]), Number(match[2])];
+  if (of < 1 || n < 1 || n > of) {
+    console.error(`--shard takes "n/of", e.g. 1/2; got ${value}`);
+    process.exit(1);
+  }
+  return { index: n - 1, count: of };
 }
 
 if (process.argv.includes("--merge")) {
@@ -316,6 +350,7 @@ if (process.argv.includes("--merge")) {
     process.argv.includes("--retry-unparsed"),
     process.argv.includes("--missing"),
     process.argv.includes("--unlisted"),
+    parseShard(values("--shard")),
   ).catch((error: unknown) => {
     console.error(error);
     process.exit(1);
