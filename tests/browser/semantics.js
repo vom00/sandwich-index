@@ -13,7 +13,7 @@ const { chromium } = require('playwright');
 // Resolved from this file rather than an absolute path, so the suite travels
 // with the repo instead of being pinned to one machine's home directory.
 const AXE = require.resolve('axe-core/axe.min.js');
-const TARGET_URL = 'http://localhost:3000';
+const TARGET_URL = process.env.TARGET_URL || 'http://localhost:3000';
 const COPPELL = { latitude: 32.9546, longitude: -96.99 };
 
 let passed = 0;

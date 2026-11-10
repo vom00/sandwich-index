@@ -11,7 +11,7 @@
  */
 const { chromium } = require('playwright');
 
-const TARGET_URL = 'http://localhost:3000';
+const TARGET_URL = process.env.TARGET_URL || 'http://localhost:3000';
 const MIN_PX = 44;
 const COPPELL = { latitude: 32.9546, longitude: -96.99 };
 

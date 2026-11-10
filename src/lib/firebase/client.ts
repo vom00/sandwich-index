@@ -67,14 +67,19 @@ export function getDb(): Firestore {
  * The emulator connect calls throw if invoked twice on the same instance, and
  * React strict mode will absolutely invoke them twice, so this is guarded.
  */
+// The usual emulator ports, unless the alternate dev stack is in use
+// (`npm run dev:alt`, for when another project already holds 8080).
+const FIRESTORE_EMULATOR_PORT = Number(process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT ?? 8080);
+const AUTH_EMULATOR_PORT = Number(process.env.NEXT_PUBLIC_AUTH_EMULATOR_PORT ?? 9099);
+
 function connectEmulatorsOnce(): void {
   if (!useEmulator || emulatorsConnected) return;
   emulatorsConnected = true;
 
-  connectAuthEmulator(getAuth(getFirebaseApp()), "http://127.0.0.1:9099", {
+  connectAuthEmulator(getAuth(getFirebaseApp()), `http://127.0.0.1:${AUTH_EMULATOR_PORT}`, {
     disableWarnings: true,
   });
-  connectFirestoreEmulator(getFirestore(getFirebaseApp()), "127.0.0.1", 8080);
+  connectFirestoreEmulator(getFirestore(getFirebaseApp()), "127.0.0.1", FIRESTORE_EMULATOR_PORT);
 }
 
 /**
