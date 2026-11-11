@@ -271,41 +271,6 @@ h6 {
   height: var(--site-header-height);
 }
 
-/* Each clay scene fades in once its first frame is drawn, so a diorama
-   never pops in half-built. Opacity only, and none at all with reduced motion:
-   the still frame simply appears. */
-.clay-canvas {
-  opacity: 0;
-  transition: opacity var(--duration-hero) var(--ease-out-quart);
-}
-
-.clay-canvas[data-status="ready"] {
-  opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .clay-canvas {
-    transition: none;
-  }
-}
-
-/**
- * The hero figure.
- *
- * Tabular figures are not a nicety here — the number counts up from zero on
- * load, and proportional digits would make it change width on every frame.
- */
-.hero-figure {
-  display: block;
-  font-family: var(--font-display);
-  font-size: clamp(5rem, 19vw, 10.5rem);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  font-optical-sizing: auto;
-  letter-spacing: -0.035em;
-  line-height: 0.85;
-}
-
 /* The focus ring is a dark blue, which disappears against the inverted band.
    Anything focusable inside it gets a paper-coloured ring instead. */
 .on-ink :focus-visible {

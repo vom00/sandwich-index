@@ -12,9 +12,10 @@ Every third-party file used or downloaded for this work, with its licence.
 | `cloud-firestore-emulator-v1.22.0.jar` (fetched by firebase-tools) | Google, via firebase-tools | about 60 MB | Apache-2.0 | 2026-11-10 | `C:\dev\mcdonalds tracker\tools\firebase-emulators\` |
 
 Not downloaded: City Kit (Commercial, Suburban, Roads), Car Kit, Mini Characters
-and Mini Shop from kenney.nl. The site confirmed each download, but the browser
-held the files back (its prompt for several downloads from one site was never
-answered), so they never reached disk. Buildings, cars and people are drawn in
+and Mini Shop from kenney.nl. The site showed its "Thanks for downloading" screen
+for each, but no file reached disk; the likely cause is the browser's prompt for
+several downloads from one site, which was not answered. The cause was not
+confirmed. Buildings, cars and people are drawn in
 code instead, in the site's existing clay style.
 
 ## Models from Food Kit worth using
@@ -33,4 +34,7 @@ All in `Models/GLB format/`, each referencing the shared `Textures/colormap.png`
 
 ## Shipped in the site
 
-Filled in when the final page is built: file under `public/`, origin, licence, size.
+| File under `public/` | Origin | Licence | Size |
+|----------------------|--------|---------|------|
+| `landing/burger.glb` | Kenney Food Kit 2.0, `Models/GLB format/burger.glb`, unmodified (cheese and tomato hidden and the patty retinted in code) | CC0 | 34 KB |
+| `landing/Textures/colormap.png` | Kenney Food Kit 2.0, `Models/GLB format/Textures/colormap.png`, unmodified | CC0 | 11 KB |

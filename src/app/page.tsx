@@ -2,53 +2,32 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { CountUpPrice } from "@/components/landing/CountUpPrice";
-import { ClayScene } from "@/components/landing/scenes/ClayScene";
+import { RulerStory, type StoryFacts } from "@/components/landing/story/RulerStory";
+import { StaticDotMap } from "@/components/landing/story/StaticDotMap";
 import { ACTIVE_FEEDS, HAS_ACTIVE_FEED } from "@/lib/feeds";
+import { getCachedIndexSnapshot } from "@/lib/index-snapshot.server";
+import { loadPriceMap, priceTier } from "@/lib/landing-map";
 import { formatCents, formatCount } from "@/lib/money";
 import { priceAge, provenanceSummary } from "@/lib/provenance";
-import { getCachedIndexSnapshot } from "@/lib/index-snapshot.server";
-import { type IndexSnapshot } from "@/lib/stores.server";
 import { storeLabelText } from "@/lib/store-label";
+import type { IndexSnapshot } from "@/lib/stores.server";
 import type { StoreWithId } from "@/types";
 
+import "./landing.css";
+
 /**
- * The landing page.
+ * The landing page: one object on a price ruler.
  *
- * Editorial data journalism: the number is the artwork, rules do the structural
- * work that cards and shadows would do elsewhere, and there is exactly one
- * heavy element on the page — the inverted band at the end.
- *
- * Everything on it is live. There is no placeholder copy, no illustrative
- * figure, and no "$1.42" hardcoded anywhere; if the database is empty the page
- * says so in as many words. A price index whose front page invents its headline
- * has nothing left to sell.
- *
- * Deliberately not named after a metro area. The prices are mostly Dallas–Fort
- * Worth today while the store list covers the whole US, and a hardcoded region
- * becomes a lie the first time someone prices a store somewhere else. The
- * addresses in the table below say where this is well enough.
+ * Mostly type and hairlines. The one 3D thing is the sandwich, in a small
+ * canvas pinned behind the story (`RulerStory`). Every figure here is
+ * server-rendered text first; the canvas, the ruler and the dot map only
+ * restate what the copy already says.
  */
 
 export const dynamic = "force-dynamic";
 
-/**
- * There is no `loading.tsx` for this route, and that is a measured decision
- * rather than an omission.
- *
- * A skeleton was built for it, sized against the real layout. It scored 0.28
- * cumulative layout shift at 1440px — nearly three times the budget — because
- * a hero whose type wraps and whose figure is `clamp()`-sized cannot be
- * predicted by a static placeholder, and every discrepancy is a shift. Without
- * it the page measures 0.0000. A skeleton that shifts the page more than having
- * no skeleton is a skeleton doing the opposite of its job.
- *
- * Worth knowing if one is ever added back: a `loading.tsx` at the app root also
- * puts a Suspense boundary above every other route, and a streamed response has
- * already sent its 200 by the time `/store/<unknown>` calls `notFound()`. It
- * would need to live in a route group covering only this page.
- */
-
 const LEADER_LIMIT = 3;
+const DTI_CREDIT = "Source: Drive Thru Index (https://drivethruindex.com)";
 
 export async function generateMetadata(): Promise<Metadata> {
   const snapshot = await getCachedIndexSnapshot(LEADER_LIMIT);
@@ -62,18 +41,116 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+const SHORT_DATE = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+
 export default async function Home() {
-  const snapshot = await getCachedIndexSnapshot(LEADER_LIMIT);
+  const [snapshot, map] = await Promise.all([getCachedIndexSnapshot(LEADER_LIMIT), loadPriceMap()]);
+  const scale = map.priceCents;
+
+  const tiers = { low: 0, mid: 0, high: 0, none: 0 };
+  for (const point of map.points) tiers[priceTier(point[2], scale)] += 1;
+
+  const cheapest = snapshot.cheapest[0];
+  const priciest = snapshot.priciest[0];
+
+  const facts: StoryFacts = {
+    lowCents: snapshot.lowestPriceCents,
+    highCents: snapshot.highestPriceCents,
+    spreadCents: snapshot.spreadCents,
+    lowLabel: cheapest ? storeLabelText(cheapest) : null,
+    highLabel: priciest ? storeLabelText(priciest) : null,
+    scale,
+    mapStores: map.generatedFrom.stores,
+    mapPriced: map.generatedFrom.priced,
+    tierCounts: tiers,
+    dotCount: map.points.length,
+  };
+
+  const checkedFrom = SHORT_DATE.format(new Date(map.generatedFrom.oldestObservedAt));
+  const checkedTo = SHORT_DATE.format(new Date(map.generatedFrom.newestObservedAt));
 
   return (
-    <main id="main">
-      <div className="mx-auto w-full max-w-[68rem] px-5 sm:px-8">
+    <main id="main" className="lc-root">
+      <RulerStory facts={facts}>
         <Hero snapshot={snapshot} />
-        <Premise />
-        <LiveProof snapshot={snapshot} />
+
+        <section data-ch="explode" className="lc-ch lc-ch--explode" aria-labelledby="lc-parts">
+          <div className="lc-copy">
+            <p className="lc-eyebrow">01 · The sandwich</p>
+            <h2 id="lc-parts" className="mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
+              The same four parts at every counter
+            </h2>
+            <p className="mt-4 leading-relaxed text-ink-muted">
+              Bun, a breaded chicken patty, shredded lettuce, bun. The parts list
+              does not change from one restaurant to the next. The price does.
+            </p>
+            <ol className="lc-parts mt-5 max-lg:sr-only">
+              <li><span>01</span>Top bun</li>
+              <li><span>02</span>Shredded lettuce</li>
+              <li><span>03</span>Breaded chicken patty</li>
+              <li><span>04</span>Bottom bun</li>
+            </ol>
+          </div>
+        </section>
+
+        <section data-ch="ruler" className="lc-ch lc-ch--ruler" aria-labelledby="lc-ruler">
+          <div className="lc-copy">
+            <p className="lc-eyebrow">02 · The price</p>
+            <h2 id="lc-ruler" className="mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
+              Then each counter puts its own number on it
+            </h2>
+            {snapshot.lowestPriceCents !== null && snapshot.highestPriceCents !== null ? (
+              <p className="mt-4 leading-relaxed text-ink-muted">
+                Lay every current price in the index along one tape. It starts at{" "}
+                <span className="tabular text-ink">{formatCents(snapshot.lowestPriceCents)}</span>
+                {facts.lowLabel ? <span className="max-lg:sr-only"> ({facts.lowLabel})</span> : null} and runs to{" "}
+                <span className="tabular text-ink">{formatCents(snapshot.highestPriceCents)}</span>
+                {facts.highLabel ? <span className="max-lg:sr-only"> ({facts.highLabel})</span> : null}.
+              </p>
+            ) : (
+              <p className="mt-4 leading-relaxed text-ink-muted">No store in the index has a current price yet.</p>
+            )}
+            <dl className="lc-marks mt-5 max-lg:sr-only">
+              <div><dt>Cheapest tenth, nationally</dt><dd>{formatCents(scale.p10)} or less</dd></div>
+              <div><dt>National median</dt><dd>{formatCents(scale.median)}</dd></div>
+              <div><dt>Dearest tenth, nationally</dt><dd>{formatCents(scale.p90)} or more</dd></div>
+            </dl>
+            <p className="mt-3 text-xs leading-relaxed text-ink-subtle">
+              National figures: {formatCount(map.generatedFrom.priced)} priced stores. {DTI_CREDIT}.
+            </p>
+            <StaticInterval facts={facts} />
+          </div>
+        </section>
+
+        <section data-ch="map" className="lc-ch lc-ch--map" aria-labelledby="lc-map">
+          <div className="lc-copy">
+            <p className="lc-eyebrow">03 · The map</p>
+            <h2 id="lc-map" className="mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
+              Now multiply by {formatCount(map.generatedFrom.stores)}
+            </h2>
+            <p className="mt-4 leading-relaxed text-ink-muted">
+              {formatCount(map.generatedFrom.stores)} restaurants in {formatCount(map.points.length)} dots.
+              Each dot is a small patch of the country, coloured by the median
+              price of the restaurants in it.
+            </p>
+            <ul className="lc-key mt-5">
+              <li data-tier="low"><i aria-hidden="true" />Cheapest tenth, {formatCents(scale.p10)} or less <span>{formatCount(tiers.low)} dots</span></li>
+              <li data-tier="mid"><i aria-hidden="true" />In between <span>{formatCount(tiers.mid)} dots</span></li>
+              <li data-tier="high"><i aria-hidden="true" />Dearest tenth, {formatCents(scale.p90)} or more <span>{formatCount(tiers.high)} dots</span></li>
+              <li data-tier="none"><i aria-hidden="true" />No price yet <span>{formatCount(tiers.none)} dots</span></li>
+            </ul>
+            <p className="mt-3 text-xs leading-relaxed text-ink-subtle">
+              Prices checked {checkedFrom} to {checkedTo}. {DTI_CREDIT}.
+            </p>
+            <StaticDotMap />
+          </div>
+        </section>
+      </RulerStory>
+
+      <div className="mx-auto w-full max-w-[68rem] px-5 sm:px-8">
+        <Ends snapshot={snapshot} />
         <HowItWorks />
       </div>
-
       <Contribute snapshot={snapshot} />
     </main>
   );
@@ -81,217 +158,97 @@ export default async function Home() {
 
 /* ------------------------------------------------------------------------ */
 
-function Eyebrow({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <p
-      className={`font-mono text-[0.6875rem] uppercase tracking-[0.22em] text-ink-subtle ${className}`}
-    >
-      {children}
-    </p>
-  );
-}
-
 function Hero({ snapshot }: { snapshot: IndexSnapshot }) {
   const { spreadCents, lowestPriceCents, highestPriceCents } = snapshot;
 
   return (
-    <section className="border-b border-rule pb-14 pt-12 sm:pt-16">
-      <Eyebrow className="reveal">
-        {formatCount(snapshot.trackedStoreCount)} stores tracked ·{" "}
-        {formatCount(snapshot.pricedStoreCount)} with a current price
-      </Eyebrow>
-
-      {spreadCents === null ? (
-        // The same grid as the priced hero, so the kitchen scene stays on the
-        // page while there is nothing to measure yet.
-        <div className="mt-7 grid gap-x-10 lg:grid-cols-12 lg:items-center">
-          <div className="lg:col-span-7 lg:row-start-1">
-            <h1
-              className="reveal max-w-3xl font-display text-4xl leading-[1.05] sm:text-6xl"
-              style={{ animationDelay: "70ms" }}
+    <header data-ch="hero" className="lc-hero">
+      <div className="lc-hero-copy">
+        <p className="lc-eyebrow reveal">
+          McChicken prices · {formatCount(snapshot.trackedStoreCount)} restaurants tracked
+        </p>
+        {spreadCents === null ? (
+          <h1 className="mt-6 font-display text-5xl leading-[1.02] sm:text-7xl">Nothing to measure yet.</h1>
+        ) : (
+          <h1 className="mt-5 grid gap-y-3">
+            <span className="reveal block" style={{ animationDelay: "70ms" }}>
+              <CountUpPrice cents={spreadCents} className="hero-figure" />
+            </span>
+            <span
+              className="reveal block max-w-md font-display text-[1.375rem] leading-[1.2] sm:text-[1.75rem]"
+              style={{ animationDelay: "170ms" }}
             >
-              Nothing to report yet.
-            </h1>
-            <p
-              className="reveal mt-6 max-w-xl text-lg leading-relaxed text-ink-muted"
-              style={{ animationDelay: "150ms" }}
-            >
-              There are {formatCount(snapshot.trackedStoreCount)} restaurants on file and not one
-              price among them yet.{" "}
-              {HAS_ACTIVE_FEED
-                ? "The first number on this page will be one somebody logged or a tracker listed, and it will say which."
-                : "The first number on this page will be one that somebody actually saw."}
+              separates the cheapest McChicken in the index from the priciest.
+            </span>
+          </h1>
+        )}
+        <p className="reveal mt-5 max-w-md leading-relaxed text-ink-muted" style={{ animationDelay: "250ms" }}>
+          Each franchisee prices the same sandwich differently, and nothing
+          official publishes those prices. This site collects them, store by store.
+        </p>
+        <div className="reveal mt-6 flex flex-wrap items-center gap-x-6 gap-y-3" style={{ animationDelay: "330ms" }}>
+          <Link
+            href="/map"
+            className="press inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-accent px-6 py-3 font-medium text-accent-ink"
+          >
+            Find prices near you
+          </Link>
+          {lowestPriceCents !== null && highestPriceCents !== null ? (
+            <p className="lc-hero-range">
+              <span>Cheapest <b className="tabular">{formatCents(lowestPriceCents)}</b></span>
+              <span>Priciest <b className="tabular">{formatCents(highestPriceCents)}</b></span>
+              <span>{formatCount(snapshot.pricedStoreCount)} priced</span>
             </p>
-          </div>
-          <ClayScene
-            scene="kitchen"
-            caption="One sandwich, made the same way on every line, with a different price at every counter."
-            className="reveal mt-12 lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:mt-0"
-          />
+          ) : null}
         </div>
-      ) : (
-        <>
-          {/* One grid for the whole hero. On a wide screen the headline takes
-              the left seven columns and the kitchen line the right five, with
-              the interval and the call to action across the full width below.
-              On a phone the scene moves after the button, so the number and
-              the way in stay on the first screen. */}
-          <div className="mt-7 grid gap-x-10 lg:grid-cols-12 lg:items-center">
-            {/* The number and the sentence are one heading. The figure is the
-                subject of the sentence, so it sits inside it. */}
-            <h1 className="grid gap-y-4 lg:col-span-7 lg:row-start-1">
-              <span className="reveal block" style={{ animationDelay: "70ms" }}>
-                <CountUpPrice cents={spreadCents} className="hero-figure" />
-              </span>
-              <span
-                className="reveal block max-w-lg font-display text-2xl leading-[1.2] sm:text-[1.75rem]"
-                style={{ animationDelay: "170ms" }}
-              >
-                separates the cheapest McChicken in the index from the priciest.
-              </span>
-            </h1>
-
-            <ClayScene
-              scene="kitchen"
-              caption="One sandwich, made the same way on every line, with a different price at every counter."
-              className="reveal order-last mt-12 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-start-1 lg:mt-0"
-            />
-
-            {/* The one place the grid is broken: this measurement spans the
-                full width while every other line of type stays inside a column. */}
-            <div className="reveal mt-14 lg:col-span-12" style={{ animationDelay: "270ms" }}>
-              <IntervalBar
-                lowCents={lowestPriceCents}
-                highCents={highestPriceCents}
-                storeCount={snapshot.pricedStoreCount}
-              />
-              {/* The figures above are mostly a feed's, and its permission to
-                  quote them comes with being credited where they appear. In
-                  words here, so the hero keeps its one way in; the link is
-                  under the leaderboards (`FeedSources`). */}
-              {HAS_ACTIVE_FEED ? (
-                <p className="mt-4 text-xs leading-relaxed text-ink-subtle">
-                  Source: visitors&rsquo; reports and{" "}
-                  {ACTIVE_FEEDS.map((feed) => `${feed.name} (${feed.homepage})`).join(", ")}.
-                </p>
-              ) : null}
-            </div>
-
-            <div
-              className="reveal mt-12 flex flex-col gap-x-8 gap-y-5 sm:flex-row sm:items-center lg:col-span-12"
-              style={{ animationDelay: "350ms" }}
-            >
-              <Link
-                href="/map"
-                className="press inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-accent px-6 py-3 font-medium text-accent-ink"
-              >
-                Find prices near you
-              </Link>
-              <p className="max-w-md leading-relaxed text-ink-muted">
-                Each franchisee prices the same sandwich differently, and nothing
-                official publishes those prices. This site collects them one at
-                a time.
-              </p>
-            </div>
-          </div>
-        </>
-      )}
-    </section>
+        {HAS_ACTIVE_FEED ? (
+          <p className="mt-4 max-w-md text-xs leading-relaxed text-ink-subtle">
+            Source: visitors&rsquo; reports and{" "}
+            {ACTIVE_FEEDS.map((feed) => `${feed.name} (${feed.homepage})`).join(", ")}.
+          </p>
+        ) : null}
+      </div>
+      {/* Reserved room for the sandwich. The pinned canvas measures this box
+          and starts the story inside it. */}
+      <div data-slot="hero" className="lc-hero-slot" aria-hidden="true" />
+    </header>
   );
 }
 
 /**
- * The spread drawn as a measured interval — two prices with the distance
- * between them marked, the way a dimension is called out on a drawing.
- *
- * Both endpoints are labelled in words as well as position, so the graphic is
- * never carrying information the text does not also carry.
+ * The ruler, flattened: shown only with reduced motion (and without
+ * JavaScript's pinned stage), so the measurements still have a drawing.
  */
-function IntervalBar({
-  lowCents,
-  highCents,
-  storeCount,
-}: {
-  lowCents: number | null;
-  highCents: number | null;
-  storeCount: number;
-}) {
-  if (lowCents === null || highCents === null) return null;
+function StaticInterval({ facts }: { facts: StoryFacts }) {
+  const { lowCents, highCents, scale } = facts;
+  if (lowCents === null || highCents === null || highCents <= lowCents) return null;
+  const at = (cents: number) => `${((cents - lowCents) / (highCents - lowCents)) * 100}%`;
+  const marks = [
+    { cents: scale.p10, label: "p10" },
+    { cents: scale.median, label: "median" },
+    { cents: scale.p90, label: "p90" },
+  ].filter((mark) => mark.cents >= lowCents && mark.cents <= highCents);
 
   return (
-    <div>
-      <div className="flex items-end gap-4 sm:gap-8">
-        <div className="shrink-0">
-          <Eyebrow>Cheapest</Eyebrow>
-          <p className="tabular mt-1.5 text-xl sm:text-2xl">{formatCents(lowCents)}</p>
-        </div>
-
-        <div aria-hidden="true" className="relative mb-3 h-px flex-1 bg-rule">
-          <span className="absolute -top-2 left-0 h-4 w-px bg-rule-strong" />
-          <span className="absolute -top-2 right-0 h-4 w-px bg-rule-strong" />
-        </div>
-
-        <div className="shrink-0 text-right">
-          <Eyebrow>Priciest</Eyebrow>
-          <p className="tabular mt-1.5 text-xl sm:text-2xl">{formatCents(highCents)}</p>
-        </div>
+    <figure className="lc-static lc-interval mt-8" aria-hidden="true">
+      <div className="lc-interval-bar">
+        {marks.map((mark) => (
+          <span key={mark.label} className="lc-interval-mark" style={{ left: at(mark.cents) }}>
+            <em>{mark.label}</em>
+            {formatCents(mark.cents)}
+          </span>
+        ))}
       </div>
-
-      <p className="mt-3 text-sm text-ink-subtle">
-        Across {formatCount(storeCount)} {storeCount === 1 ? "store" : "stores"} with a price
-        from the last three months. Stores whose latest price is older than that
-        are left out of this figure.
-      </p>
-    </div>
+      <div className="lc-interval-ends">
+        <span>{formatCents(lowCents)}</span>
+        <span>{formatCents(highCents)}</span>
+      </div>
+    </figure>
   );
 }
 
 /* ------------------------------------------------------------------------ */
 
-function Premise() {
-  return (
-    <section className="mt-24 grid gap-6 lg:grid-cols-12 lg:gap-x-10">
-      {/* The section heading sits in the gutter as a running head rather than
-          competing with the body type for the reader's attention. */}
-      <h2 className="font-mono text-[0.6875rem] uppercase tracking-[0.22em] text-ink-subtle lg:col-span-5 lg:row-start-1 lg:pt-2">
-        Why it moves
-      </h2>
-
-      <ClayScene
-        scene="headquarters"
-        aspect="aspect-[1/1]"
-        caption="Corporate is the big building. The prices are set at the small ones, by the people who run them."
-        className="order-last mt-4 lg:order-none lg:col-span-5 lg:row-start-2 lg:mt-0"
-      />
-
-      <div className="lg:col-span-7 lg:col-start-6 lg:row-span-2 lg:row-start-1">
-        <p className="max-w-2xl font-display text-2xl leading-[1.3] sm:text-[1.75rem]">
-          Most McDonald&rsquo;s restaurants in the United States are owned and run
-          by independent franchisees, not by the corporation. Corporate can
-          suggest a price, and the operator decides what to charge.
-        </p>
-
-        <div className="mt-7 max-w-xl space-y-4 leading-relaxed text-ink-muted">
-          <p>
-            So the sandwich costs what the person running that particular
-            restaurant decided it should cost, shaped by their rent, their wages,
-            and whatever the store on the other side of the highway is charging.
-          </p>
-          <p>
-            McDonald&rsquo;s publishes none of it. Two restaurants a few minutes
-            apart can differ by more than a dollar on the same item, and you
-            usually find out only after you have ordered. This site writes the
-            prices down.
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------------ */
-
-/** The feeds behind the figures on this page, each credited with a link. */
 function FeedSources() {
   if (!HAS_ACTIVE_FEED) return null;
   return (
@@ -317,18 +274,15 @@ function FeedSources() {
   );
 }
 
-function LiveProof({ snapshot }: { snapshot: IndexSnapshot }) {
+function Ends({ snapshot }: { snapshot: IndexSnapshot }) {
   if (snapshot.pricedStoreCount === 0) return null;
-
-  // Below twice the leader limit the two lists would share entries, which reads
-  // as a bug rather than as a small dataset. One ranked list is the honest shape.
-  const splitIsMeaningful = snapshot.pricedStoreCount >= LEADER_LIMIT * 2;
+  const split = snapshot.pricedStoreCount >= LEADER_LIMIT * 2;
 
   return (
-    <section className="mt-24 border-t border-rule pt-10">
+    <section className="lc-ends" aria-labelledby="lc-ends">
       <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
-        <h2 className="font-display text-2xl sm:text-3xl">
-          {splitIsMeaningful ? "The ends of the range" : "What is on file"}
+        <h2 id="lc-ends" className="font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
+          {split ? "The two ends of the tape" : "What is on file"}
         </h2>
         <Link
           href="/map"
@@ -338,15 +292,12 @@ function LiveProof({ snapshot }: { snapshot: IndexSnapshot }) {
         </Link>
       </div>
 
-      <div className="mt-8 grid gap-x-14 gap-y-12 md:grid-cols-2">
-        <Leaderboard
-          heading="Cheapest right now"
-          stores={snapshot.cheapest}
-          startRank={1}
-        />
-        {splitIsMeaningful ? (
+      <div className="mt-10 grid gap-x-14 gap-y-14 md:grid-cols-2">
+        <Leaderboard heading="Cheapest right now" tier="low" stores={snapshot.cheapest} startRank={1} />
+        {split ? (
           <Leaderboard
             heading="Priciest right now"
+            tier="high"
             stores={snapshot.priciest}
             startRank={snapshot.pricedStoreCount}
             descending
@@ -357,11 +308,11 @@ function LiveProof({ snapshot }: { snapshot: IndexSnapshot }) {
       <FeedSources />
 
       {snapshot.staleStoreCount > 0 ? (
-        <p className="mt-10 text-sm text-ink-subtle">
+        <p className="mt-6 max-w-2xl text-sm text-ink-subtle">
           {formatCount(snapshot.staleStoreCount)} more{" "}
-          {snapshot.staleStoreCount === 1 ? "store has" : "stores have"} a price on
-          file more than three months old. Those are on the map, marked as such,
-          and kept out of every figure on this page.
+          {snapshot.staleStoreCount === 1 ? "store has" : "stores have"} a price on file more than
+          three months old. Those are on the map, marked as such, and kept out of every figure on
+          this page.
         </p>
       ) : null}
     </section>
@@ -370,52 +321,40 @@ function LiveProof({ snapshot }: { snapshot: IndexSnapshot }) {
 
 function Leaderboard({
   heading,
+  tier,
   stores,
   startRank,
   descending = false,
 }: {
   heading: string;
+  tier: "low" | "high";
   stores: readonly StoreWithId[];
   startRank: number;
   descending?: boolean;
 }) {
+  const first = stores[0];
   return (
-    // `min-w-0` is not decoration. A grid item defaults to `min-width: auto`,
-    // so the track cannot size below its content's min-content width — and the
-    // address inside sets that width. Without this the column measured 457px
-    // inside a 335px viewport and pushed the whole page sideways. `min-w-0` on
-    // the inner flex item does not help: that governs shrinking during layout,
-    // not the intrinsic size that propagates up to the track.
     <div className="min-w-0">
-      <Eyebrow>{heading}</Eyebrow>
-
-      <ol className="mt-4 divide-y divide-rule border-t border-rule">
+      <p className="lc-eyebrow">{heading}</p>
+      {first ? (
+        <p className={`lc-end-figure lc-rise ${tier === "low" ? "text-tier-low" : "text-tier-high"}`}>
+          {formatCents(first.priceCents ?? 0)}
+        </p>
+      ) : null}
+      <ol className="mt-4 border-t border-rule">
         {stores.map((store, index) => (
-          <li key={store.id}>
-            <Link
-              href={`/store/${store.id}`}
-              className="hover-accent flex min-h-16 items-center gap-4 py-3"
-            >
-              <span
-                aria-hidden="true"
-                className="tabular w-7 shrink-0 text-sm text-ink-subtle"
-              >
+          <li key={store.id} className="lc-row lc-rise">
+            <Link href={`/store/${store.id}`} className="hover-accent flex min-h-16 items-center gap-4 py-3">
+              <span aria-hidden="true" className="tabular w-8 shrink-0 text-sm text-ink-subtle">
                 {String(descending ? startRank - index : startRank + index).padStart(2, "0")}
               </span>
-
               <span className="min-w-0 flex-1">
-                {/* Clamped to two lines rather than ellipsed on one. A truncated
-                    street address is close to useless on a phone, and two lines
-                    fit every address in the dataset. */}
                 <span className="line-clamp-2">{storeLabelText(store)}</span>
                 <span className="block text-xs text-ink-subtle">
                   {provenanceSummary(store)} · {priceAge(store)}
                 </span>
               </span>
-
-              <span className="tabular shrink-0 text-lg">
-                {formatCents(store.priceCents ?? 0)}
-              </span>
+              <span className="tabular shrink-0 text-lg">{formatCents(store.priceCents ?? 0)}</span>
             </Link>
           </li>
         ))}
@@ -444,95 +383,56 @@ const STEPS = [
   },
   {
     title: "That store's price updates",
-    body: "Each store shows one price: the newest that passed the check, whether a visitor's or a tracker's. A report that would move the price by more than 40% is held until a second person agrees with it, so no single number can swing a store on its own. Delivery prices are recorded and shown but never become the price, because the platforms add their own markup on top of the restaurant's.",
+    body: "Each store shows one price: the newest that passed the check, whether a visitor's or a tracker's. A report that would move the price by more than 40% is held until a second person agrees with it. Delivery prices are recorded and shown but never become the price, because the platforms add their own markup.",
   },
 ] as const;
 
-/**
- * Three steps, composed as a staircase rather than three identical cards.
- *
- * The indent grows and the measure shortens with each step, so the eye walks
- * down and to the right instead of scanning across a row of equal boxes.
- */
 function HowItWorks() {
-  const indents = ["md:ml-0", "md:ml-16", "md:ml-32"] as const;
-  const measures = ["md:max-w-2xl", "md:max-w-xl", "md:max-w-lg"] as const;
-
   return (
-    <section className="mt-24 grid border-t border-rule pt-10 lg:grid-cols-12 lg:gap-x-10">
-      <div className="lg:col-span-7">
-        <h2 className="font-display text-2xl sm:text-3xl">How a price gets here</h2>
-
-        <ol className="mt-4">
-          {STEPS.map((step, index) => (
-            <li
-              key={step.title}
-              className={`grid gap-x-6 gap-y-1 border-b border-rule py-8 last:border-b-0 sm:grid-cols-[4.5rem_1fr] ${indents[index]} ${measures[index]}`}
-            >
-              {/* The ordinal is also spelled out in the list semantics, so this
-                  numeral is purely typographic and hidden from screen readers. */}
-              <span
-                aria-hidden="true"
-                className="font-display text-4xl leading-none text-ink-subtle sm:text-5xl"
-              >
-                {String(index + 1).padStart(2, "0")}
-              </span>
-
-              <div>
-                <h3 className="font-display text-xl">{step.title}</h3>
-                <p className="mt-2 leading-relaxed text-ink-muted">{step.body}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </div>
-
-      <ClayScene
-        scene="logging"
-        caption="Somebody reads the menu board, types the price in, and it lands on that store's pin."
-        className="mt-6 self-start lg:col-span-5 lg:mt-16"
-      />
+    <section className="lc-how" aria-labelledby="lc-how">
+      <h2 id="lc-how" className="font-display text-[1.75rem] leading-[1.1] sm:text-4xl lg:col-span-4">
+        How a price gets here
+      </h2>
+      <ol className="lg:col-span-7 lg:col-start-6">
+        {STEPS.map((step, index) => (
+          <li key={step.title} className="lc-step lc-rise">
+            <span aria-hidden="true" className="lc-step-n">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <div>
+              <h3 className="font-display text-xl">{step.title}</h3>
+              <p className="mt-2 leading-relaxed text-ink-muted">{step.body}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
 
-/* ------------------------------------------------------------------------ */
-
 function Contribute({ snapshot }: { snapshot: IndexSnapshot }) {
   const blank = snapshot.trackedStoreCount - snapshot.pricedStoreCount;
-
   return (
-    // The one inverted block on the page. Everything above it is ink on paper;
-    // turning the palette over exactly once is what makes this read as the end
-    // of the argument rather than as another section.
-    <section className="on-ink mt-24 bg-ink text-paper">
-      <div className="mx-auto grid w-full max-w-[68rem] gap-8 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-12">
+    <section className="on-ink mt-28 bg-ink text-paper" aria-labelledby="lc-add">
+      <div className="mx-auto grid w-full max-w-[68rem] gap-8 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-12">
         <div className="lg:col-span-7">
-          <h2 className="max-w-xl font-display text-3xl leading-tight sm:text-4xl">
+          <p className="lc-eyebrow lc-eyebrow--ink">Your turn</p>
+          <h2 id="lc-add" className="mt-3 max-w-xl font-display text-3xl leading-tight sm:text-5xl">
             Seen a McChicken price lately? Add it.
           </h2>
-
           <p className="mt-5 max-w-lg leading-relaxed text-paper-muted">
             {blank > 0 ? (
               <>
-                {formatCount(blank)} of the {formatCount(snapshot.trackedStoreCount)} restaurants on file have
-                no current price at all. Each one is blank because nobody has
-                logged a price there yet.
+                <span className="tabular text-paper">{formatCount(blank)}</span> of the{" "}
+                {formatCount(snapshot.trackedStoreCount)} restaurants on file have no current price at
+                all. Each one is blank because nobody has logged a price there yet.
               </>
             ) : (
-              <>
-                Every restaurant on file has a current price. Keeping it that way
-                takes about fifteen seconds per visit.
-              </>
+              <>Every restaurant on file has a current price. Keeping it that way takes about fifteen seconds per visit.</>
             )}
           </p>
         </div>
-
         <div className="flex flex-wrap content-end gap-3 lg:col-span-5 lg:justify-end">
-          {/* Points at the logging run rather than the map. Somebody who has
-              read this far has agreed to contribute, and the map asks them to
-              pick a store first — a step that only makes sense when you are
-              standing in one. The map is still linked twice above. */}
           <Link
             href="/log"
             className="press inline-flex min-h-12 items-center justify-center rounded-md bg-paper px-6 py-3 font-medium text-ink"

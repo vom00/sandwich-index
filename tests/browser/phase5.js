@@ -98,7 +98,7 @@ const money = (cents) => `$${(cents / 100).toFixed(2)}`;
 
     // `section:first-of-type` matches once per parent, which picks up the
     // inverted band as well. Scope to the hero explicitly.
-    const hero = page.locator('main > div > section').first();
+    const hero = page.locator('main header').first();
 
     const endpoints = await hero.locator('.tabular').allInnerTexts();
     check('interval bar shows the two real endpoints',
@@ -112,7 +112,7 @@ const money = (cents) => `$${(cents / 100).toFixed(2)}`;
     console.log('\n2. Live proof — real rows, real links');
     // =================================================================
     const proof = page.locator('section', {
-      has: page.getByRole('heading', { name: /ends of the range|What is on file/ }),
+      has: page.getByRole('heading', { name: /ends of the tape|What is on file/ }),
     }).first();
 
     const rows = proof.locator('ol li a');
