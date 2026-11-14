@@ -3,7 +3,9 @@
  *
  * A single three.js scene holds everything the story visits: a sandwich on a
  * tray, the counter and price board behind it, the restaurant around them, a
- * street of restaurants, and the national dot map. One camera moves through it
+ * street of restaurants, and the national dot map. The walls, fittings,
+ * cashier, houses, trees, cars, road and street lights are Kenney models (CC0),
+ * packed onto the site's palette by scripts/pack-landing-models.mjs. One camera moves through it
  * as a pure function of a "beat" number (0 = macro sandwich, 5 = map settled
  * to one side), so any scroll position can be drawn on its own and nothing
  * depends on how fast the reader scrolled.
@@ -11,7 +13,7 @@
  * Budget decisions, all for phones:
  * - Static geometry is baked into a few vertex-coloured meshes (one draw call
  *   for the whole interior, one for the street, one for the other buildings,
- *   one for 3,862 map columns). About 17 draw calls in total.
+ *   one for 3,862 map columns). About 18 draw calls at most.
  * - Matte Lambert materials, no physically based shading.
  * - Shadows are faked with soft blobs everywhere. The only real shadow is the
  *   sandwich on its tray, from a tiny shadow camera that re-renders only while
@@ -26,7 +28,6 @@ import {
   BufferGeometry,
   CanvasTexture,
   Color,
-  ConeGeometry,
   CylinderGeometry,
   DirectionalLight,
   Group,
@@ -43,7 +44,6 @@ import {
   PlaneGeometry,
   Quaternion,
   Scene,
-  SphereGeometry,
   SRGBColorSpace,
   Texture,
   Vector3,
@@ -53,7 +53,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { mergeGeometries, mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
 
-import { buildPerson, COLORS } from "./people";
+import { loadParts, type Parts } from "./parts";
 import { loadPriceMap, priceTier, type PriceMap, type PriceMapScale } from "@/lib/landing-map";
 import { formatCents } from "@/lib/money";
 
@@ -64,31 +64,20 @@ const C = {
   paper: "#fbfaf7",
   ground: "#ece7dc",
   groundEdge: "#ddd6c8",
-  wall: "#ebe5d9",
-  wallOuter: "#e3dccd",
-  plinth: "#c9c1b0",
   floor: "#d8d0bf",
-  wainscot: "#b9c4be",
   roof: "#d2cab9",
   roofTrim: "#bdb3a0",
-  fascia: COLORS.accent,
-  glass: "#3f5d79",
-  door: "#2f3a45",
-  canopy: COLORS.slate,
-  counter: COLORS.accent,
+  canopy: "#5b6470",
+  counter: "#b49c7e",
   counterTop: "#f4f1ea",
-  steel: COLORS.steel,
+  steel: "#8e8a7e",
   steelDark: "#77736a",
-  charcoal: COLORS.charcoal,
-  road: "#a39e92",
-  lane: "#f4f1ea",
+  steelLight: "#aeb4b8",
+  tile: "#9fcfc6",
+  lawn: "#b5d59a",
+  charcoal: "#3b3a34",
   lot: "#e2dbcc",
-  tree: "#86a070",
-  treeDark: "#71905e",
-  trunk: "#8a6e52",
-  house: "#e8e1d3",
-  houseRoof: "#9a8f7c",
-  tray: COLORS.slate,
+  tray: "#5b6470",
   liner: "#f4f1ea",
   bunTop: "#c98d52",
   bunBottom: "#d6a46e",
@@ -137,7 +126,9 @@ const TRAY_TOP = COUNTER_TOP + 0.056;
 const SANDWICH_AT = new Vector3(-0.26, TRAY_TOP, -0.72);
 const SODA_AT = new Vector3(0.24, TRAY_TOP, -0.95);
 const BOARD_Y = 2.45;
-const BOARD_Z = -BD / 2 + 0.25 + 0.13;
+/** Kenney Mini Shop wall modules, squeezed to this thickness (see WALL_DEPTH). */
+const WALL_T = 0.36;
+const BOARD_Z = -BD / 2 + WALL_T + 0.13;
 const POLE_HEIGHT = 6.2;
 const TAG_W = 4.6;
 const TAG_H = 3.0;
@@ -147,9 +138,17 @@ const TAG_H = 3.0;
 
 type V3 = readonly [number, number, number];
 
+/** Kenney Mini Shop props at this scale: its employee stands 1.73 tall. */
+const SHOP = 2.4;
+/** Mini Shop wall modules are 1 × 1 × 0.6; squeezed to this depth they are 0.36 thick. */
+const WALL_DEPTH = 0.6;
+const BACK = -BD / 2 + WALL_T;
+
 class Kit {
   readonly root = new Group();
   private readonly materials = new Map<string, MeshLambertMaterial>();
+
+  constructor(private readonly parts: Parts) {}
 
   material(color: string): MeshLambertMaterial {
     let found = this.materials.get(color);
@@ -177,9 +176,26 @@ class Kit {
     return this.add(new CylinderGeometry(top, bottom, h, segments), color, at, rotation);
   }
 
-  sphere(r: number, color: string, at: V3, scale: V3 = [1, 1, 1]): Mesh {
-    const result = this.add(new SphereGeometry(r, 14, 10), color, at);
-    result.scale.set(scale[0], scale[1], scale[2]);
+  /**
+   * A Kenney part (see parts.ts), scaled, turned about y, and placed so the
+   * middle of its footprint is at `at` x/z and its underside at `at` y.
+   */
+  part(name: string, at: V3, scale: number | V3 = 1, turn = 0, parent: Object3D = this.root): Mesh {
+    const geometry = this.parts.get(name);
+    if (geometry === undefined) throw new Error(`world: no part ${name}`);
+    const box = geometry.boundingBox!;
+    const s = typeof scale === "number" ? [scale, scale, scale] : scale;
+    const ox = ((box.min.x + box.max.x) / 2) * s[0];
+    const oz = ((box.min.z + box.max.z) / 2) * s[2];
+    const cos = Math.cos(turn);
+    const sin = Math.sin(turn);
+    const result = new Mesh(geometry, this.material("#ffffff"));
+    result.position.set(at[0] - (cos * ox + sin * oz), at[1] - box.min.y * s[1], at[2] - (-sin * ox + cos * oz));
+    result.rotation.y = turn;
+    result.scale.set(s[0], s[1], s[2]);
+    // Shared between kits: baking copies it, disposing must leave it alone.
+    result.userData.shared = true;
+    parent.add(result);
     return result;
   }
 
@@ -199,7 +215,7 @@ class Kit {
 function disposeTree(root: Object3D): void {
   root.traverse((object) => {
     const candidate = object as Mesh;
-    if (candidate.isMesh !== true) return;
+    if (candidate.isMesh !== true || candidate.userData.shared === true) return;
     candidate.geometry.dispose();
     const material = candidate.material;
     if (Array.isArray(material)) material.forEach((m) => m.dispose());
@@ -207,31 +223,43 @@ function disposeTree(root: Object3D): void {
   });
 }
 
-/** Every mesh under `root`, transformed and vertex-coloured, as one geometry. */
+/**
+ * Every mesh under `root`, transformed and vertex-coloured, as one indexed
+ * geometry. Kenney parts bring their own colours; everything else takes its
+ * material's.
+ */
 function bake(root: Object3D): BufferGeometry {
   root.updateMatrixWorld(true);
   const parts: BufferGeometry[] = [];
   root.traverse((object) => {
     const candidate = object as Mesh;
     if (candidate.isMesh !== true || !candidate.visible) return;
-    const source = candidate.geometry.index !== null ? candidate.geometry.toNonIndexed() : candidate.geometry.clone();
-    if (source.getAttribute("normal") === undefined) source.computeVertexNormals();
-    source.applyMatrix4(candidate.matrixWorld);
+    const source = candidate.geometry;
     const part = new BufferGeometry();
-    part.setAttribute("position", source.getAttribute("position"));
-    part.setAttribute("normal", source.getAttribute("normal"));
-    const material = (Array.isArray(candidate.material) ? candidate.material[0] : candidate.material) as Material & {
-      color?: Color;
-    };
-    const color = material.color ?? new Color(C.ink);
-    const count = part.getAttribute("position").count;
-    const colors = new Float32Array(count * 3);
-    for (let i = 0; i < count; i += 1) {
-      colors[i * 3] = color.r;
-      colors[i * 3 + 1] = color.g;
-      colors[i * 3 + 2] = color.b;
+    const position = source.getAttribute("position");
+    const count = position.count;
+    part.setAttribute("position", position.clone());
+    const normal = source.getAttribute("normal") as BufferAttribute | undefined;
+    if (normal !== undefined) part.setAttribute("normal", normal.clone());
+    const own = source.getAttribute("color") as BufferAttribute | undefined;
+    if (own !== undefined) {
+      part.setAttribute("color", own.clone());
+    } else {
+      const material = (Array.isArray(candidate.material) ? candidate.material[0] : candidate.material) as Material & {
+        color?: Color;
+      };
+      const color = material.color ?? new Color(C.ink);
+      const colors = new Float32Array(count * 3);
+      for (let i = 0; i < count; i += 1) {
+        colors[i * 3] = color.r;
+        colors[i * 3 + 1] = color.g;
+        colors[i * 3 + 2] = color.b;
+      }
+      part.setAttribute("color", new BufferAttribute(colors, 3));
     }
-    part.setAttribute("color", new BufferAttribute(colors, 3));
+    part.setIndex(source.index !== null ? source.index.clone() : Array.from({ length: count }, (_, i) => i));
+    if (normal === undefined) part.computeVertexNormals();
+    part.applyMatrix4(candidate.matrixWorld);
     parts.push(part);
   });
   const merged = mergeGeometries(parts, false);
@@ -242,59 +270,53 @@ function bake(root: Object3D): BufferGeometry {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Pieces of the world.                                                         */
+/* Pieces of the world. The restaurants are Kenney Mini Shop wall modules; the  */
+/* street, houses, cars, lights and trees are Kenney's City and Car kits.       */
 
-/** Back and side walls, floor, counter, kitchen, board frame, cashier, tray. */
+/** A run of wall modules along one side, `length` long, centred on `center`. */
+function wallRun(kit: Kit, names: readonly string[], center: V3, length: number, turn: number): void {
+  const w = length / names.length;
+  names.forEach((name, i) => {
+    const offset = -length / 2 + w / 2 + i * w;
+    kit.part(name, [center[0] + Math.cos(turn) * offset, center[1], center[2] - Math.sin(turn) * offset], [w, BH, WALL_DEPTH], turn);
+  });
+}
+
+/** Back and side walls, inside the front wall's line. */
+function buildWalls(kit: Kit): void {
+  wallRun(kit, ["wall", "wall", "wall"], [0, 0, -BD / 2 + WALL_T / 2], BW, 0);
+  wallRun(kit, ["wall", "wall"], [-BW / 2 + WALL_T / 2, 0, 0], BD - 2 * WALL_T, Math.PI / 2);
+  wallRun(kit, ["wall", "wall"], [BW / 2 - WALL_T / 2, 0, 0], BD - 2 * WALL_T, -Math.PI / 2);
+}
+
+/** Floor, walls, kitchen, board frame, counter, till, cashier, tray. */
 function buildInterior(kit: Kit): void {
-  const t = 0.25;
   kit.box(BW, 0.24, BD, C.floor, [0, -0.1, 0]);
-  kit.box(BW, BH, t, C.wall, [0, BH / 2, -BD / 2 + t / 2]);
-  kit.box(t, BH, BD, C.wall, [-BW / 2 + t / 2, BH / 2, 0]);
-  kit.box(t, BH, BD, C.wall, [BW / 2 - t / 2, BH / 2, 0]);
-  // Outer skin a shade darker, so the shell reads from outside.
-  kit.box(BW + 0.04, 0.5, BD + 0.04, C.plinth, [0, 0.25, 0]);
-  kit.box(BW - 2 * t, 0.9, 0.04, C.wainscot, [0, 0.45, -BD / 2 + t + 0.02]);
+  buildWalls(kit);
   // Board frame on the back wall; the face is a separate textured plane.
-  kit.box(3.7, 1.5, 0.12, C.charcoal, [0, BOARD_Y, -BD / 2 + t + 0.06], 0.04);
-  // Two plain side panels either side of the board.
-  kit.box(1.4, 1.1, 0.08, C.board, [-2.75, BOARD_Y, -BD / 2 + t + 0.04], 0.03);
-  kit.box(1.4, 1.1, 0.08, C.board, [2.75, BOARD_Y, -BD / 2 + t + 0.04], 0.03);
+  kit.box(3.7, 1.5, 0.12, C.charcoal, [0, BOARD_Y, BACK + 0.06], 0.04);
+  // Kitchen: drinks fridges either side of the board, a low steel line under
+  // it (kept plain and low: it is the backdrop to the first shot).
+  for (const x of [-3.45, 3.45]) kit.part("fridge", [x, 0, BACK + 0.6], SHOP);
+  kit.box(4.3, 0.95, 0.7, C.steelLight, [0, 0.475, BACK + 0.4], 0.04);
+  kit.box(4.3, 0.12, 0.66, C.steelDark, [0, 0.06, BACK + 0.4]);
+  // Tiles above the line, under the board.
+  kit.box(4.3, 0.62, 0.04, C.tile, [0, 1.3, BACK + 0.02]);
   // Front counter.
   kit.box(6, 1.0, 0.8, C.counter, [0, 0.5, COUNTER_Z], 0.05);
   kit.box(6.2, 0.07, 0.98, C.counterTop, [0, COUNTER_TOP - 0.035, COUNTER_Z], 0.03);
-  // Register.
-  kit.box(0.55, 0.22, 0.42, C.charcoal, [1.9, COUNTER_TOP + 0.11, COUNTER_Z - 0.1], 0.04);
-  kit.box(0.46, 0.32, 0.04, C.door, [1.9, COUNTER_TOP + 0.4, COUNTER_Z - 0.2], 0.02, [-0.35, 0, 0]);
-  // Kitchen behind.
-  kit.box(8.6, 0.95, 0.7, C.steel, [0, 0.475, -BD / 2 + t + 0.4], 0.04);
-  kit.box(1.0, 1.15, 0.75, C.steelDark, [-3.3, 0.575, -BD / 2 + t + 0.42], 0.05);
-  kit.box(1.0, 1.15, 0.75, C.steelDark, [-2.2, 0.575, -BD / 2 + t + 0.42], 0.05);
-  for (let i = 0; i < 5; i += 1) {
-    kit.cylinder(0.11, 0.08, 0.3, C.cup, [1.2 + i * 0.3, 0.95 + 0.15, -BD / 2 + t + 0.35], 10);
-  }
+  kit.part("till", [2.45, COUNTER_TOP, COUNTER_Z - 0.05], 1.5);
+  // The cashier.
+  kit.part("employee", [1.45, 0, -1.75], SHOP);
   // Tray, liner.
   kit.box(1.15, 0.05, 0.78, C.tray, [-0.05, COUNTER_TOP + 0.025, -0.78], 0.02);
   kit.box(0.98, 0.008, 0.62, C.liner, [-0.05, TRAY_TOP - 0.002, -0.78]);
-  // The cashier.
-  const person = buildPerson({ outfit: COLORS.slate, skin: COLORS.skins[2], hair: COLORS.hair[1] });
-  person.root.position.set(1.7, 0, -1.75);
-  person.leftArm.rotation.x = -0.35;
-  person.rightArm.rotation.x = -0.5;
-  kit.root.add(person.root);
-  kit.box(0.58, 0.14, 0.5, C.charcoal, [1.7, 1.86, -1.7], 0.06);
 }
 
-/** Front wall, windows, door, fascia and canopy, from y = 0 so it can grow. */
+/** Front wall, windows, door and canopy, from y = 0 so it can grow. */
 function buildFront(kit: Kit): void {
-  const z = BD / 2 - 0.12;
-  kit.box(BW, 0.6, 0.25, C.plinth, [0, 0.3, z]);
-  kit.box(BW - 0.3, 2.0, 0.12, C.glass, [0, 1.6, z]);
-  for (const x of [-3.4, -1.2, 3.6]) kit.box(0.14, 2.0, 0.2, C.wallOuter, [x, 1.6, z + 0.02]);
-  kit.box(1.5, 2.3, 0.18, C.door, [1.2, 1.15, z + 0.06]);
-  kit.box(0.25, BH, 0.27, C.wallOuter, [-BW / 2 + 0.12, BH / 2, z]);
-  kit.box(0.25, BH, 0.27, C.wallOuter, [BW / 2 - 0.12, BH / 2, z]);
-  kit.box(BW + 0.3, 0.85, 0.45, C.fascia, [0, BH - 0.3, z + 0.1], 0.06);
-  kit.box(BW + 0.6, 0.12, 1.4, C.canopy, [0, 2.65, z + 0.75], 0.04);
+  wallRun(kit, ["wall-window", "wall-door", "wall-window"], [0, 0, BD / 2 - WALL_T / 2], BW, 0);
+  kit.box(BW + 0.6, 0.12, 1.3, C.canopy, [0, 2.92, BD / 2 + 0.6], 0.04);
 }
 
 /** Roof slab, parapet and rooftop unit, centred on x/z so it can grow out. */
@@ -310,57 +332,58 @@ function buildRoof(kit: Kit): void {
 
 /** The closed building for the other restaurants on the street. */
 function buildClosedBuilding(kit: Kit): void {
-  kit.box(BW, BH, BD, C.wallOuter, [0, BH / 2, 0]);
-  kit.box(BW + 0.04, 0.5, BD + 0.04, C.plinth, [0, 0.25, 0]);
+  buildWalls(kit);
   buildFront(kit);
   buildRoof(kit);
 }
 
-function buildTree(kit: Kit): void {
-  kit.cylinder(0.22, 0.3, 1.8, C.trunk, [0, 0.9, 0], 8);
-  kit.sphere(1.45, C.tree, [0, 2.7, 0], [1, 0.95, 1]);
-  kit.sphere(0.95, C.treeDark, [0.7, 2.2, 0.5]);
-}
+const ROAD_Z = 13.5;
+const ROAD_TILE = 6;
+const HOUSES: readonly { x: number; name: string }[] = [
+  { x: -42, name: "house-a" },
+  { x: -18, name: "house-g" },
+  { x: 6, name: "house-c" },
+  { x: 30, name: "house-h" },
+  { x: 54, name: "house-a" },
+];
+const HOUSE_Z = 26;
+const HOUSE_SCALE = 6.5;
+const CAR_SCALE = 1.65;
+const CARS: readonly { name: string; x: number; z: number; turn: number }[] = [
+  { name: "sedan", x: -21, z: 7.4, turn: 0 },
+  { name: "hatchback", x: 15, z: 7.4, turn: Math.PI },
+  { name: "suv", x: 37.5, z: 7.4, turn: 0 },
+  { name: "van", x: -6, z: 12, turn: Math.PI / 2 },
+  { name: "sedan", x: 27, z: 15, turn: -Math.PI / 2 },
+];
+const TREES: readonly [number, number, number][] = [
+  [-44, -9, 1.1], [-29, -10, 0.9], [-11, -9.5, 1.2], [8, -10.5, 1], [27, -9, 1.15], [45, -10, 0.95], [62, -9.5, 1.1],
+  [-49, 21, 1], [-30, 21.5, 0.9], [-6, 21, 1.15], [18, 21.5, 1], [42, 21, 1.05], [-52, 31, 1.2], [68, 30, 1],
+];
+const TREE_SCALE = 8.5;
 
-function buildGround(kit: Kit, poleSites: readonly number[]): void {
-  // Platform: top at y = 0.
-  kit.box(126, 0.8, 54, C.ground, [9, -0.4, 10], 0.35);
-  kit.box(126.6, 0.5, 54.6, C.groundEdge, [9, -0.7, 10], 0.2);
-  // Road and lane marks.
-  kit.box(126, 0.04, 7, C.road, [9, 0.02, 13.5]);
-  for (let x = -50; x <= 68; x += 7) kit.box(3, 0.02, 0.28, C.lane, [x, 0.05, 13.5]);
+/** Ground, road, car parks, houses, cars, lights, trees and the price-tag poles. */
+function buildTown(kit: Kit, poleSites: readonly number[]): void {
+  // Platform: top at y = 0, wide enough for whole road tiles.
+  kit.box(132, 0.8, 54, C.ground, [9, -0.4, 10], 0.35);
+  kit.box(132.6, 0.5, 54.6, C.groundEdge, [9, -0.7, 10], 0.2);
+  // The road, with a kerb cut wherever a car park meets it.
+  for (let k = -9; k <= 12; k += 1) {
+    const x = k * ROAD_TILE;
+    const drive = (SITES as readonly number[]).includes(x);
+    kit.part(drive ? "road-driveway" : "road", [x, 0, ROAD_Z], [ROAD_TILE, 5, ROAD_TILE], drive ? Math.PI : 0);
+  }
+  // Lawns: the houses' side of the road, and behind the restaurants.
+  kit.box(128, 0.012, 16.5, C.lawn, [9, 0.006, 27.75]);
+  kit.box(128, 0.012, 9.5, C.lawn, [9, 0.006, -11.25]);
   // Car parks in front of each restaurant.
   for (const x of SITES) kit.box(BW + 1.5, 0.03, 5.2, C.lot, [x, 0.015, BD / 2 + 2.9]);
-  // Houses across the road.
-  for (const x of [-34, -8, 22, 50]) {
-    kit.box(7, 2.6, 6, C.house, [x, 1.3, 26], 0.08);
-    kit.add(new ConeGeometry(5.3, 2.2, 4), C.houseRoof, [x, 3.7, 26], [0, Math.PI / 4, 0]).scale.set(1, 1, 0.86);
-    kit.box(1.1, 1.7, 0.12, C.door, [x + 1.4, 0.85, 29.02]);
-  }
-  // A few parked and passing cars.
-  const cars: { x: number; z: number; color: string; turn: number }[] = [
-    { x: -21, z: 7.4, color: COLORS.teal, turn: 0 },
-    { x: 15, z: 7.4, color: COLORS.accent, turn: 0 },
-    { x: 37.5, z: 7.4, color: C.steel, turn: 0 },
-    { x: -6, z: 12, color: COLORS.slate, turn: Math.PI / 2 },
-    { x: 27, z: 15, color: "#a59a86", turn: Math.PI / 2 },
-  ];
-  for (const car of cars) {
-    const group = new Group();
-    group.position.set(car.x, 0, car.z);
-    group.rotation.y = car.turn;
-    kit.root.add(group);
-    kit.add(new RoundedBoxGeometry(1.9, 0.8, 3.8, 2, 0.25), car.color, [0, 0.62, 0], [0, 0, 0], group);
-    kit.add(new RoundedBoxGeometry(1.6, 0.6, 2.0, 2, 0.22), "#d9dfe2", [0, 1.2, -0.2], [0, 0, 0], group);
-    for (const [wx, wz] of [
-      [-0.9, 1.2],
-      [0.9, 1.2],
-      [-0.9, -1.2],
-      [0.9, -1.2],
-    ] as const) {
-      kit.add(new CylinderGeometry(0.34, 0.34, 0.26, 10), C.charcoal, [wx, 0.34, wz], [0, 0, Math.PI / 2], group);
-    }
-  }
+  // Houses across the road, facing it.
+  for (const house of HOUSES) kit.part(house.name, [house.x, 0, HOUSE_Z], HOUSE_SCALE, Math.PI);
+  // Street lights along the far kerb, leaning over the road.
+  for (let x = -45; x <= 63; x += 18) kit.part("light", [x, 0, ROAD_Z + ROAD_TILE / 2 + 0.6], 9);
+  for (const car of CARS) kit.part(car.name, [car.x, 0, car.z], CAR_SCALE, car.turn);
+  TREES.forEach(([x, z, s], i) => kit.part(i % 3 === 1 ? "tree-small" : "tree-large", [x, 0, z], TREE_SCALE * s));
   for (const x of poleSites) kit.cylinder(0.12, 0.14, POLE_HEIGHT, C.charcoal, [x + 5.6, POLE_HEIGHT / 2, BD / 2 + 1.4], 8);
 }
 
@@ -687,7 +710,7 @@ function buildMap(map: PriceMap, origin: { x: number; y: number }, reveal: { val
 
 export async function createWorld(canvas: HTMLCanvasElement, options: WorldOptions): Promise<World> {
   const loader = new GLTFLoader();
-  const [map, sandwich] = await Promise.all([loadPriceMap(), buildSandwich(loader)]);
+  const [map, sandwich, parts] = await Promise.all([loadPriceMap(), buildSandwich(loader), loadParts()]);
 
   const renderer = new WebGLRenderer({
     canvas,
@@ -746,24 +769,24 @@ export async function createWorld(canvas: HTMLCanvasElement, options: WorldOptio
   });
 
   {
-    const kit = new Kit();
-    buildGround(kit, [...tagged.map((t) => t.x), ...(heroPrice === null ? [] : [SITES[HERO]])]);
+    const kit = new Kit(parts);
+    buildTown(kit, [...tagged.map((t) => t.x), ...(heroPrice === null ? [] : [SITES[HERO]])]);
     const ground = new Mesh(kit.bake(), vertexColored);
     town.add(ground);
   }
 
-  const interiorKit = new Kit();
+  const interiorKit = new Kit(parts);
   buildInterior(interiorKit);
   const interior = new Mesh(interiorKit.bake(), vertexColored);
   interior.receiveShadow = true;
   hero.add(interior);
 
-  const frontKit = new Kit();
+  const frontKit = new Kit(parts);
   buildFront(frontKit);
   const front = new Mesh(frontKit.bake(), vertexColored);
   hero.add(front);
 
-  const roofKit = new Kit();
+  const roofKit = new Kit(parts);
   buildRoof(roofKit);
   const roof = new Mesh(roofKit.bake(), vertexColored);
   hero.add(roof);
@@ -772,7 +795,7 @@ export async function createWorld(canvas: HTMLCanvasElement, options: WorldOptio
   if (sandwich.soda !== null) hero.add(sandwich.soda);
 
   // The other restaurants: one instanced draw call.
-  const closedKit = new Kit();
+  const closedKit = new Kit(parts);
   buildClosedBuilding(closedKit);
   const buildingSites = SITES.filter((_, i) => i !== HERO);
   const buildings = new InstancedMesh(closedKit.bake(), vertexColored, buildingSites.length);
@@ -784,35 +807,20 @@ export async function createWorld(canvas: HTMLCanvasElement, options: WorldOptio
   }
   town.add(buildings);
 
-  // Trees.
-  const treeKit = new Kit();
-  buildTree(treeKit);
-  const treeSpots: [number, number, number][] = [
-    [-44, -9, 1.1], [-29, -10, 0.9], [-11, -9.5, 1.2], [8, -10.5, 1], [27, -9, 1.15], [45, -10, 0.95], [62, -9.5, 1.1],
-    [-46, 21, 1], [-21, 21.5, 0.9], [5, 21, 1.15], [36, 21.5, 1], [63, 21, 1.05], [-50, 31, 1.2], [70, 30, 1],
-  ];
-  const trees = new InstancedMesh(treeKit.bake(), vertexColored, treeSpots.length);
-  {
-    const matrix = new Matrix4();
-    const q = new Quaternion();
-    treeSpots.forEach(([x, z, s], i) => {
-      matrix.compose(new Vector3(x, 0, z), q, new Vector3(s, s, s));
-      trees.setMatrixAt(i, matrix);
-    });
-    trees.instanceMatrix.needsUpdate = true;
-    trees.computeBoundingSphere();
-  }
-  town.add(trees);
-
   // Blob shadows, one draw call.
   const blobMap = blobTexture();
   const blobs: { x: number; y: number; z: number; w: number; d: number }[] = [
     { x: SANDWICH_AT.x, y: TRAY_TOP + 0.004, z: SANDWICH_AT.z, w: 0.82, d: 0.78 },
     { x: SODA_AT.x, y: TRAY_TOP + 0.004, z: SODA_AT.z, w: 0.42, d: 0.42 },
     { x: -0.05, y: COUNTER_TOP + 0.003, z: -0.78, w: 1.5, d: 1.05 },
-    { x: 1.7, y: 0.03, z: -1.75, w: 1.2, d: 1.0 },
+    { x: 1.45, y: 0.03, z: -1.75, w: 1.3, d: 1.0 },
     ...SITES.map((x) => ({ x, y: 0.03, z: 0.6, w: BW + 4, d: BD + 3.5 })),
-    ...treeSpots.map(([x, z, s]) => ({ x: x + 0.6, y: 0.035, z: z + 0.6, w: 4.2 * s, d: 4.2 * s })),
+    ...TREES.map(([x, z, s]) => ({ x: x + 0.4, y: 0.035, z: z + 0.4, w: 3 * s, d: 3 * s })),
+    ...HOUSES.map((h) => ({ x: h.x, y: 0.03, z: HOUSE_Z, w: 11, d: 9 })),
+    ...CARS.map((c) => {
+      const along = Math.abs(Math.sin(c.turn)) > 0.5;
+      return { x: c.x, y: 0.04, z: c.z, w: along ? 5 : 3, d: along ? 3 : 5 };
+    }),
   ];
   const blobMaterial = new MeshBasicMaterial({
     map: blobMap,

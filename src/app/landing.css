@@ -14,8 +14,9 @@
 
 /* ------------------------------------------------------------------ story */
 
-/* One canvas, pinned for the length of the opening chapters. The chapters
-   scroll over it; the camera inside it follows them. */
+/* One canvas, pinned for the length of the opening chapters, just below the
+   site header (which is pinned too). The chapters scroll over it; the camera
+   inside it follows them. */
 .lp-story {
   position: relative;
   /* Wide screens: the world is a panel on the right, the text a column on
@@ -27,8 +28,8 @@
 
 .lp-stage {
   position: sticky;
-  top: 0;
-  height: 100svh;
+  top: var(--site-header-height);
+  height: calc(100svh - var(--site-header-height));
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
@@ -52,7 +53,7 @@
 .lp-chapters {
   position: relative;
   z-index: 1;
-  margin-top: -100svh;
+  margin-top: calc(var(--site-header-height) - 100svh);
 }
 
 /* ------------------------------------------------------------------- hero */

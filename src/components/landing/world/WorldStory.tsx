@@ -100,10 +100,14 @@ export function WorldStory({ prices, children }: { prices: readonly number[]; ch
       const beats = Array.from(chapters!.querySelectorAll<HTMLElement>("[data-beat]")).sort(
         (a, b) => Number(a.dataset.beat) - Number(b.dataset.beat),
       );
+      // The stage is pinned just below the site header: it starts pinning when
+      // the story's top reaches the header and lets go when the story's bottom
+      // reaches the stage's bottom.
+      const pinTop = parseFloat(getComputedStyle(stage).top) || 0;
       anchors = [
-        storyTop,
-        ...beats.slice(1).map((el) => docTop(el) - height * LEAD),
-        storyTop + root!.offsetHeight - height,
+        Math.max(0, storyTop - pinTop),
+        ...beats.slice(1).map((el) => docTop(el) - pinTop - height * LEAD),
+        storyTop + root!.offsetHeight - pinTop - stage.offsetHeight,
       ];
       // Exposed for the browser tests and the screenshot scripts.
       root!.dataset.anchors = anchors.map(Math.round).join(",");

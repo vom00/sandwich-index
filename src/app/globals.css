@@ -142,7 +142,8 @@ h6 {
   position: absolute;
   left: -9999px;
   top: 0;
-  z-index: 100;
+  /* Above the pinned site header (1500). */
+  z-index: 1600;
   padding: 0.75rem 1rem;
   background-color: var(--color-accent);
   color: var(--color-accent-ink);
@@ -262,9 +263,12 @@ h6 {
 }
 
 /* The site header has a fixed height so the map can take the rest of the
-   viewport exactly: MapExperience sizes itself to 100dvh minus this. */
+   viewport exactly: MapExperience sizes itself to 100dvh minus this. It is
+   pinned to the top, so anything scrolled to (a #fragment, a focused link)
+   has to stop below it. */
 :root {
   --site-header-height: 3.5rem;
+  scroll-padding-top: var(--site-header-height);
 }
 
 .site-header {

@@ -14,8 +14,11 @@ import { SandwichMark } from "@/components/ui/SandwichMark";
  * `aria-current="page"` and an underline, so where you are is never shown by
  * colour alone.
  *
- * Not sticky. On the map, every pixel of height belongs to the map, which is
- * sized to the viewport minus this bar (`--site-header-height` in globals.css).
+ * Pinned to the top while the page scrolls, so the way to the other pages is
+ * always in reach. Its height is fixed (`--site-header-height` in globals.css):
+ * the map is sized to the viewport minus this bar, the landing story pins its
+ * world just below it, and anchor jumps stop short of it. It sits above the
+ * map's own layers (Leaflet's controls and the store sheet are at 1000).
  * A client component only because `usePathname` needs one.
  */
 
@@ -34,7 +37,7 @@ export function SiteHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="site-header shrink-0 border-b border-rule bg-paper">
+    <header className="site-header sticky top-0 z-[1500] shrink-0 border-b border-rule bg-paper">
       <div className="mx-auto flex h-full w-full max-w-[68rem] items-center justify-between gap-3 px-5 sm:px-8">
         <Link
           href="/"
