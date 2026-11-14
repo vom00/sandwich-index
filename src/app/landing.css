@@ -1,6 +1,6 @@
-/* The landing story: one object on a price ruler. Every selector is prefixed `lc-`. */
+/* The landing page: one world, one camera. Every selector is prefixed `lp-`. */
 
-.lc-eyebrow {
+.lp-eyebrow {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   letter-spacing: 0.22em;
@@ -8,17 +8,24 @@
   color: var(--color-ink-subtle);
 }
 
-.lc-eyebrow--ink {
+.lp-eyebrow--ink {
   color: var(--color-paper-muted);
 }
 
 /* ------------------------------------------------------------------ story */
 
-.lc-story {
+/* One canvas, pinned for the length of the opening chapters. The chapters
+   scroll over it; the camera inside it follows them. */
+.lp-story {
   position: relative;
+  /* Wide screens: the world is a panel on the right, the text a column on
+     the left that always ends 3rem short of the panel. */
+  --lp-panel: 55vw;
+  --lp-gutter: max(2rem, calc((100vw - 68rem) / 2 + 2rem));
+  --lp-col: calc(100vw - var(--lp-panel) - var(--lp-gutter) - 3rem);
 }
 
-.lc-stage {
+.lp-stage {
   position: sticky;
   top: 0;
   height: 100svh;
@@ -27,47 +34,70 @@
   z-index: 0;
 }
 
-.lc-chapters {
+.lp-gl {
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity var(--duration-hero) var(--ease-out-quart);
+}
+
+.lp-gl[data-ready="true"] {
+  opacity: 1;
+}
+
+.lp-chapters {
   position: relative;
   z-index: 1;
   margin-top: -100svh;
 }
 
-.lc-gl {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  will-change: transform;
-}
-
 /* ------------------------------------------------------------------- hero */
 
-.lc-hero {
+.lp-hero {
   display: flex;
   flex-direction: column;
   min-height: calc(100svh - var(--site-header-height));
-  max-width: 68rem;
+  max-width: 76rem;
   margin: 0 auto;
   padding: 1.25rem 1.25rem 1rem;
 }
 
-.lc-hero-copy {
+.lp-hero-copy {
   position: relative;
 }
 
-.lc-hero-slot {
+/* On a phone the world fills the screen behind the hero, so the hero's text
+   gets the same paper backing as every chapter's. */
+@media (max-width: 1023px) {
+  .lp-hero-copy {
+    margin: -1.25rem -1.25rem 0;
+    padding: 1.25rem 1.25rem 1.25rem;
+    background-color: var(--color-paper);
+    border-bottom: 1px solid var(--color-rule-strong);
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .lp-hero-copy {
+    margin: -3rem -2rem 0;
+    padding: 3rem 2rem 1.5rem;
+  }
+}
+
+/* On a phone the sandwich sits under the call to action, in this box. */
+.lp-hero-room {
   flex: 1 1 auto;
-  min-height: 12rem;
-  margin-top: 1rem;
+  min-height: 11rem;
 }
 
 .hero-figure {
   display: block;
   font-family: var(--font-display);
-  font-size: clamp(5.5rem, 27vw, 13rem);
+  font-size: clamp(5.5rem, 27vw, 10.5rem);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   font-optical-sizing: auto;
@@ -76,7 +106,7 @@
   margin-left: -0.04em;
 }
 
-.lc-hero-range {
+.lp-hero-range {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem 1.25rem;
@@ -86,64 +116,63 @@
   color: var(--color-ink-subtle);
 }
 
-.lc-hero-range b {
+.lp-hero-range b {
   font-weight: 500;
   color: var(--color-ink);
 }
 
 @media (min-width: 640px) {
-  .lc-hero {
+  .lp-hero {
     padding: 3rem 2rem 2rem;
   }
 }
 
+/* Wide screens: the text keeps to the left two-fifths, the world fills the
+   rest. The camera frames everything in the right-hand part of the screen. */
 @media (min-width: 1024px) {
-  .lc-hero {
-    display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-    column-gap: 2.5rem;
-    align-items: center;
-    padding-top: 2rem;
-    padding-bottom: 3rem;
+  .lp-hero {
+    justify-content: center;
+    max-width: none;
+    margin: 0;
+    padding: 2rem 0 4rem var(--lp-gutter);
   }
 
-  .lc-hero-slot {
-    align-self: stretch;
-    min-height: 26rem;
-    margin-top: 0;
+  .lp-hero-copy {
+    width: var(--lp-col);
+  }
+
+  .lp-hero-copy .hero-figure {
+    font-size: min(10.5rem, calc(var(--lp-col) / 2.5));
+  }
+
+  .lp-hero-room {
+    display: none;
+  }
+
+  /* The world is a panel to the right of the text column. */
+  .lp-gl {
+    width: var(--lp-panel);
   }
 }
 
 /* --------------------------------------------------------------- chapters */
 
-.lc-ch {
-  position: relative;
-}
-
-.lc-ch--explode {
-  height: 270svh;
-}
-
-.lc-ch--ruler {
-  height: 440svh;
-}
-
-.lc-ch--map {
-  height: 400svh;
-}
-
-/* Phone and tablet: the words are a paper panel pinned to the bottom of the
-   screen, the drawing takes whatever height is left above it (RulerStory
-   measures each panel). The panel sits at the end of its chapter and sticks
-   with `bottom: 0`, so it rises in with the chapter, stays while the chapter
-   plays, and hands over to the next panel without a gap. */
-.lc-ch {
+/* Each chapter is a stretch of scroll. Its text stays in view while the
+   camera moves; the chapter's length is the length of that move. */
+.lp-ch {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  min-height: 150svh;
 }
 
-.lc-copy {
+.lp-ch--map {
+  min-height: 190svh;
+}
+
+/* Phones and tablets: short blocks with a paper backing, kept to the bottom
+   of the screen; the camera keeps the scene in the top half. */
+.lp-copy {
   position: sticky;
   bottom: 0;
   padding: 1.125rem 1.25rem 1.25rem;
@@ -151,123 +180,110 @@
   border-top: 1px solid var(--color-rule-strong);
 }
 
-.lc-copy > p:not(.lc-eyebrow),
-.lc-copy > ol,
-.lc-copy > ul,
-.lc-copy > dl {
+.lp-copy > p:not(.lp-eyebrow),
+.lp-copy > ol,
+.lp-copy > ul {
   max-width: 34rem;
 }
 
 @media (min-width: 640px) {
-  .lc-copy {
+  .lp-copy {
     padding: 1.5rem 2rem 2rem;
   }
 }
 
-/* The panel has to leave the drawing most of the screen, so on phones and
-   tablets it keeps to a compact measure. */
 @media (max-width: 1023px) {
-  .lc-copy h2 {
+  .lp-copy h2 {
     font-size: 1.5rem;
   }
 
-  .lc-copy > p:not(.lc-eyebrow) {
+  .lp-copy > p:not(.lp-eyebrow) {
     margin-top: 0.625rem;
     font-size: 0.9375rem;
     line-height: 1.45;
   }
 
-  .lc-copy > ul {
+  .lp-copy > ul {
     margin-top: 0.75rem;
   }
 
-  .lc-key li {
+  .lp-key li {
     padding: 0.125rem 0;
     font-size: 0.8125rem;
   }
 }
 
-/* Desktop: a narrow left column pinned near the top, the stage to its right. */
+/* While the world is moving on a small screen, the long lists stay in the
+   page for screen readers but off the screen, so the scene keeps its room. */
+@media (max-width: 1023px) and (prefers-reduced-motion: no-preference) {
+  .lp-story:not([data-gl="off"]) .lp-detail {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* Desktop: a narrow left column, pinned a little below the top. The text
+   sits straight on the paper-coloured world, which is empty on that side. */
 @media (min-width: 1024px) {
-  .lc-ch {
+  .lp-ch {
     display: block;
-    max-width: 68rem;
-    margin: 0 auto;
-    padding: 0 2rem;
+    padding: 0 0 0 var(--lp-gutter);
   }
 
-  .lc-copy {
+  .lp-copy {
     top: 18svh;
     bottom: auto;
-    width: 25rem;
+    width: min(28rem, var(--lp-col));
     padding: 1.25rem 0 0;
+    background-color: transparent;
   }
 }
 
-.lc-parts {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.lp-board {
+  font-size: 0.875rem;
 }
 
-.lc-parts li {
+.lp-board li {
   display: flex;
   gap: 1rem;
   padding: 0.375rem 0;
   border-top: 1px solid var(--color-rule);
 }
 
-.lc-parts li:last-child {
+.lp-board li:last-child {
   border-bottom: 1px solid var(--color-rule);
 }
 
-.lc-parts span {
-  color: var(--color-ink-subtle);
-  font-variant-numeric: tabular-nums;
-}
-
-.lc-marks div {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.375rem 0;
-  border-top: 1px solid var(--color-rule);
-  font-size: 0.875rem;
-}
-
-.lc-marks div:last-child {
-  border-bottom: 1px solid var(--color-rule);
-}
-
-.lc-marks dt {
-  color: var(--color-ink-muted);
-}
-
-.lc-marks dd {
+.lp-board .tabular {
+  flex: none;
+  width: 3.25rem;
   font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
 }
 
-.lc-key {
+.lp-key {
   font-size: 0.875rem;
 }
 
-.lc-key li {
+.lp-key li {
   display: flex;
   align-items: center;
   gap: 0.625rem;
   padding: 0.3125rem 0;
   border-top: 1px solid var(--color-rule);
-  color: var(--color-ink);
-  transition: color var(--duration-ui) var(--ease-out-quart);
 }
 
-.lc-key li:last-child {
+.lp-key li:last-child {
   border-bottom: 1px solid var(--color-rule);
 }
 
-.lc-key li span {
+.lp-key li span {
   margin-left: auto;
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -275,386 +291,121 @@
   color: var(--color-ink-subtle);
 }
 
-.lc-key i {
+.lp-key i {
   width: 0.625rem;
   height: 0.625rem;
   border-radius: 999px;
   flex: none;
-  transition: transform var(--duration-ui) var(--ease-out-quart);
 }
 
-.lc-key [data-tier="low"] i { background-color: var(--color-tier-low); }
-.lc-key [data-tier="mid"] i { background-color: var(--color-tier-mid); }
-.lc-key [data-tier="high"] i { background-color: var(--color-tier-high); }
-.lc-key [data-tier="none"] i { background-color: var(--color-rule); box-shadow: inset 0 0 0 1px var(--color-ink-subtle); }
+.lp-key [data-tier="low"] i { background-color: var(--color-tier-low); }
+.lp-key [data-tier="mid"] i { background-color: var(--color-tier-mid); }
+.lp-key [data-tier="high"] i { background-color: var(--color-tier-high); }
+.lp-key [data-tier="none"] i { background-color: var(--color-rule); box-shadow: inset 0 0 0 1px var(--color-ink-subtle); }
 
-.lc-key li[data-state="off"] {
-  color: var(--color-ink-subtle);
-}
+/* -------------------------------------------- the flat map, when it is used */
 
-.lc-key li[data-state="on"] {
-  font-weight: 500;
-}
-
-.lc-key li[data-state="on"] i {
-  transform: scale(1.5);
-}
-
-/* ----------------------------------------------------- stage: exploded view */
-
-.lc-leaders {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  opacity: 0;
-}
-
-.lc-leaders polyline {
-  fill: none;
-  stroke: var(--color-ink);
-  stroke-width: 1;
-}
-
-.lc-leaders circle {
-  fill: var(--color-paper);
-  stroke: var(--color-ink);
-  stroke-width: 1;
-}
-
-.lc-labels {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-}
-
-.lc-label {
-  position: absolute;
-  left: 0;
-  top: 0;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: 0.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  line-height: 1.3;
-  will-change: transform;
-}
-
-.lc-label-n {
-  grid-row: span 2;
-  color: var(--color-ink-subtle);
-  font-variant-numeric: tabular-nums;
-}
-
-.lc-label-name {
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-ink);
-}
-
-.lc-label-note {
-  color: var(--color-ink-subtle);
-  font-variant-numeric: tabular-nums;
-}
-
-@media (min-width: 1024px) {
-  .lc-label {
-    font-size: 0.75rem;
-  }
-}
-
-.lc-title {
-  position: absolute;
-  display: grid;
-  grid-template-columns: auto auto;
-  border: 1px solid var(--color-ink);
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-variant-numeric: tabular-nums;
-  opacity: 0;
-  background-color: var(--color-paper);
-}
-
-.lc-title span,
-.lc-title b {
-  padding: 0.25rem 0.625rem;
-  border-bottom: 1px solid var(--color-rule);
-}
-
-.lc-title span {
-  color: var(--color-ink-subtle);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  border-right: 1px solid var(--color-rule);
-}
-
-.lc-title b {
-  font-weight: 500;
-}
-
-.lc-title span:nth-last-child(2),
-.lc-title b:last-child {
-  border-bottom: 0;
-}
-
-/* -------------------------------------------------------------- stage: ruler */
-
-.lc-ruler {
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.lc-tape {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 18rem;
-  will-change: transform;
-}
-
-.lc-ticks {
-  display: block;
-  overflow: visible;
-}
-
-.lc-t-spine,
-.lc-t-minor {
-  stroke: var(--color-ink-subtle);
-  stroke-width: 1;
-  fill: none;
-}
-
-.lc-t-major {
-  stroke: var(--color-ink);
-  stroke-width: 1;
-  fill: none;
-}
-
-.lc-t-mark {
-  stroke: var(--color-accent);
-  stroke-width: 2;
-  fill: none;
-}
-
-.lc-t-end {
-  stroke: var(--color-ink);
-  stroke-width: 3;
-  fill: none;
-}
-
-.lc-t-text text {
-  fill: var(--color-ink-subtle);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-variant-numeric: tabular-nums;
-  text-anchor: end;
-}
-
-.lc-mark,
-.lc-end {
-  position: absolute;
-  left: 96px;
-  display: grid;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  line-height: 1.3;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink-subtle);
-  transform: translateY(-50%);
-  white-space: nowrap;
-}
-
-.lc-mark em,
-.lc-end em {
-  font-style: normal;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.lc-mark span {
-  color: var(--color-ink);
-}
-
-.lc-mark[data-state="on"] {
-  color: var(--color-accent);
-}
-
-.lc-mark[data-state="on"] span {
-  color: var(--color-accent);
-  font-weight: 500;
-}
-
-.lc-end {
-  color: var(--color-ink);
-  white-space: normal;
-  width: 11rem;
-}
-
-.lc-end span {
-  font-size: 1rem;
-}
-
-.lc-end small {
-  color: var(--color-ink-subtle);
-  font-size: 0.6875rem;
-}
-
-.lc-end--lo {
-  transform: translateY(calc(-100% - 0.5rem));
-}
-
-.lc-end--hi {
-  transform: translateY(0.5rem);
-}
-
-.lc-readline {
-  position: absolute;
-  height: 1px;
-  background-color: var(--color-accent);
-  transform-origin: left center;
-  opacity: 0;
-}
-
-.lc-reading {
-  position: absolute;
-  display: grid;
-  transform: translateY(-50%);
-  opacity: 0;
-  color: var(--color-tier-mid);
-}
-
-.lc-reading[data-align="right"] {
-  justify-items: end;
-  transform: none;
-}
-
-.lc-reading[data-tier="low"] { color: var(--color-tier-low); }
-.lc-reading[data-tier="high"] { color: var(--color-tier-high); }
-
-.lc-reading-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--color-ink-subtle);
-}
-
-.lc-reading-fig {
-  font-family: var(--font-mono);
-  font-size: clamp(2.75rem, 12vw, 6.5rem);
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.05em;
-  line-height: 1;
-}
-
-.lc-reading-cap {
-  margin-top: 0.375rem;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink);
-}
-
-/* ---------------------------------------------------------------- stage: map */
-
-.lc-map {
-  position: absolute;
-  opacity: 0;
-}
-
-/* ------------------------------------------------- still pictures (reduced) */
-
-.lc-static {
+.lp-static {
   display: none;
 }
 
-.lc-interval-bar {
-  position: relative;
-  height: 3.5rem;
-  border-bottom: 1px solid var(--color-ink);
+/* Without WebGL nothing is pinned either: the page is the chapters, read as
+   an ordinary document, with the flat map in the last one. */
+.lp-story[data-gl="off"] .lp-static {
+  display: block;
 }
 
-.lc-interval-mark {
-  position: absolute;
-  bottom: 0;
-  display: grid;
-  padding-left: 0.375rem;
-  padding-bottom: 0.25rem;
-  border-left: 1px solid var(--color-accent);
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-variant-numeric: tabular-nums;
+.lp-story[data-gl="off"] .lp-stage,
+.lp-story[data-gl="off"] .lp-hero-room {
+  display: none;
 }
 
-.lc-interval-mark em {
-  font-style: normal;
-  color: var(--color-ink-subtle);
+.lp-story[data-gl="off"] .lp-chapters {
+  margin-top: 0;
 }
 
-.lc-interval-ends {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.375rem;
-  font-family: var(--font-mono);
-  font-size: 0.875rem;
-  font-variant-numeric: tabular-nums;
+.lp-story[data-gl="off"] .lp-ch {
+  min-height: 0;
+  padding-top: 3rem;
+}
+
+.lp-story[data-gl="off"] .lp-copy {
+  position: static;
+  background-color: transparent;
+  border-top-color: var(--color-rule);
+}
+
+/* With no picture beside it, the hero is only as tall as its text. */
+.lp-story[data-gl="off"] .lp-hero {
+  min-height: 0;
+}
+
+@media (min-width: 1024px) {
+  .lp-story[data-gl="off"] .lp-hero-copy,
+  .lp-story[data-gl="off"] .lp-copy {
+    width: min(40rem, 100%);
+  }
+
+  .lp-story[data-gl="off"] .lp-hero-copy .hero-figure {
+    font-size: 10.5rem;
+  }
+}
+
+/* ------------------------------------------------------- reduced motion */
+
+/* Nothing pinned and nothing moving: the world is one still picture behind
+   the hero, and the chapters read as an ordinary page. */
+@media (prefers-reduced-motion: reduce) and (min-width: 1024px) {
+  .lp-copy {
+    width: min(40rem, 100%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lc-stage {
+  /* The picture is exactly as tall as the hero, so it ends where the
+     first chapter begins. */
+  .lp-stage {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
+    height: calc(100svh - var(--site-header-height));
   }
 
-  .lc-chapters {
+  .lp-gl {
+    transition: none;
+  }
+
+  .lp-chapters {
     margin-top: 0;
   }
 
-  .lc-ch--explode,
-  .lc-ch--ruler,
-  .lc-ch--map {
-    height: auto;
+  .lp-ch,
+  .lp-ch--map {
+    min-height: 0;
     padding-top: 3rem;
-    padding-bottom: 3rem;
   }
 
-  .lc-copy {
+  .lp-copy {
     position: static;
+    background-color: transparent;
     border-top-color: var(--color-rule);
   }
 
-  .lc-static {
+  .lp-static {
     display: block;
-  }
-
-  .lc-ruler,
-  .lc-readline,
-  .lc-reading,
-  .lc-map,
-  .lc-labels,
-  .lc-leaders,
-  .lc-title {
-    display: none;
   }
 }
 
 /* ---------------------------------------------------- after the story */
 
-.lc-ends {
+.lp-ends {
   margin-top: 6rem;
   padding-top: 2.5rem;
   border-top: 1px solid var(--color-rule-strong);
 }
 
-.lc-end-figure {
+.lp-end-figure {
   margin-top: 0.75rem;
   font-family: var(--font-display);
   font-size: clamp(4rem, 15vw, 7.5rem);
@@ -664,11 +415,11 @@
   line-height: 0.85;
 }
 
-.lc-row {
+.lp-row {
   border-bottom: 1px solid var(--color-rule);
 }
 
-.lc-how {
+.lp-how {
   display: grid;
   gap: 1.5rem;
   margin-top: 7rem;
@@ -677,25 +428,25 @@
 }
 
 @media (min-width: 1024px) {
-  .lc-how {
+  .lp-how {
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: 2.5rem;
   }
 }
 
-.lc-step {
+.lp-step {
   display: grid;
   gap: 0.25rem 1.5rem;
   padding: 1.75rem 0;
   border-bottom: 1px solid var(--color-rule);
 }
 
-.lc-step:first-child {
+.lp-step:first-child {
   padding-top: 0;
 }
 
 @media (min-width: 640px) {
-  .lc-step {
+  .lp-step {
     grid-template-columns: 5rem 1fr;
   }
 }
@@ -703,16 +454,16 @@
 /* Three steps, not three identical cards: each one starts further in than
    the last, so each also has a narrower measure. */
 @media (min-width: 768px) {
-  .lc-step:nth-child(2) {
+  .lp-step:nth-child(2) {
     margin-left: 3rem;
   }
 
-  .lc-step:nth-child(3) {
+  .lp-step:nth-child(3) {
     margin-left: 6rem;
   }
 }
 
-.lc-step-n {
+.lp-step-n {
   font-family: var(--font-display);
   font-size: 3rem;
   line-height: 0.9;
@@ -722,7 +473,7 @@
 /* Restrained scroll-tied reveals: only where the browser can tie them to
    scroll natively, and only for people who have not asked for less motion.
    Everything is visible by default. */
-@keyframes lc-rise {
+@keyframes lp-rise {
   from {
     opacity: 0;
     transform: translateY(1.5rem);
@@ -735,8 +486,8 @@
 
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .lc-rise {
-      animation: lc-rise linear both;
+    .lp-rise {
+      animation: lp-rise linear both;
       animation-timeline: view();
       animation-range: entry 0% entry 80%;
     }

@@ -112,7 +112,7 @@ const money = (cents) => `$${(cents / 100).toFixed(2)}`;
     console.log('\n2. Live proof — real rows, real links');
     // =================================================================
     const proof = page.locator('section', {
-      has: page.getByRole('heading', { name: /ends of the tape|What is on file/ }),
+      has: page.getByRole('heading', { name: /ends of the range|What is on file/ }),
     }).first();
 
     const rows = proof.locator('ol li a');

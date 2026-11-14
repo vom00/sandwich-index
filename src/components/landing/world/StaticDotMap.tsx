@@ -7,9 +7,10 @@ import { loadPriceMap } from "@/lib/landing-map";
 import { createDotMap, tierColors } from "./dotmap";
 
 /**
- * The dot map as a still picture, for reduced motion only (the stylesheet
- * hides it otherwise, and it loads nothing unless it is shown). The pinned
- * story's flying version is skipped entirely in that mode.
+ * The national map as a flat still picture, for reduced motion and for
+ * browsers without WebGL. The stylesheet decides when it is shown; it loads
+ * and draws nothing until it is both displayed and near the viewport (an
+ * element with display: none never intersects).
  */
 export function StaticDotMap() {
   const frameRef = useRef<HTMLDivElement>(null);
@@ -19,7 +20,6 @@ export function StaticDotMap() {
     const frame = frameRef.current;
     const canvas = canvasRef.current;
     if (frame === null || canvas === null) return;
-    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let cancelled = false;
     const seen = new IntersectionObserver(
@@ -44,7 +44,7 @@ export function StaticDotMap() {
   }, []);
 
   return (
-    <div ref={frameRef} className="lc-static mt-8 aspect-[1000/620] w-full" aria-hidden="true">
+    <div ref={frameRef} className="lp-static mt-8 aspect-[1000/620] w-full" aria-hidden="true">
       <canvas ref={canvasRef} className="block h-full w-full" />
     </div>
   );

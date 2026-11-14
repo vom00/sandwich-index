@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { CountUpPrice } from "@/components/landing/CountUpPrice";
-import { RulerStory, type StoryFacts } from "@/components/landing/story/RulerStory";
-import { StaticDotMap } from "@/components/landing/story/StaticDotMap";
+import { StaticDotMap } from "@/components/landing/world/StaticDotMap";
+import { WorldStory } from "@/components/landing/world/WorldStory";
 import { ACTIVE_FEEDS, HAS_ACTIVE_FEED } from "@/lib/feeds";
 import { getCachedIndexSnapshot } from "@/lib/index-snapshot.server";
 import { loadPriceMap, priceTier } from "@/lib/landing-map";
@@ -16,12 +16,18 @@ import type { StoreWithId } from "@/types";
 import "./landing.css";
 
 /**
- * The landing page: one object on a price ruler.
+ * The landing page: one world, one camera.
  *
- * Mostly type and hairlines. The one 3D thing is the sandwich, in a small
- * canvas pinned behind the story (`RulerStory`). Every figure here is
- * server-rendered text first; the canvas, the ruler and the dot map only
- * restate what the copy already says.
+ * A clay world is pinned behind the opening chapters and the camera pulls back
+ * through it as the page scrolls: the sandwich, the counter and its price
+ * board, the restaurant, a street of restaurants, the whole country. Then the
+ * page becomes a document again: the cheapest and priciest stores, how a price
+ * gets here, and the band asking for prices.
+ *
+ * Everything on it is live. Every figure is server-rendered text first; the
+ * scene restates what the copy already says, and nothing in it is invented.
+ * The board and the street's tags show the same six real prices that the
+ * first chapter lists, store by store.
  */
 
 export const dynamic = "force-dynamic";
@@ -43,6 +49,18 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const SHORT_DATE = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 
+/** The stores the board and the street show: the cheapest and the priciest, low to high, each once. */
+function boardStores(snapshot: IndexSnapshot): StoreWithId[] {
+  const seen = new Set<string>();
+  const stores: StoreWithId[] = [];
+  for (const store of [...snapshot.cheapest, ...[...snapshot.priciest].reverse()]) {
+    if (store.priceCents === null || seen.has(store.id)) continue;
+    seen.add(store.id);
+    stores.push(store);
+  }
+  return stores.sort((a, b) => (a.priceCents ?? 0) - (b.priceCents ?? 0));
+}
+
 export default async function Home() {
   const [snapshot, map] = await Promise.all([getCachedIndexSnapshot(LEADER_LIMIT), loadPriceMap()]);
   const scale = map.priceCents;
@@ -50,102 +68,100 @@ export default async function Home() {
   const tiers = { low: 0, mid: 0, high: 0, none: 0 };
   for (const point of map.points) tiers[priceTier(point[2], scale)] += 1;
 
-  const cheapest = snapshot.cheapest[0];
-  const priciest = snapshot.priciest[0];
-
-  const facts: StoryFacts = {
-    lowCents: snapshot.lowestPriceCents,
-    highCents: snapshot.highestPriceCents,
-    spreadCents: snapshot.spreadCents,
-    lowLabel: cheapest ? storeLabelText(cheapest) : null,
-    highLabel: priciest ? storeLabelText(priciest) : null,
-    scale,
-    mapStores: map.generatedFrom.stores,
-    mapPriced: map.generatedFrom.priced,
-    tierCounts: tiers,
-    dotCount: map.points.length,
-  };
-
+  const board = boardStores(snapshot);
+  const prices = board.map((store) => store.priceCents ?? 0);
+  const lowest = prices[0] ?? 0;
+  const highest = prices[prices.length - 1] ?? 0;
   const checkedFrom = SHORT_DATE.format(new Date(map.generatedFrom.oldestObservedAt));
   const checkedTo = SHORT_DATE.format(new Date(map.generatedFrom.newestObservedAt));
 
   return (
-    <main id="main" className="lc-root">
-      <RulerStory facts={facts}>
+    <main id="main" className="lp-root">
+      <WorldStory prices={prices}>
         <Hero snapshot={snapshot} />
 
-        <section data-ch="explode" className="lc-ch lc-ch--explode" aria-labelledby="lc-parts">
-          <div className="lc-copy">
-            <p className="lc-eyebrow">01 · The sandwich</p>
-            <h2 id="lc-parts" className="mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
-              The same four parts at every counter
+        <section data-beat="1" className="lp-ch" aria-labelledby="lp-counter">
+          <div className="lp-copy">
+            <p className="lp-eyebrow">01 · The counter</p>
+            <h2 id="lp-counter" className="mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
+              Same sandwich, different number on the board
             </h2>
-            <p className="mt-4 leading-relaxed text-ink-muted">
-              Bun, a breaded chicken patty, shredded lettuce, bun. The parts list
-              does not change from one restaurant to the next. The price does.
-            </p>
-            <ol className="lc-parts mt-5 max-lg:sr-only">
-              <li><span>01</span>Top bun</li>
-              <li><span>02</span>Shredded lettuce</li>
-              <li><span>03</span>Breaded chicken patty</li>
-              <li><span>04</span>Bottom bun</li>
-            </ol>
-          </div>
-        </section>
-
-        <section data-ch="ruler" className="lc-ch lc-ch--ruler" aria-labelledby="lc-ruler">
-          <div className="lc-copy">
-            <p className="lc-eyebrow">02 · The price</p>
-            <h2 id="lc-ruler" className="mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
-              Then each counter puts its own number on it
-            </h2>
-            {snapshot.lowestPriceCents !== null && snapshot.highestPriceCents !== null ? (
-              <p className="mt-4 leading-relaxed text-ink-muted">
-                Lay every current price in the index along one tape. It starts at{" "}
-                <span className="tabular text-ink">{formatCents(snapshot.lowestPriceCents)}</span>
-                {facts.lowLabel ? <span className="max-lg:sr-only"> ({facts.lowLabel})</span> : null} and runs to{" "}
-                <span className="tabular text-ink">{formatCents(snapshot.highestPriceCents)}</span>
-                {facts.highLabel ? <span className="max-lg:sr-only"> ({facts.highLabel})</span> : null}.
-              </p>
+            {board.length > 0 ? (
+              <>
+                <p className="mt-4 leading-relaxed text-ink-muted">
+                  The price on the board is whatever that restaurant decided. Run the
+                  board through the index and it climbs from{" "}
+                  <span className="tabular text-ink">{formatCents(lowest)}</span> to{" "}
+                  <span className="tabular text-ink">{formatCents(highest)}</span>.
+                </p>
+                <ol className="lp-board lp-detail mt-5">
+                  {board.map((store) => (
+                    <li key={store.id}>
+                      <span className="tabular">{formatCents(store.priceCents ?? 0)}</span>
+                      <span className="min-w-0 truncate">{storeLabelText(store)}</span>
+                    </li>
+                  ))}
+                </ol>
+              </>
             ) : (
               <p className="mt-4 leading-relaxed text-ink-muted">No store in the index has a current price yet.</p>
             )}
-            <dl className="lc-marks mt-5 max-lg:sr-only">
-              <div><dt>Cheapest tenth, nationally</dt><dd>{formatCents(scale.p10)} or less</dd></div>
-              <div><dt>National median</dt><dd>{formatCents(scale.median)}</dd></div>
-              <div><dt>Dearest tenth, nationally</dt><dd>{formatCents(scale.p90)} or more</dd></div>
-            </dl>
-            <p className="mt-3 text-xs leading-relaxed text-ink-subtle">
-              National figures: {formatCount(map.generatedFrom.priced)} priced stores. {DTI_CREDIT}.
-            </p>
-            <StaticInterval facts={facts} />
           </div>
         </section>
 
-        <section data-ch="map" className="lc-ch lc-ch--map" aria-labelledby="lc-map">
-          <div className="lc-copy">
-            <p className="lc-eyebrow">03 · The map</p>
-            <h2 id="lc-map" className="mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
+        <section data-beat="2" className="lp-ch" aria-labelledby="lp-outside">
+          <div className="lp-copy">
+            <p className="lp-eyebrow">02 · The restaurant</p>
+            <h2 id="lp-outside" className="mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
+              Every counter is its own decision
+            </h2>
+            <p className="mt-4 leading-relaxed text-ink-muted">
+              Most McDonald&rsquo;s restaurants in the US are run by franchisees, and each
+              one sets the price at its own counter. Nothing official publishes those
+              prices. Step outside, and this restaurant is one of many.
+            </p>
+          </div>
+        </section>
+
+        <section data-beat="3" className="lp-ch" aria-labelledby="lp-street">
+          <div className="lp-copy">
+            <p className="lp-eyebrow">03 · The street</p>
+            <h2 id="lp-street" className="mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
+              Next door, a different tag
+            </h2>
+            <p className="mt-4 leading-relaxed text-ink-muted">
+              The tags on this street carry the same{" "}
+              {board.length > 0 ? formatCount(board.length) : null} prices as the board:
+              the cheapest and the priciest stores in the index, put side by side.
+            </p>
+          </div>
+        </section>
+
+        <section data-beat="4" className="lp-ch lp-ch--map" aria-labelledby="lp-map">
+          <div className="lp-copy">
+            <p className="lp-eyebrow">04 · The country</p>
+            <h2 id="lp-map" className="mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
               Now multiply by {formatCount(map.generatedFrom.stores)}
             </h2>
             <p className="mt-4 leading-relaxed text-ink-muted">
-              {formatCount(map.generatedFrom.stores)} restaurants in {formatCount(map.points.length)} dots.
-              Each dot is a small patch of the country, coloured by the median
-              price of the restaurants in it.
+              {formatCount(map.generatedFrom.stores)} restaurants in {formatCount(map.points.length)} patches
+              of the country. Each patch is coloured by the median price of the
+              restaurants in it, and the dearer the price, the taller it stands.
             </p>
-            <ul className="lc-key mt-5">
-              <li data-tier="low"><i aria-hidden="true" />Cheapest tenth, {formatCents(scale.p10)} or less <span>{formatCount(tiers.low)} dots</span></li>
-              <li data-tier="mid"><i aria-hidden="true" />In between <span>{formatCount(tiers.mid)} dots</span></li>
-              <li data-tier="high"><i aria-hidden="true" />Dearest tenth, {formatCents(scale.p90)} or more <span>{formatCount(tiers.high)} dots</span></li>
-              <li data-tier="none"><i aria-hidden="true" />No price yet <span>{formatCount(tiers.none)} dots</span></li>
+            <ul className="lp-key mt-5">
+              <li data-tier="low"><i aria-hidden="true" />Cheapest tenth, {formatCents(scale.p10)} or less <span>{formatCount(tiers.low)}</span></li>
+              <li data-tier="mid"><i aria-hidden="true" />In between <span>{formatCount(tiers.mid)}</span></li>
+              <li data-tier="high"><i aria-hidden="true" />Dearest tenth, {formatCents(scale.p90)} or more <span>{formatCount(tiers.high)}</span></li>
+              <li data-tier="none"><i aria-hidden="true" />No price yet <span>{formatCount(tiers.none)}</span></li>
             </ul>
             <p className="mt-3 text-xs leading-relaxed text-ink-subtle">
-              Prices checked {checkedFrom} to {checkedTo}. {DTI_CREDIT}.
+              National median {formatCents(scale.median)}, from {formatCount(map.generatedFrom.priced)} priced
+              stores checked {checkedFrom} to {checkedTo}. {DTI_CREDIT}.
             </p>
             <StaticDotMap />
           </div>
         </section>
-      </RulerStory>
+      </WorldStory>
 
       <div className="mx-auto w-full max-w-[68rem] px-5 sm:px-8">
         <Ends snapshot={snapshot} />
@@ -162,9 +178,9 @@ function Hero({ snapshot }: { snapshot: IndexSnapshot }) {
   const { spreadCents, lowestPriceCents, highestPriceCents } = snapshot;
 
   return (
-    <header data-ch="hero" className="lc-hero">
-      <div className="lc-hero-copy">
-        <p className="lc-eyebrow reveal">
+    <header data-beat="0" className="lp-hero">
+      <div className="lp-hero-copy">
+        <p className="lp-eyebrow reveal">
           McChicken prices · {formatCount(snapshot.trackedStoreCount)} restaurants tracked
         </p>
         {spreadCents === null ? (
@@ -194,7 +210,7 @@ function Hero({ snapshot }: { snapshot: IndexSnapshot }) {
             Find prices near you
           </Link>
           {lowestPriceCents !== null && highestPriceCents !== null ? (
-            <p className="lc-hero-range">
+            <p className="lp-hero-range">
               <span>Cheapest <b className="tabular">{formatCents(lowestPriceCents)}</b></span>
               <span>Priciest <b className="tabular">{formatCents(highestPriceCents)}</b></span>
               <span>{formatCount(snapshot.pricedStoreCount)} priced</span>
@@ -208,42 +224,9 @@ function Hero({ snapshot }: { snapshot: IndexSnapshot }) {
           </p>
         ) : null}
       </div>
-      {/* Reserved room for the sandwich. The pinned canvas measures this box
-          and starts the story inside it. */}
-      <div data-slot="hero" className="lc-hero-slot" aria-hidden="true" />
+      {/* Room for the sandwich on a phone: the camera frames it inside this box. */}
+      <div data-hero-room className="lp-hero-room" aria-hidden="true" />
     </header>
-  );
-}
-
-/**
- * The ruler, flattened: shown only with reduced motion (and without
- * JavaScript's pinned stage), so the measurements still have a drawing.
- */
-function StaticInterval({ facts }: { facts: StoryFacts }) {
-  const { lowCents, highCents, scale } = facts;
-  if (lowCents === null || highCents === null || highCents <= lowCents) return null;
-  const at = (cents: number) => `${((cents - lowCents) / (highCents - lowCents)) * 100}%`;
-  const marks = [
-    { cents: scale.p10, label: "p10" },
-    { cents: scale.median, label: "median" },
-    { cents: scale.p90, label: "p90" },
-  ].filter((mark) => mark.cents >= lowCents && mark.cents <= highCents);
-
-  return (
-    <figure className="lc-static lc-interval mt-8" aria-hidden="true">
-      <div className="lc-interval-bar">
-        {marks.map((mark) => (
-          <span key={mark.label} className="lc-interval-mark" style={{ left: at(mark.cents) }}>
-            <em>{mark.label}</em>
-            {formatCents(mark.cents)}
-          </span>
-        ))}
-      </div>
-      <div className="lc-interval-ends">
-        <span>{formatCents(lowCents)}</span>
-        <span>{formatCents(highCents)}</span>
-      </div>
-    </figure>
   );
 }
 
@@ -279,10 +262,10 @@ function Ends({ snapshot }: { snapshot: IndexSnapshot }) {
   const split = snapshot.pricedStoreCount >= LEADER_LIMIT * 2;
 
   return (
-    <section className="lc-ends" aria-labelledby="lc-ends">
+    <section className="lp-ends" aria-labelledby="lp-ends">
       <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
-        <h2 id="lc-ends" className="font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
-          {split ? "The two ends of the tape" : "What is on file"}
+        <h2 id="lp-ends" className="font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
+          {split ? "The two ends of the range" : "What is on file"}
         </h2>
         <Link
           href="/map"
@@ -335,15 +318,15 @@ function Leaderboard({
   const first = stores[0];
   return (
     <div className="min-w-0">
-      <p className="lc-eyebrow">{heading}</p>
+      <p className="lp-eyebrow">{heading}</p>
       {first ? (
-        <p className={`lc-end-figure lc-rise ${tier === "low" ? "text-tier-low" : "text-tier-high"}`}>
+        <p className={`lp-end-figure lp-rise ${tier === "low" ? "text-tier-low" : "text-tier-high"}`}>
           {formatCents(first.priceCents ?? 0)}
         </p>
       ) : null}
       <ol className="mt-4 border-t border-rule">
         {stores.map((store, index) => (
-          <li key={store.id} className="lc-row lc-rise">
+          <li key={store.id} className="lp-row lp-rise">
             <Link href={`/store/${store.id}`} className="hover-accent flex min-h-16 items-center gap-4 py-3">
               <span aria-hidden="true" className="tabular w-8 shrink-0 text-sm text-ink-subtle">
                 {String(descending ? startRank - index : startRank + index).padStart(2, "0")}
@@ -389,14 +372,14 @@ const STEPS = [
 
 function HowItWorks() {
   return (
-    <section className="lc-how" aria-labelledby="lc-how">
-      <h2 id="lc-how" className="font-display text-[1.75rem] leading-[1.1] sm:text-4xl lg:col-span-4">
+    <section className="lp-how" aria-labelledby="lp-how">
+      <h2 id="lp-how" className="font-display text-[1.75rem] leading-[1.1] sm:text-4xl lg:col-span-4">
         How a price gets here
       </h2>
       <ol className="lg:col-span-7 lg:col-start-6">
         {STEPS.map((step, index) => (
-          <li key={step.title} className="lc-step lc-rise">
-            <span aria-hidden="true" className="lc-step-n">
+          <li key={step.title} className="lp-step lp-rise">
+            <span aria-hidden="true" className="lp-step-n">
               {String(index + 1).padStart(2, "0")}
             </span>
             <div>
@@ -413,11 +396,11 @@ function HowItWorks() {
 function Contribute({ snapshot }: { snapshot: IndexSnapshot }) {
   const blank = snapshot.trackedStoreCount - snapshot.pricedStoreCount;
   return (
-    <section className="on-ink mt-28 bg-ink text-paper" aria-labelledby="lc-add">
+    <section className="on-ink mt-28 bg-ink text-paper" aria-labelledby="lp-add">
       <div className="mx-auto grid w-full max-w-[68rem] gap-8 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-12">
         <div className="lg:col-span-7">
-          <p className="lc-eyebrow lc-eyebrow--ink">Your turn</p>
-          <h2 id="lc-add" className="mt-3 max-w-xl font-display text-3xl leading-tight sm:text-5xl">
+          <p className="lp-eyebrow lp-eyebrow--ink">Your turn</p>
+          <h2 id="lp-add" className="mt-3 max-w-xl font-display text-3xl leading-tight sm:text-5xl">
             Seen a McChicken price lately? Add it.
           </h2>
           <p className="mt-5 max-w-lg leading-relaxed text-paper-muted">

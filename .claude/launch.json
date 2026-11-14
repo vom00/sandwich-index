@@ -18,6 +18,21 @@
         "dev:alt"
       ],
       "port": 3100
+    },
+    {
+      "name": "sandwich-index-alt-start",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:alt",
+        "--",
+        "--start",
+        "--dist",
+        ".next-build",
+        "--port",
+        "3200"
+      ],
+      "port": 3200
     }
   ]
 }

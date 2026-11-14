@@ -25,10 +25,11 @@ const eslintConfig = defineConfig([
      * and their in-page callbacks reference browser globals that exist only
      * inside `page.evaluate`.
      *
-     * Scoped to this directory rather than switched off globally, so app code
-     * keeps the stricter rules.
+     * Scoped to these directories rather than switched off globally, so app
+     * code keeps the stricter rules. The landing redo's screenshot and
+     * measurement tools are the same kind of script.
      */
-    files: ["tests/browser/**/*.js"],
+    files: ["tests/browser/**/*.js", "docs/landing-redo/**/*.js"],
     rules: {
       "@typescript-eslint/no-require-imports": "off",
       "@typescript-eslint/no-unused-vars": "warn",

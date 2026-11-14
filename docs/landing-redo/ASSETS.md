@@ -38,3 +38,4 @@ All in `Models/GLB format/`, each referencing the shared `Textures/colormap.png`
 |----------------------|--------|---------|------|
 | `landing/burger.glb` | Kenney Food Kit 2.0, `Models/GLB format/burger.glb`, unmodified (cheese and tomato hidden and the patty retinted in code) | CC0 | 34 KB |
 | `landing/Textures/colormap.png` | Kenney Food Kit 2.0, `Models/GLB format/Textures/colormap.png`, unmodified | CC0 | 11 KB |
+| `landing/soda.glb` | Kenney Food Kit 2.0, `Models/GLB format/soda.glb`, unmodified (the cup on the tray in the opening shot; shares `colormap.png`) | CC0 | 12 KB |
