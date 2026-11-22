@@ -272,7 +272,7 @@ export function MapExperience() {
       <div className="shrink-0 border-b border-rule bg-paper-raised px-5 py-3 sm:px-8">
         <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
           <div>
-            <h1 className="font-display text-xl">
+            <h1 className="reveal font-display text-xl">
               {locationLabel === null
                 ? "Stores near you"
                 : `Stores near ${locationLabel}`}
@@ -295,7 +295,7 @@ export function MapExperience() {
               <button
                 type="button"
                 onClick={handleChangeLocation}
-                className="hover-accent tap-target ml-2 underline decoration-rule underline-offset-2"
+                className="link-prose tap-target ml-2"
               >
                 Change location
               </button>
@@ -306,7 +306,7 @@ export function MapExperience() {
               would be spread by `justify-between` and strand itself mid-row. */}
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             {cheapest !== null ? (
-              <p className="text-sm">
+              <p className="rounded-md border border-rule bg-paper px-3 py-1.5 text-sm">
                 <span className="text-ink-subtle">Cheapest nearby </span>
                 <span className="tabular font-medium">
                   {formatCents(cheapest.priceCents ?? 0)}
@@ -349,7 +349,7 @@ export function MapExperience() {
                   type="button"
                   onClick={() => setQuery("")}
                   aria-label="Clear search"
-                  className="press absolute right-0 top-0 inline-flex size-11 items-center justify-center rounded-md text-ink-subtle"
+                  className="sheet-close press absolute right-0 top-0 inline-flex size-11 items-center justify-center rounded-md text-ink-subtle"
                 >
                   <X aria-hidden="true" className="size-4" />
                 </button>
@@ -442,7 +442,7 @@ function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="px-5 py-10 text-center">
+    <div className="reveal px-5 py-10 text-center">
       <MapPinOff aria-hidden="true" className="mx-auto size-6 text-ink-subtle" />
       <h2 className="mt-3 font-display text-lg">{title}</h2>
       <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-ink-muted">{body}</p>

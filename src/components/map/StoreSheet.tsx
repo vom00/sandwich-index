@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 import { Confidence } from "@/components/ui/Confidence";
 import { FeedCredit } from "@/components/ui/FeedCredit";
+import { Odometer } from "@/components/ui/Odometer";
 import { Sparkline } from "@/components/ui/Sparkline";
 import { StoreStateBadge } from "@/components/ui/StoreStateBadge";
 import { formatCents } from "@/lib/money";
@@ -18,14 +19,28 @@ import type { StoreWithId, Submission } from "@/types";
 /**
  * The detail sheet opened by selecting a store.
  *
- * Motion follows the spec's entrance budget: 240ms in, 190ms out — exits run
- * faster because a dismissal that lingers feels like the interface arguing.
- * Easing is ease-out on entry, and `scale(0.95)` rather than `scale(0)` so the
- * card grows from something rather than materialising from nothing.
+ * It springs in from the edge it is docked to (a short spring with a little
+ * overshoot, about 340ms) and leaves faster, in 190ms, because a dismissal
+ * that lingers feels like the interface arguing. It starts at `scale(0.98)`
+ * rather than `scale(0)`, so the card arrives rather than materialises. The
+ * price rolls up on odometer wheels as it opens.
  *
  * When the user prefers reduced motion, `initial={false}` skips the entrance
  * entirely rather than merely shortening it.
  */
+/** Whether the sheet is docked to the right (640px and up) rather than the bottom. */
+function useWideScreen(): boolean {
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 640px)");
+    const update = () => setWide(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  return wide;
+}
+
 function StoreHeading({ store }: { store: StoreWithId }) {
   const { text, qualifier } = storeLabel(store);
 
@@ -47,6 +62,7 @@ export function StoreSheet({
   onClose: () => void;
 }) {
   const reducedMotion = useReducedMotion() ?? false;
+  const wide = useWideScreen();
 
   /**
    * History is stored with the id it belongs to rather than on its own.
@@ -103,17 +119,27 @@ export function StoreSheet({
           key={store.id}
           role="dialog"
           aria-label={`Price detail for ${storeLabelText(store)}`}
-          initial={reducedMotion ? false : { opacity: 0, scale: 0.95, y: 8 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={reducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.97, y: 4 }}
-          transition={{
-            duration: reducedMotion ? 0 : 0.24,
-            ease: [0.165, 0.84, 0.44, 1],
-          }}
+          // Springs up from the bottom edge on a phone and in from the right
+          // on a wide screen: the side it is docked to.
+          initial={
+            reducedMotion ? false : wide ? { opacity: 0, x: 28, scale: 0.98 } : { opacity: 0, y: 28, scale: 0.98 }
+          }
+          animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+          exit={
+            reducedMotion
+              ? { opacity: 1 }
+              : {
+                  opacity: 0,
+                  ...(wide ? { x: 12 } : { y: 12 }),
+                  scale: 0.98,
+                  transition: { duration: 0.19, ease: [0.165, 0.84, 0.44, 1] },
+                }
+          }
+          transition={reducedMotion ? { duration: 0 } : { type: "spring", visualDuration: 0.34, bounce: 0.2 }}
           // Only transform and opacity animate — never width, height, or offsets
           // that would force layout on every frame.
           style={{ willChange: reducedMotion ? "auto" : "transform, opacity" }}
-          className="pointer-events-auto absolute inset-x-3 bottom-3 z-[1000] rounded-lg border border-rule bg-paper-raised p-4 shadow-lg sm:inset-x-auto sm:right-4 sm:w-96"
+          className="pointer-events-auto absolute inset-x-3 bottom-3 z-[1000] rounded-xl border border-rule bg-paper-raised p-4 shadow-[0_1px_2px_rgb(21_20_15/0.08),0_18px_40px_-12px_rgb(21_20_15/0.28)] sm:inset-x-auto sm:right-4 sm:w-96"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -124,7 +150,7 @@ export function StoreSheet({
               type="button"
               onClick={onClose}
               aria-label="Close price detail"
-              className="press -m-1 inline-flex size-11 shrink-0 items-center justify-center rounded-md"
+              className="sheet-close press -m-1 inline-flex size-11 shrink-0 items-center justify-center rounded-md"
             >
               <X aria-hidden="true" className="size-5" />
             </button>
@@ -135,9 +161,8 @@ export function StoreSheet({
               <p className="text-ink-muted">No prices submitted yet.</p>
             ) : (
               <>
-                <span className="tabular text-3xl font-medium">
-                  {formatCents(store.priceCents)}
-                </span>
+                {/* Rolls up on wheels each time a store's sheet opens. */}
+                <Odometer roll="load" value={formatCents(store.priceCents)} className="tabular text-3xl font-medium" />
                 <span className="pb-1 text-sm text-ink-subtle">current</span>
               </>
             )}
@@ -174,6 +199,7 @@ export function StoreSheet({
               className="btn-primary press inline-flex min-h-11 flex-1 items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-accent-ink"
             >
               Log a price
+              <span className="btn-arrow ml-2" aria-hidden="true">→</span>
             </Link>
             <Link
               href={`/store/${store.id}`}

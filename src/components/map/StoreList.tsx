@@ -71,7 +71,10 @@ export function StoreList({
         return (
           <li key={store.id} data-store-id={store.id}>
             <div
-              className={`px-4 py-3 transition-colors duration-150 ease-out motion-reduce:transition-none ${
+              // `.map-row`: a hover shade, and an accent bar that grows in down
+              // the left edge of the selected store.
+              data-selected={isSelected || undefined}
+              className={`map-row px-4 py-3 transition-colors duration-150 ease-out motion-reduce:transition-none ${
                 isSelected ? "bg-paper-sunken" : "bg-transparent"
               }`}
             >
@@ -127,7 +130,7 @@ export function StoreList({
                 {state === "priced" && presentation !== null ? (
                   // Glyph plus words. The colour is the third signal, not the only one.
                   <span
-                    className="inline-flex items-center gap-1.5 rounded-full border border-rule px-2.5 py-1 text-xs font-medium"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-rule bg-paper-raised px-2.5 py-1 text-xs font-medium"
                     style={{ color: presentation.colorVar }}
                   >
                     <span aria-hidden="true">{presentation.glyph}</span>
@@ -139,7 +142,7 @@ export function StoreList({
 
                 <Link
                   href={`/store/${store.id}`}
-                  className="ml-auto inline-flex min-h-11 items-center px-1 text-sm underline decoration-rule underline-offset-2 hover-accent"
+                  className="link-prose ml-auto inline-flex min-h-11 items-center px-1 text-sm"
                 >
                   History
                 </Link>

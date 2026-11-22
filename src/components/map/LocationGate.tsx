@@ -68,11 +68,12 @@ export function LocationGate({
 
   return (
     <div className="mx-auto w-full max-w-xl px-5 py-14 sm:px-8">
-      <h1 className="font-display text-3xl leading-tight sm:text-4xl">
+      {/* The gate comes in as one short staggered rise (`.reveal`). */}
+      <h1 className="reveal font-display text-3xl leading-tight sm:text-4xl">
         Find the cheapest McChicken near you
       </h1>
 
-      <p className="mt-4 leading-relaxed text-ink-muted">
+      <p className="reveal mt-4 leading-relaxed text-ink-muted" style={{ animationDelay: "80ms" }}>
         We need a rough location to work out which stores to show. It centres
         the map and searches about fifteen miles around you, and it is not sent
         anywhere except to look up nearby stores. Your browser keeps a copy
@@ -80,7 +81,7 @@ export function LocationGate({
         you again; closing the tab discards it.
       </p>
 
-      <div className="mt-8">
+      <div className="reveal mt-8" style={{ animationDelay: "160ms" }}>
         <button
           type="button"
           onClick={onRequestLocation}
@@ -106,7 +107,10 @@ export function LocationGate({
         </p>
       ) : null}
 
-      <div className="mt-10 border-t border-rule pt-8">
+      <div
+        className="reveal mt-10 rounded-xl border border-rule bg-paper-raised p-5 shadow-[0_1px_2px_rgb(21_20_15/0.05)] sm:p-6"
+        style={{ animationDelay: "240ms" }}
+      >
         <form onSubmit={handleZipSubmit} noValidate>
           <label htmlFor={zipFieldId} className="block font-medium">
             Or enter a ZIP code
@@ -136,7 +140,7 @@ export function LocationGate({
                 aria-invalid={zipError !== null}
                 aria-describedby={zipError !== null ? zipErrorId : undefined}
                 placeholder="75019"
-                className="field tabular min-h-11 w-full rounded-md border border-rule bg-paper-raised px-3 py-2 text-base"
+                className="field tabular min-h-11 w-full rounded-md border border-rule-strong bg-paper px-3 py-2 text-base"
               />
               {/* Adjacent to the field it describes, never a summary block. */}
               {zipError !== null ? (
