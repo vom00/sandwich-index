@@ -80,7 +80,7 @@ export function SubmissionLog({ submissions }: { submissions: readonly Submissio
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-rule">
+          <tbody className="log-rows divide-y divide-rule">
             {submissions.map((submission) => {
               const counted = canSetPrice(submission);
               return (

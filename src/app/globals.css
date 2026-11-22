@@ -975,6 +975,26 @@ h6 {
   }
 }
 
+/* --- Back link: the arrow steps back on hover, the line wipes in. ------ */
+.btn-arrow-back {
+  transition: transform var(--duration-ui) var(--ease-out-quart);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :hover > .btn-arrow-back {
+    transform: translateX(-3px);
+  }
+
+  /* Report tables: the row under the pointer is shaded. */
+  .log-rows > tr {
+    transition: background-color var(--duration-micro) ease;
+  }
+
+  .log-rows > tr:hover {
+    background-color: color-mix(in srgb, var(--color-paper-sunken) 60%, transparent);
+  }
+}
+
 /* Everything above, at rest, for anyone who asked for less motion. */
 @media (prefers-reduced-motion: reduce) {
   .odo-col::before,
@@ -991,7 +1011,9 @@ h6 {
   .field,
   .map-row::before,
   .sheet-close,
-  .sheet-close svg {
+  .sheet-close svg,
+  .btn-arrow-back,
+  .log-rows > tr {
     transition: none;
   }
 

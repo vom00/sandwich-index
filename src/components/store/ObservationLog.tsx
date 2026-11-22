@@ -68,7 +68,7 @@ export function ObservationLog({
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-rule">
+          <tbody className="log-rows divide-y divide-rule">
             {observations.map((observation) => (
               <tr key={observation.id}>
                 <td className="tabular py-3 pr-4 text-base">
@@ -95,7 +95,7 @@ export function ObservationLog({
                       href={observation.sourceUrl}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="hover-accent inline-flex min-h-11 items-center underline decoration-rule underline-offset-2"
+                      className="link-prose inline-flex min-h-11 items-center"
                     >
                       Their page
                       <span className="sr-only">

@@ -77,7 +77,7 @@ export function PriceHistory({
   const last = counted[counted.length - 1];
 
   return (
-    <figure className="mt-4">
+    <figure className="mt-4 rounded-2xl border border-rule bg-paper-raised p-3 sm:p-5">
       <PriceChartCanvas
         submissions={counted}
         observations={observations}

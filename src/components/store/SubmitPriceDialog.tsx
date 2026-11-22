@@ -199,7 +199,7 @@ export function SubmitPriceDialog({
                   key="backdrop"
                   aria-hidden="true"
                   onClick={onClose}
-                  className="absolute inset-0 bg-ink/50"
+                  className="absolute inset-0 bg-ink/45 backdrop-blur-[2px]"
                   initial={reducedMotion ? false : { opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0, transition: transitionOut }}
@@ -208,13 +208,15 @@ export function SubmitPriceDialog({
 
                 <motion.div
                   key="panel"
-                  className="relative max-h-full w-full max-w-lg overflow-y-auto rounded-lg border border-rule bg-paper-raised p-5 shadow-xl sm:p-6"
+                  className="relative max-h-full w-full max-w-lg overflow-y-auto rounded-2xl border border-rule bg-paper-raised p-5 shadow-[0_2px_4px_rgb(21_20_15/0.08),0_28px_60px_-16px_rgb(21_20_15/0.4)] sm:p-6"
                   // Transform and opacity only — nothing here can trigger
                   // layout while it animates.
-                  initial={reducedMotion ? false : { opacity: 0, scale: 0.95, y: 8 }}
+                  // A short spring up from below, the same as the map's store
+                  // sheet; it leaves on the plain ease-out, faster.
+                  initial={reducedMotion ? false : { opacity: 0, scale: 0.97, y: 24 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.97, y: 4, transition: transitionOut }}
-                  transition={transitionIn}
+                  exit={{ opacity: 0, scale: 0.97, y: 8, transition: transitionOut }}
+                  transition={reducedMotion ? transitionIn : { type: "spring", visualDuration: 0.34, bounce: 0.18 }}
                   style={{ willChange: reducedMotion ? "auto" : "transform, opacity" }}
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -225,7 +227,7 @@ export function SubmitPriceDialog({
                       type="button"
                       onClick={onClose}
                       aria-label="Close"
-                      className="press -m-2 inline-flex size-11 shrink-0 items-center justify-center rounded-md"
+                      className="sheet-close press -m-2 inline-flex size-11 shrink-0 items-center justify-center rounded-md"
                     >
                       <X aria-hidden="true" className="size-5" />
                     </button>

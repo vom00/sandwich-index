@@ -94,7 +94,8 @@ function Strip({ children }: { children: React.ReactNode }) {
   return (
     <section
       aria-label="Comparison with nearby stores"
-      className="mt-8 border-y border-rule bg-paper-sunken px-5 py-6 sm:px-6"
+      className="reveal mt-5 rounded-2xl border border-rule bg-paper-sunken px-5 py-6 sm:px-7"
+      style={{ animationDelay: "280ms" }}
     >
       {children}
     </section>

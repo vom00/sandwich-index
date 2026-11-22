@@ -122,7 +122,7 @@ export function ReadFromPhoto({
         type="button"
         disabled={disabled || reading}
         onClick={() => inputRef.current?.click()}
-        className="press inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md border border-rule-strong px-4 py-2.5 text-sm font-medium disabled:opacity-70"
+        className="btn-quiet press inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-md border border-rule-strong px-4 py-2.5 text-sm font-medium disabled:opacity-70"
       >
         {reading ? (
           <LoaderCircle aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" />
@@ -222,7 +222,7 @@ function Outcome({ state }: { state: Exclude<State, { phase: "idle" }> }) {
             <p className="mt-1">
               <Link
                 href={`/store/${state.elsewhere.id}`}
-                className="underline decoration-rule-strong underline-offset-2 hover-accent"
+                className="link-prose"
               >
                 Log it on the page for {state.elsewhere.label}
               </Link>

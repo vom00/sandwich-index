@@ -10,7 +10,9 @@ import { SubmissionLog } from "@/components/store/SubmissionLog";
 import { SubmitPriceButton } from "@/components/store/SubmitPriceButton";
 import { Confidence } from "@/components/ui/Confidence";
 import { FeedCredit } from "@/components/ui/FeedCredit";
+import { Odometer } from "@/components/ui/Odometer";
 import { StoreStateBadge } from "@/components/ui/StoreStateBadge";
+import { WordRise } from "@/components/ui/WordRise";
 import { feedName } from "@/lib/feeds";
 import { formatCents } from "@/lib/money";
 import { priceAge } from "@/lib/provenance";
@@ -110,24 +112,23 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
 
   return (
     <main id="main" className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-8 sm:py-14">
-      <Link
-        href="/map"
-        className="hover-accent inline-flex min-h-11 items-center text-sm underline decoration-rule underline-offset-4"
-      >
-        Back to the map
+      <Link href="/map" className="link-wipe hover-accent inline-flex min-h-11 items-center gap-1.5 text-sm">
+        <span className="btn-arrow-back" aria-hidden="true">←</span>
+        <span className="wipe">Back to the map</span>
       </Link>
 
+      {/* The header and the price card come in as one short staggered rise. */}
       <header className="mt-3">
-        <p className="font-mono text-xs uppercase tracking-[0.18em] text-ink-subtle">
+        <p className="reveal font-mono text-xs uppercase tracking-[0.18em] text-ink-subtle">
           McChicken price
         </p>
-        <h1 className="mt-2 font-display text-3xl leading-tight sm:text-4xl">
+        <h1 className="reveal mt-2 font-display text-3xl leading-tight sm:text-4xl" style={{ animationDelay: "70ms" }}>
           {label.text}
           {label.qualifier !== null ? (
             <span className="text-2xl text-ink-subtle"> ({label.qualifier})</span>
           ) : null}
         </h1>
-        <p className="mt-2 text-sm text-ink-subtle">
+        <p className="reveal mt-2 text-sm text-ink-subtle" style={{ animationDelay: "140ms" }}>
           {`Location from ${locationSource(store.id)}. `}
           {observations.length === 0
             ? "Prices from whoever walked in and told us."
@@ -135,7 +136,10 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
         </p>
       </header>
 
-      <div className="mt-8 flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
+      <div
+        className="reveal mt-8 flex flex-wrap items-end justify-between gap-x-8 gap-y-5 rounded-2xl border border-rule bg-paper-raised p-5 shadow-[0_1px_2px_rgb(21_20_15/0.05),0_12px_32px_-20px_rgb(21_20_15/0.25)] sm:p-7"
+        style={{ animationDelay: "210ms" }}
+      >
         <div>
           {store.priceCents === null ? (
             <p className="max-w-md text-lg leading-relaxed text-ink-muted">
@@ -145,9 +149,13 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
           ) : (
             <>
               <div className="flex items-baseline gap-2">
-                <span className="tabular text-5xl font-medium sm:text-6xl">
-                  {formatCents(store.priceCents)}
-                </span>
+                {/* Rolls up on wheels from the first paint; the figure itself
+                    is plain text inside (`Odometer`). */}
+                <Odometer
+                  roll="load"
+                  value={formatCents(store.priceCents)}
+                  className="tabular text-5xl font-medium sm:text-6xl"
+                />
                 <span className="text-sm text-ink-subtle">current price</span>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -164,7 +172,7 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
                     href={behindPrice.sourceUrl}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="hover-accent inline-flex min-h-11 items-center text-xs underline decoration-rule underline-offset-2"
+                    className="link-prose inline-flex min-h-11 items-center text-xs"
                   >
                     Check it at the source
                     <span className="sr-only"> (opens {feedName(behindPrice.feed)} in a new tab)</span>
@@ -196,7 +204,9 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
       <PriceComparison comparison={comparison} />
 
       <section className="mt-12">
-        <h2 className="font-display text-2xl">Price history</h2>
+        <h2 className="wr font-display text-2xl">
+          <WordRise text="Price history" />
+        </h2>
         <PriceHistory
           submissions={submissions}
           observations={observations}
@@ -205,13 +215,17 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
       </section>
 
       <section className="mt-12 border-t border-rule pt-8">
-        <h2 className="font-display text-2xl">Every report</h2>
+        <h2 className="wr font-display text-2xl">
+          <WordRise text="Every report" />
+        </h2>
         <SubmissionLog submissions={submissions} />
       </section>
 
       {observations.length > 0 ? (
         <section className="mt-12 border-t border-rule pt-8">
-          <h2 className="font-display text-2xl">From price feeds</h2>
+          <h2 className="wr font-display text-2xl">
+            <WordRise text="From price feeds" />
+          </h2>
           <ObservationLog observations={observations} />
         </section>
       ) : null}
