@@ -7,7 +7,6 @@ import { StaticDotMap } from "@/components/landing/world/StaticDotMap";
 import { WorldStory } from "@/components/landing/world/WorldStory";
 import { Odometer } from "@/components/ui/Odometer";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
-import { Ticker, type TickerItem } from "@/components/ui/Ticker";
 import { WordRise } from "@/components/ui/WordRise";
 import { ACTIVE_FEEDS, HAS_ACTIVE_FEED } from "@/lib/feeds";
 import { getCachedIndexSnapshot } from "@/lib/index-snapshot.server";
@@ -54,11 +53,6 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const SHORT_DATE = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 
-/** A store's price tier as the ticker colours it; a store always has a price here. */
-function tierOf(tier: ReturnType<typeof priceTier>): TickerItem["tier"] {
-  return tier === "none" ? undefined : tier;
-}
-
 /** The stores the board and the street show: the cheapest and the priciest, low to high, each once. */
 function boardStores(snapshot: IndexSnapshot): StoreWithId[] {
   const seen = new Set<string>();
@@ -84,21 +78,6 @@ export default async function Home() {
   const highest = prices[prices.length - 1] ?? 0;
   const checkedFrom = SHORT_DATE.format(new Date(map.generatedFrom.oldestObservedAt));
   const checkedTo = SHORT_DATE.format(new Date(map.generatedFrom.newestObservedAt));
-
-  // The band between the story and the lists: the same figures the story has
-  // just shown, set running. Nothing in it is new or estimated.
-  const ticker: TickerItem[] = [
-    { key: "median", label: "National median", value: formatCents(scale.median) },
-    ...board.map((store) => ({
-      key: store.id,
-      label: storeLabelText(store),
-      value: formatCents(store.priceCents ?? 0),
-      tier: tierOf(priceTier(store.priceCents ?? 0, scale)),
-    })),
-    { key: "p10", label: "Cheapest tenth, or less", value: formatCents(scale.p10), tier: "low" },
-    { key: "p90", label: "Dearest tenth, or more", value: formatCents(scale.p90), tier: "high" },
-    { key: "priced", label: "Stores with a price", value: formatCount(map.generatedFrom.priced) },
-  ];
 
   return (
     <main id="main" className="lp-root">
@@ -188,12 +167,6 @@ export default async function Home() {
           </div>
         </section>
       </WorldStory>
-
-      {board.length > 0 ? (
-        <div className="mt-12">
-          <Ticker items={ticker} label="Prices in the index" />
-        </div>
-      ) : null}
 
       <div className="mx-auto w-full max-w-[68rem] px-5 sm:px-8">
         <Ends snapshot={snapshot} />
