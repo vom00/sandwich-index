@@ -85,7 +85,7 @@ export function LocationGate({
           type="button"
           onClick={onRequestLocation}
           disabled={requesting}
-          className="press inline-flex min-h-11 items-center gap-2 rounded-md bg-accent px-5 py-3 font-medium text-accent-ink disabled:opacity-70"
+          className="btn-primary press inline-flex min-h-11 items-center gap-2 rounded-md bg-accent px-5 py-3 font-medium text-accent-ink disabled:opacity-70"
         >
           {requesting ? (
             <LoaderCircle aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" />
@@ -136,7 +136,7 @@ export function LocationGate({
                 aria-invalid={zipError !== null}
                 aria-describedby={zipError !== null ? zipErrorId : undefined}
                 placeholder="75019"
-                className="tabular min-h-11 w-full rounded-md border border-rule bg-paper-raised px-3 py-2 text-base"
+                className="field tabular min-h-11 w-full rounded-md border border-rule bg-paper-raised px-3 py-2 text-base"
               />
               {/* Adjacent to the field it describes, never a summary block. */}
               {zipError !== null ? (
@@ -149,7 +149,7 @@ export function LocationGate({
             <button
               type="submit"
               disabled={lookingUp}
-              className="press inline-flex min-h-11 items-center gap-2 rounded-md border border-rule-strong px-5 py-2 font-medium disabled:opacity-70"
+              className="btn-quiet press inline-flex min-h-11 items-center gap-2 rounded-md border border-rule-strong px-5 py-2 font-medium disabled:opacity-70"
             >
               {lookingUp ? (
                 <LoaderCircle aria-hidden="true" className="size-4 animate-spin motion-reduce:animate-none" />

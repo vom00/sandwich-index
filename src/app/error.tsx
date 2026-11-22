@@ -44,13 +44,13 @@ export default function RouteError({
         <button
           type="button"
           onClick={reset}
-          className="press inline-flex min-h-12 items-center rounded-md bg-accent px-5 py-3 font-medium text-accent-ink"
+          className="btn-primary press inline-flex min-h-12 items-center rounded-md bg-accent px-5 py-3 font-medium text-accent-ink"
         >
           Try again
         </button>
         <Link
           href="/"
-          className="press inline-flex min-h-12 items-center rounded-md border border-rule-strong px-5 py-3 font-medium"
+          className="btn-quiet press inline-flex min-h-12 items-center rounded-md border border-rule-strong px-5 py-3 font-medium"
         >
           Back to the start
         </Link>

@@ -36,7 +36,7 @@ export function SubmitPriceButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="press inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-accent px-5 py-3 font-medium text-accent-ink"
+        className="btn-primary press inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-accent px-5 py-3 font-medium text-accent-ink"
       >
         <ReceiptText aria-hidden="true" className="size-4" />
         {hasPrices ? "Log a price" : "Log the first price"}

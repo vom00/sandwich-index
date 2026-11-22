@@ -134,7 +134,14 @@ h6 {
 :focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
-  border-radius: 2px;
+}
+
+/* In the base layer so a `rounded-*` utility wins: a rounded button keeps its
+   corners (and its ring follows them) instead of squaring off on focus. */
+@layer base {
+  :focus-visible {
+    border-radius: 2px;
+  }
 }
 
 /* Skip link: present in the tab order, off-screen until focused. */
@@ -389,5 +396,492 @@ h6 {
   .leaflet-container .leaflet-fade-anim .leaflet-tile-loaded,
   .leaflet-container .leaflet-zoom-anim .leaflet-zoom-animated {
     transition: none;
+  }
+}
+
+/* ===========================================================================
+   UI refresh primitives (docs/ui-refresh/components.md)
+
+   Written for this site on its own tokens. Two rules hold throughout: only
+   transform and opacity animate, and under reduced motion everything sits in
+   its final state from the first paint. The scroll-linked pieces are CSS
+   scroll timelines, so they cost no JavaScript; where a browser lacks them,
+   the element simply shows its finished state.
+=========================================================================== */
+
+/* --- Pinned header: frosted paper, with a hairline shadow that fades in as
+   soon as anything scrolls underneath it. ------------------------------- */
+.site-header {
+  background-color: color-mix(in srgb, var(--color-paper) 86%, transparent);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  backdrop-filter: saturate(1.4) blur(14px);
+}
+
+.site-header::after {
+  content: "";
+  position: absolute;
+  inset: 100% 0 auto;
+  height: 14px;
+  pointer-events: none;
+  background: linear-gradient(rgb(21 20 15 / 0.07), transparent);
+  opacity: 0;
+}
+
+@keyframes header-lift {
+  to {
+    opacity: 1;
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .site-header::after {
+    animation: header-lift linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 64px;
+  }
+}
+
+/* The mark tips its hat on hover. */
+.logo-mark {
+  transition: transform var(--duration-ui) var(--ease-out-quart);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  a:hover > .logo-mark {
+    transform: rotate(-10deg) translateY(-1px);
+  }
+}
+
+/* --- Animated link: an underline that wipes in from the left on hover and
+   stays under the current page. It is drawn on an inner `.wipe` span so it
+   sits under the words, not under the link's 44px tap area. ------------- */
+.wipe {
+  position: relative;
+}
+
+.wipe::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.3em;
+  height: 2px;
+  border-radius: 1px;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 280ms var(--ease-out-quart);
+}
+
+[aria-current="page"] .wipe::after,
+.link-wipe:focus-visible .wipe::after {
+  transform: scaleX(1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .link-wipe:hover .wipe::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+/* Inline links in prose: the underline darkens instead (it wraps across
+   lines, so a drawn line would break). */
+.link-prose {
+  text-decoration-line: underline;
+  text-decoration-color: var(--color-rule);
+  text-underline-offset: 3px;
+  transition:
+    text-decoration-color var(--duration-micro) ease,
+    color var(--duration-micro) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .link-prose:hover {
+    color: var(--color-accent-hover);
+    text-decoration-color: currentColor;
+  }
+}
+
+/* --- Primary button: depth, a hover shade, a light sheen across the face,
+   and an arrow that steps forward. Layered on top of `.press`. ---------- */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    0 1px 2px rgb(21 20 15 / 0.16),
+    0 8px 18px -10px rgb(18 57 94 / 0.6);
+}
+
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.16) 50%, transparent 70%);
+  transform: translateX(-110%);
+  pointer-events: none;
+}
+
+.btn-arrow {
+  transition: transform var(--duration-ui) var(--ease-out-quart);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary {
+    transition:
+      transform var(--duration-micro) ease,
+      background-color var(--duration-micro) ease;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background-color: var(--color-accent-hover);
+  }
+
+  .btn-primary:hover:not(:disabled)::after {
+    transform: translateX(110%);
+    transition: transform 700ms var(--ease-out-quart);
+  }
+
+  .btn-primary:hover .btn-arrow {
+    transform: translateX(3px);
+  }
+
+  /* Secondary button: a hairline box that lifts to white on hover. */
+  .btn-quiet {
+    transition:
+      background-color var(--duration-micro) ease,
+      border-color var(--duration-micro) ease;
+  }
+
+  .btn-quiet:hover:not(:disabled) {
+    background-color: var(--color-paper-raised);
+    border-color: var(--color-accent);
+  }
+}
+
+/* --- Text fields: the border darkens to the accent on hover, and a soft
+   halo joins the focus ring. An invalid field keeps its danger border. ---- */
+.field {
+  transition:
+    border-color var(--duration-micro) ease,
+    box-shadow var(--duration-ui) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .field:hover:not(:disabled):not([aria-invalid="true"]) {
+    border-color: var(--color-accent);
+  }
+}
+
+.field:focus-visible {
+  box-shadow: 0 0 0 5px rgb(18 57 94 / 0.12);
+}
+
+.field[aria-invalid="true"]:focus-visible {
+  box-shadow: 0 0 0 5px rgb(123 45 59 / 0.12);
+}
+
+/* --- Stat chips. ------------------------------------------------------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 999px;
+  background-color: var(--color-paper-raised);
+  color: var(--color-ink-muted);
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.chip b {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+.chip-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: none;
+  border-radius: 999px;
+  background-color: var(--dot, var(--color-ink-subtle));
+}
+
+/* --- Word rise: a heading's words lift into place one after another as the
+   heading enters the viewport. Tied to the heading's own entry, which always
+   completes once it is fully on screen, so nothing is left half-faded at the
+   foot of a short page. --------------------------------------------------- */
+.wr {
+  view-timeline-name: --wr;
+}
+
+.wr-w {
+  display: inline-block;
+}
+
+@keyframes wr-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.5em);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .wr-w {
+      animation: wr-rise linear both;
+      animation-timeline: --wr;
+      animation-range: entry calc(min(var(--i), 6) * 9%) entry calc(46% + min(var(--i), 6) * 9%);
+    }
+  }
+}
+
+/* --- Rise on view: blocks that lift in as they scroll into view. ------- */
+@keyframes view-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .view-rise {
+      animation: view-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+  }
+}
+
+/* --- Price ticker: a slow, edge-faded marquee of real prices. It pauses on
+   hover, on focus, and with its own button; under reduced motion it is a
+   plain row that scrolls sideways by hand. ------------------------------ */
+.ticker {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker var(--ticker-duration, 70s) linear infinite;
+}
+
+.ticker-set {
+  display: flex;
+  flex: none;
+}
+
+.ticker:hover .ticker-track,
+.ticker:focus-within .ticker-track,
+.ticker[data-paused] .ticker-track {
+  animation-play-state: paused;
+}
+
+@keyframes ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker {
+    overflow-x: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .ticker-track {
+    animation: none;
+  }
+
+  .ticker-set[aria-hidden="true"],
+  .ticker-toggle {
+    display: none;
+  }
+}
+
+/* --- Scroll progress: a hairline under the header that fills as the page
+   is read. Hidden where scroll timelines are unsupported. ---------------- */
+.scroll-progress {
+  position: fixed;
+  top: var(--site-header-height);
+  left: 0;
+  right: 0;
+  z-index: 1500;
+  height: 2px;
+  background-color: var(--color-accent);
+  transform-origin: left;
+  transform: scaleX(0);
+  pointer-events: none;
+  display: none;
+}
+
+@keyframes scroll-fill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .scroll-progress {
+    display: block;
+    animation: scroll-fill linear both;
+    animation-timeline: scroll(root);
+  }
+}
+
+/* --- Odometer: digits on wheels. The wheels are generated content, so the
+   element's text stays the plain figure for readers, tests and copy-paste;
+   `Odometer.tsx` rolls them up when the number scrolls into view. --------- */
+.odo {
+  --odo-lh: 1.15em;
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.odo-row {
+  display: inline-flex;
+  height: var(--odo-lh);
+  line-height: var(--odo-lh);
+  vertical-align: bottom;
+  overflow: hidden;
+}
+
+.odo-col::before {
+  content: "0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9";
+  display: block;
+  white-space: pre;
+  text-align: center;
+  transform: translateY(calc(var(--d) * var(--odo-lh) * -1));
+  transition: transform 1100ms var(--ease-out-expo) calc(var(--k, 0) * 70ms);
+}
+
+.odo[data-armed] .odo-col::before {
+  transform: translateY(0);
+  transition: none;
+}
+
+.odo-ch::before {
+  content: attr(data-c);
+}
+
+/* --- Row hover: rows that lead to a store nudge right and show an arrow. */
+.row-go .row-arrow {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition:
+    opacity var(--duration-ui) ease,
+    transform var(--duration-ui) var(--ease-out-quart);
+}
+
+.row-go .row-body {
+  transition: transform var(--duration-ui) var(--ease-out-quart);
+}
+
+.row-go:focus-visible .row-arrow {
+  opacity: 1;
+  transform: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .row-go:hover .row-arrow {
+    opacity: 1;
+    transform: none;
+  }
+
+  .row-go:hover .row-body {
+    transform: translateX(3px);
+  }
+}
+
+/* --- Footer wordmark: the name set large and cut off by the end of the
+   page, rising into place as the footer scrolls in. Decorative. ---------- */
+.footer-wordmark {
+  /* Sized so the name spans the footer's text column (about 7em wide in
+     Fraunces), with the bottom third cut off by the edge of the page. */
+  --wm-size: calc(min(100vw, 68rem) / 7.9);
+  overflow: hidden;
+  height: calc(var(--wm-size) * 0.64);
+  user-select: none;
+}
+
+.footer-wordmark span {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--wm-size);
+  line-height: 0.82;
+  letter-spacing: -0.035em;
+  white-space: nowrap;
+  color: var(--color-rule);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .footer-wordmark span {
+      animation: view-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+  }
+}
+
+/* --- Sheet entrance: the map's store card springs in from the bottom on a
+   phone and from the right on a wide screen. ----------------------------- */
+@keyframes sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+
+.sheet-enter {
+  animation: sheet-up 340ms cubic-bezier(0.22, 1.3, 0.36, 1) both;
+}
+
+@media (min-width: 640px) {
+  .sheet-enter {
+    animation-name: sheet-in;
+  }
+}
+
+/* Everything above, at rest, for anyone who asked for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  .odo-col::before,
+  .row-go .row-arrow,
+  .row-go .row-body,
+  .btn-arrow,
+  .logo-mark,
+  .wipe::after,
+  .link-prose,
+  .btn-primary,
+  .btn-quiet,
+  .field {
+    transition: none;
+  }
+
+  .btn-primary::after {
+    display: none;
+  }
+
+  .sheet-enter {
+    animation: none;
   }
 }

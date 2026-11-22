@@ -10,7 +10,7 @@ export default function StoreNotFound() {
       </p>
       <Link
         href="/map"
-        className="press mt-8 inline-flex min-h-11 items-center rounded-md bg-accent px-5 py-3 font-medium text-accent-ink"
+        className="btn-primary press mt-8 inline-flex min-h-11 items-center rounded-md bg-accent px-5 py-3 font-medium text-accent-ink"
       >
         Back to the map
       </Link>

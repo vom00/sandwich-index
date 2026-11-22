@@ -264,7 +264,7 @@ export function LogRunExperience() {
             <button
               type="button"
               onClick={() => geo.position !== null && void load(geo.position)}
-              className="press inline-flex min-h-11 items-center rounded-md border border-rule-strong px-4 py-2 font-medium"
+              className="btn-quiet press inline-flex min-h-11 items-center rounded-md border border-rule-strong px-4 py-2 font-medium"
             >
               Try again
             </button>
@@ -458,7 +458,7 @@ export function LogRunExperience() {
                         // accessible name so a list of them stays navigable.
                         aria-label={`Log a price for ${label.text} anyway`}
                         aria-describedby={noteId}
-                        className="press inline-flex min-h-12 w-28 items-center justify-center rounded-md border border-rule-strong px-3 py-2 text-sm font-medium"
+                        className="btn-quiet press inline-flex min-h-12 w-28 items-center justify-center rounded-md border border-rule-strong px-3 py-2 text-sm font-medium"
                       >
                         Log anyway
                       </button>
@@ -490,7 +490,7 @@ export function LogRunExperience() {
                               [store.id]: event.target.value,
                             }))
                           }
-                          className={`tabular min-h-12 w-28 rounded-md border bg-paper-raised py-2 pl-7 pr-3 disabled:opacity-60 ${
+                          className={`field tabular min-h-12 w-28 rounded-md border bg-paper-raised py-2 pl-7 pr-3 disabled:opacity-60 ${
                             error === null ? "border-rule-strong" : "border-danger"
                           }`}
                         />
@@ -509,7 +509,7 @@ export function LogRunExperience() {
               type="button"
               onClick={() => void handleRun()}
               disabled={running || runnable === 0}
-              className="press inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-accent px-5 py-3 font-medium text-accent-ink disabled:opacity-60"
+              className="btn-primary press inline-flex min-h-12 items-center justify-center gap-2 rounded-md bg-accent px-5 py-3 font-medium text-accent-ink disabled:opacity-60"
             >
               {running ? (
                 <>

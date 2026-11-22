@@ -16,7 +16,7 @@ import { HAS_ACTIVE_FEED } from "@/lib/feeds";
 export function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-rule bg-paper-sunken">
-      <div className="mx-auto grid max-w-6xl gap-8 px-5 py-10 sm:grid-cols-2 sm:px-8">
+      <div className="mx-auto grid max-w-[68rem] gap-8 px-5 pt-10 pb-6 sm:grid-cols-2 sm:px-8">
         <div className="space-y-3">
           <p className="font-display text-lg">Sandwich Index</p>
           <p className="max-w-sm text-sm leading-relaxed text-ink-muted">
@@ -30,7 +30,7 @@ export function SiteFooter() {
           <p>
             Store locations from{" "}
             <a
-              className="underline decoration-rule underline-offset-2 hover-accent"
+              className="link-prose"
               href="https://www.alltheplaces.xyz"
               target="_blank"
               rel="noreferrer noopener"
@@ -39,7 +39,7 @@ export function SiteFooter() {
             </a>{" "}
             and{" "}
             <a
-              className="underline decoration-rule underline-offset-2 hover-accent"
+              className="link-prose"
               href="https://www.openstreetmap.org/copyright"
               target="_blank"
               rel="noreferrer noopener"
@@ -48,7 +48,7 @@ export function SiteFooter() {
             </a>{" "}
             contributors, available under the{" "}
             <a
-              className="underline decoration-rule underline-offset-2 hover-accent"
+              className="link-prose"
               href="https://opendatacommons.org/licenses/odbl/"
               target="_blank"
               rel="noreferrer noopener"
@@ -71,12 +71,20 @@ export function SiteFooter() {
               size is constrained by the prose around them. */}
           <p>
             <Link
-              className="hover-accent inline-flex min-h-11 items-center underline decoration-rule underline-offset-2"
+              className="link-prose inline-flex min-h-11 items-center"
               href="/about"
             >
               How this data works
             </Link>
           </p>
+        </div>
+      </div>
+
+      {/* The name set large and cut off by the foot of the page. Decorative:
+          the same name is already in the column above. */}
+      <div className="mx-auto max-w-[68rem] px-5 sm:px-8">
+        <div className="footer-wordmark" aria-hidden="true">
+          <span>Sandwich Index</span>
         </div>
       </div>
     </footer>

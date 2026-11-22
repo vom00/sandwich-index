@@ -171,13 +171,13 @@ export function StoreSheet({
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
               href={`/store/${store.id}`}
-              className="press inline-flex min-h-11 flex-1 items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-accent-ink"
+              className="btn-primary press inline-flex min-h-11 flex-1 items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-accent-ink"
             >
               Log a price
             </Link>
             <Link
               href={`/store/${store.id}`}
-              className="press inline-flex min-h-11 items-center justify-center rounded-md border border-rule-strong px-4 py-2 font-medium"
+              className="btn-quiet press inline-flex min-h-11 items-center justify-center rounded-md border border-rule-strong px-4 py-2 font-medium"
             >
               Full history
             </Link>

@@ -392,7 +392,7 @@ function PriceForm({
             aria-describedby={
               priceError === null ? priceHintId : `${priceHintId} ${priceErrorId}`
             }
-            className={`tabular min-h-12 w-full rounded-md border bg-paper-raised py-2 pl-7 pr-3 text-lg ${
+            className={`field tabular min-h-12 w-full rounded-md border bg-paper-raised py-2 pl-7 pr-3 text-lg ${
               priceError === null ? "border-rule-strong" : "border-danger"
             }`}
           />
@@ -453,7 +453,7 @@ function PriceForm({
         <button
           type="submit"
           disabled={submitting}
-          className="press inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-md bg-accent px-5 py-3 font-medium text-accent-ink disabled:opacity-70"
+          className="btn-primary press inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-md bg-accent px-5 py-3 font-medium text-accent-ink disabled:opacity-70"
         >
           {submitting ? (
             <>
@@ -520,7 +520,7 @@ function Confirmation({
       <button
         type="button"
         onClick={onDone}
-        className="press mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-accent px-5 py-3 font-medium text-accent-ink"
+        className="btn-primary press mt-6 inline-flex min-h-12 w-full items-center justify-center rounded-md bg-accent px-5 py-3 font-medium text-accent-ink"
       >
         Done
       </button>

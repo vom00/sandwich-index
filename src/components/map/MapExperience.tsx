@@ -317,7 +317,7 @@ export function MapExperience() {
 
             <Link
               href="/log"
-              className="press inline-flex min-h-11 shrink-0 items-center rounded-md border border-rule-strong px-4 py-2 text-sm font-medium"
+              className="btn-quiet press inline-flex min-h-11 shrink-0 items-center rounded-md border border-rule-strong px-4 py-2 text-sm font-medium"
             >
               Log several at once
             </Link>
@@ -342,7 +342,7 @@ export function MapExperience() {
                 placeholder="Search by street, city, ZIP or store #"
                 autoComplete="off"
                 spellCheck={false}
-                className="min-h-11 w-full rounded-md border border-rule-strong bg-paper py-2 pl-9 pr-11 text-sm [&::-webkit-search-cancel-button]:hidden"
+                className="field min-h-11 w-full rounded-md border border-rule-strong bg-paper py-2 pl-9 pr-11 text-sm [&::-webkit-search-cancel-button]:hidden"
               />
               {query !== "" ? (
                 <button
@@ -379,7 +379,7 @@ export function MapExperience() {
                 <button
                   type="button"
                   onClick={() => geo.position !== null && void load(geo.position)}
-                  className="press inline-flex min-h-11 items-center rounded-md border border-rule-strong px-4 py-2 font-medium"
+                  className="btn-quiet press inline-flex min-h-11 items-center rounded-md border border-rule-strong px-4 py-2 font-medium"
                 >
                   Try again
                 </button>
@@ -398,7 +398,7 @@ export function MapExperience() {
                 <button
                   type="button"
                   onClick={() => setQuery("")}
-                  className="press inline-flex min-h-11 items-center rounded-md border border-rule-strong px-4 py-2 font-medium"
+                  className="btn-quiet press inline-flex min-h-11 items-center rounded-md border border-rule-strong px-4 py-2 font-medium"
                 >
                   Clear search
                 </button>

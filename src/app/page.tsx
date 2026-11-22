@@ -205,9 +205,10 @@ function Hero({ snapshot }: { snapshot: IndexSnapshot }) {
         <div className="reveal mt-6 flex flex-wrap items-center gap-x-6 gap-y-3" style={{ animationDelay: "330ms" }}>
           <Link
             href="/map"
-            className="press inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-accent px-6 py-3 font-medium text-accent-ink"
+            className="btn-primary press inline-flex min-h-12 shrink-0 items-center justify-center rounded-md bg-accent px-6 py-3 font-medium text-accent-ink"
           >
             Find prices near you
+            <span className="btn-arrow ml-2" aria-hidden="true">→</span>
           </Link>
           {lowestPriceCents !== null && highestPriceCents !== null ? (
             <p className="lp-hero-range">

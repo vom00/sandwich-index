@@ -11,8 +11,8 @@ import { SandwichMark } from "@/components/ui/SandwichMark";
  * Without it, the map and the store pages had no way back to the landing page
  * except the browser's back button. The wordmark goes home; the three links
  * cover the rest of the site. The current page is marked with
- * `aria-current="page"` and an underline, so where you are is never shown by
- * colour alone.
+ * `aria-current="page"` and a drawn underline, so where you are is never shown
+ * by colour alone.
  *
  * Pinned to the top while the page scrolls, so the way to the other pages is
  * always in reach. Its height is fixed (`--site-header-height` in globals.css):
@@ -37,14 +37,16 @@ export function SiteHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="site-header sticky top-0 z-[1500] shrink-0 border-b border-rule bg-paper">
+    // The paper colour comes from `.site-header` in globals.css: a frosted,
+    // slightly translucent paper, with a soft shadow once the page scrolls.
+    <header className="site-header sticky top-0 z-[1500] shrink-0 border-b border-rule">
       <div className="mx-auto flex h-full w-full max-w-[68rem] items-center justify-between gap-3 px-5 sm:px-8">
         <Link
           href="/"
           aria-current={pathname === "/" ? "page" : undefined}
           className="hover-accent -ml-1 inline-flex min-h-11 items-center gap-2 px-1 font-display text-base font-semibold tracking-tight sm:text-lg"
         >
-          <SandwichMark className="size-7 shrink-0" />
+          <SandwichMark className="logo-mark size-7 shrink-0" />
           Sandwich Index
         </Link>
 
@@ -60,14 +62,16 @@ export function SiteHeader() {
                     // The full label even where the short one shows, so the
                     // accessible name always contains the visible text.
                     aria-label={link.label}
-                    className={`hover-accent inline-flex min-h-11 items-center px-2 text-sm sm:px-3 ${
-                      current
-                        ? "font-medium text-ink underline decoration-2 underline-offset-[6px]"
-                        : "text-ink-muted"
+                    // The line under the words wipes in on hover and stays
+                    // under the current page (`.wipe` in globals.css).
+                    className={`link-wipe hover-accent inline-flex min-h-11 items-center px-2 text-sm sm:px-3 ${
+                      current ? "font-medium text-ink" : "text-ink-muted"
                     }`}
                   >
-                    <span className="sm:hidden">{link.short}</span>
-                    <span className="hidden sm:inline">{link.label}</span>
+                    <span className="wipe">
+                      <span className="sm:hidden">{link.short}</span>
+                      <span className="hidden sm:inline">{link.label}</span>
+                    </span>
                   </Link>
                 </li>
               );
