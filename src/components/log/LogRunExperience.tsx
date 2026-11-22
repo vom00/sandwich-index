@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { LocationGate } from "@/components/map/LocationGate";
+import { Odometer } from "@/components/ui/Odometer";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import type { LatLng } from "@/lib/geohash";
 import {
@@ -241,15 +242,15 @@ export function LogRunExperience() {
   return (
     <main id="main" className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-8">
       <header>
-        <p className="text-xs uppercase tracking-[0.18em] text-ink-subtle">
+        <p className="reveal font-mono text-xs uppercase tracking-[0.18em] text-ink-subtle">
           Logging run
         </p>
-        <h1 className="mt-2 font-display text-3xl leading-tight sm:text-4xl">
+        <h1 className="reveal mt-2 font-display text-3xl leading-tight sm:text-4xl" style={{ animationDelay: "70ms" }}>
           {locationLabel === null
             ? "Stores that need a price"
             : `Stores near ${locationLabel} that need a price`}
         </h1>
-        <p className="mt-3 max-w-prose leading-relaxed text-ink-muted">
+        <p className="reveal mt-3 max-w-prose leading-relaxed text-ink-muted" style={{ animationDelay: "140ms" }}>
           Open the McDonald&rsquo;s app, switch stores, and read the McChicken
           price off the menu. Type what you see and move down the list. Nothing
           is saved until you finish, and stores nobody has priced come first.
@@ -288,7 +289,7 @@ export function LogRunExperience() {
           {/* Three cells, not four. The counters partition the list and sum to
               its length; "no street address" cuts across all three, so putting
               it in the same row would invite adding it to the total. */}
-          <dl className="mt-8 grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-rule bg-rule">
+          <dl className="reveal mt-8 grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-rule bg-rule" style={{ animationDelay: "210ms" }}>
             <Stat label="Never logged" value={coverage.neverLogged} />
             <Stat label="Expired" value={coverage.expired} />
             <Stat label="Up to date" value={coverage.current} />
@@ -548,7 +549,10 @@ function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div className="bg-paper-raised px-4 py-3">
       <dt className="text-xs uppercase tracking-wider text-ink-subtle">{label}</dt>
-      <dd className="tabular mt-1 font-display text-2xl">{value}</dd>
+      <dd className="tabular mt-1 font-display text-2xl">
+        {/* Rolls up on wheels as the counts arrive; the number is plain text inside. */}
+        <Odometer roll="load" value={String(value)} />
+      </dd>
     </div>
   );
 }
@@ -604,7 +608,7 @@ function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mt-10 rounded-lg border border-rule bg-paper-raised px-5 py-10 text-center">
+    <div className="reveal mt-10 rounded-xl border border-rule bg-paper-raised px-5 py-10 text-center">
       <MapPinOff aria-hidden="true" className="mx-auto size-6 text-ink-subtle" />
       <h2 className="mt-3 font-display text-lg">{title}</h2>
       <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-ink-muted">{body}</p>

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 
+import { RailToc, type RailItem } from "@/components/ui/RailToc";
+import { ScrollProgress } from "@/components/ui/ScrollProgress";
+import { WordRise } from "@/components/ui/WordRise";
 import { ACTIVE_FEEDS, HAS_ACTIVE_FEED } from "@/lib/feeds";
 import { PRICE_MAX_CENTS, PRICE_MIN_CENTS, formatCents } from "@/lib/money";
 import { BIG_MOVE_PERCENT, CORROBORATION_PERCENT } from "@/lib/pricing";
@@ -11,10 +14,24 @@ export const metadata: Metadata = {
     "Where Sandwich Index prices come from, why McDonald's prices vary between franchises, and how submissions are checked.",
 };
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+/** The page's sections, in order, for their anchors and the rail beside them. */
+const SECTIONS = [
+  { id: "why-prices-differ", title: "Why prices differ between stores" },
+  { id: "where-the-data-comes-from", title: "Where the data comes from" },
+  { id: "reading-a-photo", title: "Reading a price from a photo" },
+  { id: "how-submissions-are-checked", title: "How submissions are checked" },
+  ...(HAS_ACTIVE_FEED ? [{ id: "price-feeds", title: "Price feeds" }] : []),
+  { id: "how-to-read-a-price", title: "How to read a price" },
+  { id: "who-runs-this", title: "Who runs this" },
+] satisfies RailItem[];
+
+function Section({ id, children }: { id: string; children: React.ReactNode }) {
+  const title = SECTIONS.find((section) => section.id === id)?.title ?? "";
   return (
-    <section className="border-t border-rule pt-8">
-      <h2 className="font-display text-2xl">{title}</h2>
+    <section id={id} className="scroll-mt-[calc(var(--site-header-height)+1.5rem)] border-t border-rule pt-8">
+      <h2 className="wr font-display text-2xl">
+        <WordRise text={title} />
+      </h2>
       <div className="mt-4 space-y-4 leading-relaxed text-ink-muted">{children}</div>
     </section>
   );
@@ -22,12 +39,25 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function AboutPage() {
   return (
-    <main id="main" className="mx-auto w-full max-w-2xl px-5 py-16 sm:px-8 sm:py-24">
-      <h1 className="font-display text-4xl leading-tight sm:text-5xl">
+    // On wide screens a two-column grid: the rail on the left spanning the
+    // page's three rows (title, introduction, sections), the text on the right.
+    <main
+      id="main"
+      className="mx-auto w-full max-w-2xl px-5 py-16 sm:px-8 sm:py-24 lg:grid lg:max-w-[68rem] lg:grid-cols-[12rem_minmax(0,42rem)] lg:content-start lg:justify-center lg:gap-x-16"
+    >
+      <ScrollProgress />
+
+      <div className="hidden lg:row-span-3 lg:block">
+        <div className="sticky top-[calc(var(--site-header-height)+2.5rem)]">
+          <RailToc items={SECTIONS} />
+        </div>
+      </div>
+
+      <h1 className="reveal font-display text-4xl leading-tight sm:text-5xl lg:col-start-2">
         How the data works
       </h1>
 
-      <p className="mt-6 text-lg leading-relaxed text-ink-muted">
+      <p className="reveal mt-6 text-lg leading-relaxed text-ink-muted lg:col-start-2" style={{ animationDelay: "90ms" }}>
         {HAS_ACTIVE_FEED ? (
           <>
             Every number on this site is either a price a visitor logged, from
@@ -45,8 +75,8 @@ export default function AboutPage() {
         )}
       </p>
 
-      <div className="mt-12 space-y-10">
-        <Section title="Why prices differ between stores">
+      <div className="mt-12 space-y-10 lg:col-start-2">
+        <Section id="why-prices-differ">
           <p>
             Most McDonald&rsquo;s locations in the United States are owned by
             independent franchisees rather than the corporation. Those owners
@@ -63,11 +93,11 @@ export default function AboutPage() {
           </p>
         </Section>
 
-        <Section title="Where the data comes from">
+        <Section id="where-the-data-comes-from">
           <p>
             Store locations in the US come from{" "}
             <a
-              className="underline decoration-rule underline-offset-2 hover-accent"
+              className="link-prose"
               href="https://www.alltheplaces.xyz"
               target="_blank"
               rel="noreferrer noopener"
@@ -80,7 +110,7 @@ export default function AboutPage() {
             Index&rsquo;s page for the store puts them, and their pages say so.
             The first stores on the site, around Dallas, came from{" "}
             <a
-              className="underline decoration-rule underline-offset-2 hover-accent"
+              className="link-prose"
               href="https://www.openstreetmap.org/copyright"
               target="_blank"
               rel="noreferrer noopener"
@@ -102,7 +132,7 @@ export default function AboutPage() {
           </p>
         </Section>
 
-        <Section title="Reading a price from a photo">
+        <Section id="reading-a-photo">
           <p>
             The form on each store&rsquo;s page can read the price from a photo
             of your receipt, or from a screenshot of the McChicken in the
@@ -119,7 +149,7 @@ export default function AboutPage() {
             McChicken. Stores are matched by the restaurant number every receipt
             prints, using McDonald&rsquo;s locations as published by{" "}
             <a
-              className="underline decoration-rule underline-offset-2 hover-accent"
+              className="link-prose"
               href="https://www.alltheplaces.xyz/"
               target="_blank"
               rel="noreferrer noopener"
@@ -130,7 +160,7 @@ export default function AboutPage() {
           </p>
         </Section>
 
-        <Section title="How submissions are checked">
+        <Section id="how-submissions-are-checked">
           <p>
             Crowdsourced data attracts bad entries, some careless and some
             deliberate. Four things push back:
@@ -174,7 +204,7 @@ export default function AboutPage() {
         </Section>
 
         {HAS_ACTIVE_FEED ? (
-          <Section title="Price feeds">
+          <Section id="price-feeds">
             <p>
               Some prices come from outside feeds rather than from visitors.
               Each is shown under the feed&rsquo;s name with a date, links back
@@ -190,7 +220,7 @@ export default function AboutPage() {
                     href={feed.homepage}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="underline decoration-rule underline-offset-2 hover-accent"
+                    className="link-prose"
                   >
                     {feed.name}
                   </a>
@@ -205,7 +235,7 @@ export default function AboutPage() {
           </Section>
         ) : null}
 
-        <Section title="How to read a price">
+        <Section id="how-to-read-a-price">
           <p>
             A visitor&rsquo;s price is shown with the number of reports behind
             it. A store with one report and a store with thirty should not be
@@ -221,7 +251,7 @@ export default function AboutPage() {
           </p>
         </Section>
 
-        <Section title="Who runs this">
+        <Section id="who-runs-this">
           <p>
             Sandwich Index is an independent project. It is not affiliated with,
             endorsed by, or sponsored by McDonald&rsquo;s Corporation.

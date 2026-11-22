@@ -29,18 +29,18 @@ export default function RouteError({
 
   return (
     <main id="main" className="mx-auto w-full max-w-xl px-5 py-20 sm:px-8">
-      <TriangleAlert aria-hidden="true" className="size-6 text-danger" />
+      <TriangleAlert aria-hidden="true" className="reveal size-6 text-danger" />
 
-      <h1 className="mt-4 font-display text-3xl leading-tight">
+      <h1 className="reveal mt-4 font-display text-3xl leading-tight" style={{ animationDelay: "70ms" }}>
         That did not load
       </h1>
 
-      <p className="mt-4 leading-relaxed text-ink-muted">
+      <p className="reveal mt-4 leading-relaxed text-ink-muted" style={{ animationDelay: "140ms" }}>
         Something broke between here and the price database. Nothing you did
         caused it, and nothing you have submitted has been lost.
       </p>
 
-      <div className="mt-8 flex flex-wrap gap-3">
+      <div className="reveal mt-8 flex flex-wrap gap-3" style={{ animationDelay: "210ms" }}>
         <button
           type="button"
           onClick={reset}

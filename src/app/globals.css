@@ -995,6 +995,53 @@ h6 {
   }
 }
 
+/* --- Rail table of contents (About): a hairline rail with the section
+   being read marked by an accent bar that grows in beside it. ----------- */
+.rail-toc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-left: 1px solid var(--color-rule);
+}
+
+.rail-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.25rem 0 0.25rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.3;
+  color: var(--color-ink-subtle);
+  transition: color var(--duration-micro) ease;
+}
+
+.rail-link::before {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  left: -1px;
+  width: 2px;
+  background-color: var(--color-accent);
+  transform: scaleY(0);
+  transition: transform var(--duration-ui) var(--ease-out-quart);
+}
+
+.rail-link[aria-current] {
+  color: var(--color-ink);
+}
+
+.rail-link[aria-current]::before {
+  transform: scaleY(1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rail-link:hover {
+    color: var(--color-accent-hover);
+  }
+}
+
 /* Everything above, at rest, for anyone who asked for less motion. */
 @media (prefers-reduced-motion: reduce) {
   .odo-col::before,
@@ -1013,7 +1060,9 @@ h6 {
   .sheet-close,
   .sheet-close svg,
   .btn-arrow-back,
-  .log-rows > tr {
+  .log-rows > tr,
+  .rail-link,
+  .rail-link::before {
     transition: none;
   }
 
