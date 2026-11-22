@@ -545,7 +545,7 @@ h6 {
     transition: transform 700ms var(--ease-out-quart);
   }
 
-  .btn-primary:hover .btn-arrow {
+  :hover > .btn-arrow {
     transform: translateX(3px);
   }
 
@@ -559,6 +559,25 @@ h6 {
   .btn-quiet:hover:not(:disabled) {
     background-color: var(--color-paper-raised);
     border-color: var(--color-accent);
+  }
+
+  /* The same pair on the ink band: paper lifts to white, the outline
+     brightens to paper. */
+  .btn-paper,
+  .btn-quiet-ink {
+    transition:
+      transform var(--duration-micro) ease,
+      background-color var(--duration-micro) ease,
+      border-color var(--duration-micro) ease;
+  }
+
+  .btn-paper:hover {
+    background-color: var(--color-paper-raised);
+  }
+
+  .btn-quiet-ink:hover {
+    border-color: var(--color-paper);
+    background-color: rgb(255 255 255 / 0.06);
   }
 }
 
@@ -663,7 +682,16 @@ h6 {
 /* --- Price ticker: a slow, edge-faded marquee of real prices. It pauses on
    hover, on focus, and with its own button; under reduced motion it is a
    plain row that scrolls sideways by hand. ------------------------------ */
+.ticker-band {
+  display: flex;
+  align-items: center;
+  border-block: 1px solid var(--color-rule);
+  background-color: var(--color-paper-sunken);
+}
+
 .ticker {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
@@ -672,12 +700,28 @@ h6 {
 .ticker-track {
   display: flex;
   width: max-content;
-  animation: ticker var(--ticker-duration, 70s) linear infinite;
+  animation: ticker var(--ticker-duration, 60s) linear infinite;
 }
 
 .ticker-set {
   display: flex;
   flex: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Spacing lives on the items, not as a gap, so both copies are exactly the
+   same width and the loop closes without a jump. */
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2.25rem 0.875rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--color-ink-muted);
+  white-space: nowrap;
 }
 
 .ticker:hover .ticker-track,
@@ -692,15 +736,45 @@ h6 {
   }
 }
 
+.ticker-toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: 0 0.5rem;
+  border-radius: 999px;
+  color: var(--color-ink-muted);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ticker-toggle:hover {
+    color: var(--color-accent);
+    background-color: var(--color-paper-raised);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ticker {
-    overflow-x: auto;
     -webkit-mask-image: none;
     mask-image: none;
   }
 
   .ticker-track {
+    width: auto;
+    padding-inline: 1.25rem;
     animation: none;
+  }
+
+  .ticker-set {
+    flex-wrap: wrap;
+    column-gap: 2rem;
+  }
+
+  .ticker-item {
+    padding-block: 0.5rem;
+    padding-right: 0;
   }
 
   .ticker-set[aria-hidden="true"],
@@ -754,7 +828,7 @@ h6 {
   display: inline-flex;
   height: var(--odo-lh);
   line-height: var(--odo-lh);
-  vertical-align: bottom;
+  vertical-align: baseline;
   overflow: hidden;
 }
 
@@ -770,6 +844,20 @@ h6 {
 .odo[data-armed] .odo-col::before {
   transform: translateY(0);
   transition: none;
+}
+
+/* A figure that is on screen when the page opens rolls from the first paint,
+   in CSS alone; the animation ends on the figure's own digit. */
+@keyframes odo-roll {
+  from {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .odo[data-roll="load"] .odo-col::before {
+    animation: odo-roll 1100ms var(--ease-out-expo) calc(var(--k, 0) * 70ms) both;
+  }
 }
 
 .odo-ch::before {
@@ -808,16 +896,18 @@ h6 {
 /* --- Footer wordmark: the name set large and cut off by the end of the
    page, rising into place as the footer scrolls in. Decorative. ---------- */
 .footer-wordmark {
-  /* Sized so the name spans the footer's text column (about 7em wide in
-     Fraunces), with the bottom third cut off by the edge of the page. */
-  --wm-size: calc(min(100vw, 68rem) / 7.9);
-  overflow: hidden;
-  height: calc(var(--wm-size) * 0.64);
+  container-type: inline-size;
   user-select: none;
 }
 
+/* Sized from the column's own width (the name is about 7em wide in Fraunces),
+   so it always fits whatever the scrollbar takes, with the bottom third cut
+   off by the edge of the page. */
 .footer-wordmark span {
+  --wm-size: calc(100cqw / 7.4);
   display: block;
+  height: calc(var(--wm-size) * 0.64);
+  overflow: hidden;
   font-family: var(--font-display);
   font-size: var(--wm-size);
   line-height: 0.82;
@@ -873,6 +963,8 @@ h6 {
   .link-prose,
   .btn-primary,
   .btn-quiet,
+  .btn-paper,
+  .btn-quiet-ink,
   .field {
     transition: none;
   }

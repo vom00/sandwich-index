@@ -107,14 +107,21 @@
   margin-left: -0.04em;
 }
 
+/* The three figures beside the call to action, as stat chips (`.chip`). */
 .lp-hero-range {
   display: flex;
+  flex-basis: 100%;
   flex-wrap: wrap;
-  gap: 0.25rem 1.25rem;
+  gap: 0.375rem;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
   color: var(--color-ink-subtle);
+}
+
+.lp-hero-range .chip {
+  gap: 0.375rem;
+  padding-inline: 0.625rem;
+  font-size: 0.75rem;
 }
 
 .lp-hero-range b {
@@ -493,4 +500,10 @@
       animation-range: entry 0% entry 80%;
     }
   }
+}
+
+/* The end figures roll on wheels (`Odometer`); a tighter wheel keeps the
+   figure as tall as it was as plain text. */
+.lp-end-figure .odo {
+  --odo-lh: 1em;
 }

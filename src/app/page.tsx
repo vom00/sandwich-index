@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 
 import { CountUpPrice } from "@/components/landing/CountUpPrice";
 import { StaticDotMap } from "@/components/landing/world/StaticDotMap";
 import { WorldStory } from "@/components/landing/world/WorldStory";
+import { Odometer } from "@/components/ui/Odometer";
+import { ScrollProgress } from "@/components/ui/ScrollProgress";
+import { Ticker, type TickerItem } from "@/components/ui/Ticker";
+import { WordRise } from "@/components/ui/WordRise";
 import { ACTIVE_FEEDS, HAS_ACTIVE_FEED } from "@/lib/feeds";
 import { getCachedIndexSnapshot } from "@/lib/index-snapshot.server";
 import { loadPriceMap, priceTier } from "@/lib/landing-map";
@@ -49,6 +54,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const SHORT_DATE = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 
+/** A store's price tier as the ticker colours it; a store always has a price here. */
+function tierOf(tier: ReturnType<typeof priceTier>): TickerItem["tier"] {
+  return tier === "none" ? undefined : tier;
+}
+
 /** The stores the board and the street show: the cheapest and the priciest, low to high, each once. */
 function boardStores(snapshot: IndexSnapshot): StoreWithId[] {
   const seen = new Set<string>();
@@ -75,16 +85,32 @@ export default async function Home() {
   const checkedFrom = SHORT_DATE.format(new Date(map.generatedFrom.oldestObservedAt));
   const checkedTo = SHORT_DATE.format(new Date(map.generatedFrom.newestObservedAt));
 
+  // The band between the story and the lists: the same figures the story has
+  // just shown, set running. Nothing in it is new or estimated.
+  const ticker: TickerItem[] = [
+    { key: "median", label: "National median", value: formatCents(scale.median) },
+    ...board.map((store) => ({
+      key: store.id,
+      label: storeLabelText(store),
+      value: formatCents(store.priceCents ?? 0),
+      tier: tierOf(priceTier(store.priceCents ?? 0, scale)),
+    })),
+    { key: "p10", label: "Cheapest tenth, or less", value: formatCents(scale.p10), tier: "low" },
+    { key: "p90", label: "Dearest tenth, or more", value: formatCents(scale.p90), tier: "high" },
+    { key: "priced", label: "Stores with a price", value: formatCount(map.generatedFrom.priced) },
+  ];
+
   return (
     <main id="main" className="lp-root">
+      <ScrollProgress />
       <WorldStory prices={prices}>
         <Hero snapshot={snapshot} />
 
         <section data-beat="1" className="lp-ch" aria-labelledby="lp-counter">
           <div className="lp-copy">
             <p className="lp-eyebrow">01 · The counter</p>
-            <h2 id="lp-counter" className="mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
-              Same sandwich, different number on the board
+            <h2 id="lp-counter" className="wr mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
+              <WordRise text="Same sandwich, different number on the board" />
             </h2>
             {board.length > 0 ? (
               <>
@@ -112,8 +138,8 @@ export default async function Home() {
         <section data-beat="2" className="lp-ch" aria-labelledby="lp-outside">
           <div className="lp-copy">
             <p className="lp-eyebrow">02 · The restaurant</p>
-            <h2 id="lp-outside" className="mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
-              Every counter is its own decision
+            <h2 id="lp-outside" className="wr mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
+              <WordRise text="Every counter is its own decision" />
             </h2>
             <p className="mt-4 leading-relaxed text-ink-muted">
               Most McDonald&rsquo;s restaurants in the US are run by franchisees, and each
@@ -126,8 +152,8 @@ export default async function Home() {
         <section data-beat="3" className="lp-ch" aria-labelledby="lp-street">
           <div className="lp-copy">
             <p className="lp-eyebrow">03 · The street</p>
-            <h2 id="lp-street" className="mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
-              Next door, a different tag
+            <h2 id="lp-street" className="wr mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
+              <WordRise text="Next door, a different tag" />
             </h2>
             <p className="mt-4 leading-relaxed text-ink-muted">
               The tags on this street carry the same{" "}
@@ -140,8 +166,8 @@ export default async function Home() {
         <section data-beat="4" className="lp-ch lp-ch--map" aria-labelledby="lp-map">
           <div className="lp-copy">
             <p className="lp-eyebrow">04 · The country</p>
-            <h2 id="lp-map" className="mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
-              Now multiply by {formatCount(map.generatedFrom.stores)}
+            <h2 id="lp-map" className="wr mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
+              <WordRise text={`Now multiply by ${formatCount(map.generatedFrom.stores)}`} />
             </h2>
             <p className="mt-4 leading-relaxed text-ink-muted">
               {formatCount(map.generatedFrom.stores)} restaurants in {formatCount(map.points.length)} patches
@@ -162,6 +188,12 @@ export default async function Home() {
           </div>
         </section>
       </WorldStory>
+
+      {board.length > 0 ? (
+        <div className="mt-12">
+          <Ticker items={ticker} label="Prices in the index" />
+        </div>
+      ) : null}
 
       <div className="mx-auto w-full max-w-[68rem] px-5 sm:px-8">
         <Ends snapshot={snapshot} />
@@ -212,9 +244,18 @@ function Hero({ snapshot }: { snapshot: IndexSnapshot }) {
           </Link>
           {lowestPriceCents !== null && highestPriceCents !== null ? (
             <p className="lp-hero-range">
-              <span>Cheapest <b className="tabular">{formatCents(lowestPriceCents)}</b></span>
-              <span>Priciest <b className="tabular">{formatCents(highestPriceCents)}</b></span>
-              <span>{formatCount(snapshot.pricedStoreCount)} priced</span>
+              <span className="chip">
+                <i className="chip-dot" aria-hidden="true" style={{ "--dot": "var(--color-tier-low)" } as CSSProperties} />
+                Cheapest <b className="tabular">{formatCents(lowestPriceCents)}</b>
+              </span>
+              <span className="chip">
+                <i className="chip-dot" aria-hidden="true" style={{ "--dot": "var(--color-tier-high)" } as CSSProperties} />
+                Priciest <b className="tabular">{formatCents(highestPriceCents)}</b>
+              </span>
+              <span className="chip">
+                {/* Not a <b>: the two prices in <b> are the ones the counter chapter lists. */}
+                <span className="tabular font-medium text-ink">{formatCount(snapshot.pricedStoreCount)}</span> priced
+              </span>
             </p>
           ) : null}
         </div>
@@ -246,7 +287,7 @@ function FeedSources() {
             href={feed.homepage}
             target="_blank"
             rel="noreferrer noopener"
-            className="hover-accent inline-flex min-h-11 items-center underline decoration-rule underline-offset-2"
+            className="link-prose inline-flex min-h-11 items-center"
           >
             {feed.homepage}
           </a>
@@ -265,13 +306,10 @@ function Ends({ snapshot }: { snapshot: IndexSnapshot }) {
   return (
     <section className="lp-ends" aria-labelledby="lp-ends">
       <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
-        <h2 id="lp-ends" className="font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
-          {split ? "The two ends of the range" : "What is on file"}
+        <h2 id="lp-ends" className="wr font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
+          <WordRise text={split ? "The two ends of the range" : "What is on file"} />
         </h2>
-        <Link
-          href="/map"
-          className="hover-accent inline-flex min-h-11 items-center text-sm underline decoration-rule underline-offset-4"
-        >
+        <Link href="/map" className="link-prose inline-flex min-h-11 items-center text-sm">
           See all {formatCount(snapshot.trackedStoreCount)} on the map
         </Link>
       </div>
@@ -322,23 +360,27 @@ function Leaderboard({
       <p className="lp-eyebrow">{heading}</p>
       {first ? (
         <p className={`lp-end-figure lp-rise ${tier === "low" ? "text-tier-low" : "text-tier-high"}`}>
-          {formatCents(first.priceCents ?? 0)}
+          <Odometer value={formatCents(first.priceCents ?? 0)} />
         </p>
       ) : null}
       <ol className="mt-4 border-t border-rule">
         {stores.map((store, index) => (
           <li key={store.id} className="lp-row lp-rise">
-            <Link href={`/store/${store.id}`} className="hover-accent flex min-h-16 items-center gap-4 py-3">
-              <span aria-hidden="true" className="tabular w-8 shrink-0 text-sm text-ink-subtle">
-                {String(descending ? startRank - index : startRank + index).padStart(2, "0")}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="line-clamp-2">{storeLabelText(store)}</span>
-                <span className="block text-xs text-ink-subtle">
-                  {provenanceSummary(store)} · {priceAge(store)}
+            {/* The row nudges right and an arrow appears on hover (`.row-go`). */}
+            <Link href={`/store/${store.id}`} className="row-go hover-accent flex min-h-16 items-center gap-3 py-3">
+              <span className="row-body flex min-w-0 flex-1 items-center gap-4">
+                <span aria-hidden="true" className="tabular w-8 shrink-0 text-sm text-ink-subtle">
+                  {String(descending ? startRank - index : startRank + index).padStart(2, "0")}
                 </span>
+                <span className="min-w-0 flex-1">
+                  <span className="line-clamp-2">{storeLabelText(store)}</span>
+                  <span className="block text-xs text-ink-subtle">
+                    {provenanceSummary(store)} · {priceAge(store)}
+                  </span>
+                </span>
+                <span className="tabular shrink-0 text-lg">{formatCents(store.priceCents ?? 0)}</span>
               </span>
-              <span className="tabular shrink-0 text-lg">{formatCents(store.priceCents ?? 0)}</span>
+              <span className="row-arrow shrink-0 text-ink-subtle" aria-hidden="true">→</span>
             </Link>
           </li>
         ))}
@@ -374,8 +416,8 @@ const STEPS = [
 function HowItWorks() {
   return (
     <section className="lp-how" aria-labelledby="lp-how">
-      <h2 id="lp-how" className="font-display text-[1.75rem] leading-[1.1] sm:text-4xl lg:col-span-4">
-        How a price gets here
+      <h2 id="lp-how" className="wr font-display text-[1.75rem] leading-[1.1] sm:text-4xl lg:col-span-4">
+        <WordRise text="How a price gets here" />
       </h2>
       <ol className="lg:col-span-7 lg:col-start-6">
         {STEPS.map((step, index) => (
@@ -401,13 +443,13 @@ function Contribute({ snapshot }: { snapshot: IndexSnapshot }) {
       <div className="mx-auto grid w-full max-w-[68rem] gap-8 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-12">
         <div className="lg:col-span-7">
           <p className="lp-eyebrow lp-eyebrow--ink">Your turn</p>
-          <h2 id="lp-add" className="mt-3 max-w-xl font-display text-3xl leading-tight sm:text-5xl">
-            Seen a McChicken price lately? Add it.
+          <h2 id="lp-add" className="wr mt-3 max-w-xl font-display text-3xl leading-tight sm:text-5xl">
+            <WordRise text="Seen a McChicken price lately? Add it." />
           </h2>
           <p className="mt-5 max-w-lg leading-relaxed text-paper-muted">
             {blank > 0 ? (
               <>
-                <span className="tabular text-paper">{formatCount(blank)}</span> of the{" "}
+                <Odometer value={formatCount(blank)} className="tabular text-paper" /> of the{" "}
                 {formatCount(snapshot.trackedStoreCount)} restaurants on file have no current price at
                 all. Each one is blank because nobody has logged a price there yet.
               </>
@@ -419,13 +461,14 @@ function Contribute({ snapshot }: { snapshot: IndexSnapshot }) {
         <div className="flex flex-wrap content-end gap-3 lg:col-span-5 lg:justify-end">
           <Link
             href="/log"
-            className="press inline-flex min-h-12 items-center justify-center rounded-md bg-paper px-6 py-3 font-medium text-ink"
+            className="btn-paper press inline-flex min-h-12 items-center justify-center rounded-md bg-paper px-6 py-3 font-medium text-ink"
           >
             Log prices near you
+            <span className="btn-arrow ml-2" aria-hidden="true">→</span>
           </Link>
           <Link
             href="/about"
-            className="press inline-flex min-h-12 items-center justify-center rounded-md border border-paper-muted px-6 py-3 font-medium text-paper"
+            className="btn-quiet-ink press inline-flex min-h-12 items-center justify-center rounded-md border border-paper-muted px-6 py-3 font-medium text-paper"
           >
             How the data works
           </Link>
