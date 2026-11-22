@@ -289,10 +289,13 @@ function buildWalls(kit: Kit): void {
   wallRun(kit, ["wall", "wall"], [BW / 2 - WALL_T / 2, 0, 0], BD - 2 * WALL_T, -Math.PI / 2);
 }
 
-/** Floor, walls, kitchen, board frame, counter, till, cashier, tray. */
+/**
+ * Floor, kitchen, board frame, counter, till, cashier, tray. The back and side
+ * walls are their own mesh: the outside of the building still needs them after
+ * the interior is hidden.
+ */
 function buildInterior(kit: Kit): void {
   kit.box(BW, 0.24, BD, C.floor, [0, -0.1, 0]);
-  buildWalls(kit);
   // Board frame on the back wall; the face is a separate textured plane.
   kit.box(3.7, 1.5, 0.12, C.charcoal, [0, BOARD_Y, BACK + 0.06], 0.04);
   // Kitchen: drinks fridges either side of the board, a low steel line under
@@ -305,7 +308,9 @@ function buildInterior(kit: Kit): void {
   // Front counter.
   kit.box(6, 1.0, 0.8, C.counter, [0, 0.5, COUNTER_Z], 0.05);
   kit.box(6.2, 0.07, 0.98, C.counterTop, [0, COUNTER_TOP - 0.035, COUNTER_Z], 0.03);
-  kit.part("till", [2.45, COUNTER_TOP, COUNTER_Z - 0.05], 1.5);
+  // Lifted a hair off the worktop: its base plate sat exactly in the counter
+  // top's plane, and the two flickered through each other.
+  kit.part("till", [2.45, COUNTER_TOP + 0.006, COUNTER_Z - 0.05], 1.5);
   // The cashier.
   kit.part("employee", [1.45, 0, -1.75], SHOP);
   // Tray, liner.
@@ -780,6 +785,12 @@ export async function createWorld(canvas: HTMLCanvasElement, options: WorldOptio
   const interior = new Mesh(interiorKit.bake(), vertexColored);
   interior.receiveShadow = true;
   hero.add(interior);
+
+  const wallsKit = new Kit(parts);
+  buildWalls(wallsKit);
+  const walls = new Mesh(wallsKit.bake(), vertexColored);
+  walls.receiveShadow = true;
+  hero.add(walls);
 
   const frontKit = new Kit(parts);
   buildFront(frontKit);
