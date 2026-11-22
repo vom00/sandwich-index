@@ -80,11 +80,13 @@ export function SiteFooter() {
         </div>
       </div>
 
-      {/* The name set large and cut off by the foot of the page. Decorative:
-          the same name is already in the column above. */}
+      {/* The name set large and cut off by the foot of the page. Pure
+          decoration (the same name is in the column above, at full contrast),
+          so the letters are generated content: no text node, nothing to read
+          out, select or copy. */}
       <div className="mx-auto max-w-[68rem] px-5 sm:px-8">
         <div className="footer-wordmark" aria-hidden="true">
-          <span>Sandwich Index</span>
+          <span data-text="Sandwich Index" />
         </div>
       </div>
     </footer>

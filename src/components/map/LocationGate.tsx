@@ -68,12 +68,11 @@ export function LocationGate({
 
   return (
     <div className="mx-auto w-full max-w-xl px-5 py-14 sm:px-8">
-      {/* The gate comes in as one short staggered rise (`.reveal`). */}
-      <h1 className="reveal font-display text-3xl leading-tight sm:text-4xl">
+      <h1 className="font-display text-3xl leading-tight sm:text-4xl">
         Find the cheapest McChicken near you
       </h1>
 
-      <p className="reveal mt-4 leading-relaxed text-ink-muted" style={{ animationDelay: "80ms" }}>
+      <p className="mt-4 leading-relaxed text-ink-muted">
         We need a rough location to work out which stores to show. It centres
         the map and searches about fifteen miles around you, and it is not sent
         anywhere except to look up nearby stores. Your browser keeps a copy
@@ -81,7 +80,7 @@ export function LocationGate({
         you again; closing the tab discards it.
       </p>
 
-      <div className="reveal mt-8" style={{ animationDelay: "160ms" }}>
+      <div className="mt-8">
         <button
           type="button"
           onClick={onRequestLocation}
@@ -107,10 +106,9 @@ export function LocationGate({
         </p>
       ) : null}
 
-      <div
-        className="reveal mt-10 rounded-xl border border-rule bg-paper-raised p-5 shadow-[0_1px_2px_rgb(21_20_15/0.05)] sm:p-6"
-        style={{ animationDelay: "240ms" }}
-      >
+      {/* No entrance animation on the gate: it is a screen to act on at once,
+          and text mid-fade is text at reduced contrast. */}
+      <div className="mt-10 rounded-xl border border-rule bg-paper-raised p-5 shadow-[0_1px_2px_rgb(21_20_15/0.05)] sm:p-6">
         <form onSubmit={handleZipSubmit} noValidate>
           <label htmlFor={zipFieldId} className="block font-medium">
             Or enter a ZIP code

@@ -433,11 +433,15 @@ h6 {
   }
 }
 
-@supports (animation-timeline: scroll()) {
-  .site-header::after {
-    animation: header-lift linear both;
-    animation-timeline: scroll(root);
-    animation-range: 0 64px;
+/* Under reduced motion the shadow simply stays off: the header still has its
+   border, and nothing on the page changes as it scrolls. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: scroll()) {
+    .site-header::after {
+      animation: header-lift linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 64px;
+    }
   }
 }
 
@@ -805,11 +809,15 @@ h6 {
   }
 }
 
-@supports (animation-timeline: scroll()) {
-  .scroll-progress {
-    display: block;
-    animation: scroll-fill linear both;
-    animation-timeline: scroll(root);
+/* Not shown under reduced motion: a bar that moves as the page scrolls is
+   motion, and the scrollbar already says how far down the page you are. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: scroll()) {
+    .scroll-progress {
+      display: block;
+      animation: scroll-fill linear both;
+      animation-timeline: scroll(root);
+    }
   }
 }
 
@@ -914,6 +922,12 @@ h6 {
   letter-spacing: -0.035em;
   white-space: nowrap;
   color: var(--color-rule);
+}
+
+/* Generated, not written: the wordmark is decoration (WCAG 1.4.3 exempts it),
+   and this keeps it out of the text of the page entirely. */
+.footer-wordmark span::before {
+  content: attr(data-text);
 }
 
 @media (prefers-reduced-motion: no-preference) {

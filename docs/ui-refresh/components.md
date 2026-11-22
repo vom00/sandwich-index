@@ -33,6 +33,28 @@ page ships no new JavaScript and no new dependency.
 | 12 | Wordmark footer | Ruixen [Wordmark Footer](https://ruixen.com/docs/components/wordmark-footer) | Footer on every page | Large half-cut "Sandwich Index" wordmark rises as the footer scrolls in | reimplemented |
 | 13 | Page entrance | Rare UI / Ruixen section reveals | Map gate, store, about, log, 404 headers | Existing `rise` keyframe, staggered | reimplemented (existing keyframe) |
 
+## Where each one ended up
+
+| # | Pattern | Code | Used on |
+|---|---------|------|---------|
+| 1 | Frosted pinned header | `.site-header` in `globals.css` | Every page |
+| 2 | Animated link | `.link-wipe` + `.wipe` (nav, back links); `.link-prose` (inline links) | Header, footer, store, about, map, landing |
+| 3 | Arrow button | `.btn-primary`, `.btn-quiet`, `.btn-paper`, `.btn-quiet-ink`, `.btn-arrow`, `.btn-arrow-back` | Every primary and secondary button |
+| 4 | Stat chips | `.chip`, `.chip-dot` | Landing hero |
+| 5 | Price ticker | `src/components/ui/Ticker.tsx` | Landing, between the story and the lists |
+| 6 | Word rise | `src/components/ui/WordRise.tsx` | Landing chapter and section headings, store and about section headings |
+| 7 | Odometer number | `src/components/ui/Odometer.tsx` | Landing end figures and blank count, store price, map sheet price, log counts, 404 |
+| 8 | Scroll progress | `src/components/ui/ScrollProgress.tsx` | Landing, about |
+| 9 | Rail table of contents | `src/components/ui/RailToc.tsx` | About (1024px and up) |
+| 10 | Row hover | `.row-go`, `.map-row`, `.log-rows` | Landing lists, map list, store report tables |
+| 11 | Sheet entrance | `motion` spring in `StoreSheet.tsx` and `SubmitPriceDialog.tsx` | Map store sheet, submit dialog |
+| 12 | Wordmark footer | `.footer-wordmark` | Every page |
+| 13 | Page entrance | existing `.reveal` (`rise`) | Map gate, store, about, log, 404, error |
+
+Also added on the same tokens: `.field` (text-field hover and focus halo), a focus
+ring that keeps rounded corners, and raised cards for the store price, the area
+comparison, the price chart and the ZIP form.
+
 ## Looked at and rejected
 
 - Rare UI Fluid Orb, Matrix orb, Gravity Letters, Grid Reveal, Gooey nav: decorative, compete with the prices.
