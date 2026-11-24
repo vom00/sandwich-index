@@ -68,7 +68,7 @@ All three are self-hosted through `next/font` with matched fallback metrics, so 
 
 | Texture | Where | How |
 |---|---|---|
-| Paper grain | Paper only: the pinned header | `--grain`, fractal noise at 4% in a 160px SVG tile. Felt, not seen. |
+| Paper grain | Paper only: the pinned header, a solid paper bar with no blur and no shadow | `--grain`, fractal noise at 4% in a 160px SVG tile. Felt, not seen. |
 | Halftone | Ink only: the landing page's closing band (`.ink-halftone`) | Paper-coloured dots on a 9px screen at 45°, largest top-left and fading out across the band, as a print's dot coverage follows tone. Pure CSS, no image, at 9%. |
 
 Never put grain on ink or halftone on paper, and never on buttons: a button isn't paper. Both textures are static, so they need no reduced-motion rule.
@@ -92,6 +92,7 @@ Fixed timings outside the tokens, each in one place:
 | Moment | Timing | Where |
 |---|---|---|
 | Odometer roll | 1100ms per wheel, 70ms between wheels, `--ease-out-expo` | `.odo-col` |
+| Site header | Logo build, masthead roll, slim bar, receipt print, ink stroke and stamp: see The header | `components/ui/SiteHeader.tsx` |
 | Link underline wipe | 280ms, `--ease-out-quart` | `.wipe` |
 | Menu board split-flap | 75ms per flap, 30ms between turning columns, forward only, settles once | `components/landing/world/splitflap.ts` |
 | Burger opening | Scroll-linked, no duration: a 30-frame clip keyed in Blender (`burger-open`, `soda-straw`) scrubbed by the beat from 0.04 to 0.76. The bun lifts and tips, the lettuce, mayo and patty part under it, the straw rises, and all of it settles back closed. Reduced motion holds frame 0 | `scripts/blender/clips.json`, `components/landing/world/world.ts` (`pose`) |
@@ -108,7 +109,7 @@ Fixed timings outside the tokens, each in one place:
 1. **Only `transform` and `opacity` animate.** Never width, height, top, padding or anything that relays out.
 2. **Never `ease-in` for UI.** It withholds feedback when it is most needed and reads as lag. (A falling flap may accelerate; that is physics, not UI.)
 3. **Exits run about 20% faster than entrances.** Product UI stays under 300ms; only the hero and the odometer go longer.
-4. **One moment per page.** Landing: the camera pull-back from sandwich to country. Store page: the price rolling onto its card. About page: its three numbers rolling up once as it opens. Monthly story: its two state medians rolling up once as it opens. Everything else is quiet: the national strip below the fold settles once, small and in under a second, and the "How it works" receipt only follows the reader's own scroll.
+4. **One moment per page.** Landing: the camera pull-back from sandwich to country. Store page: the price rolling onto its card. About page: its three numbers rolling up once as it opens. Monthly story: its two state medians rolling up once as it opens. The header's own two (the logo building, the masthead figure rolling) play once a browser session and once a figure, so after a visitor's first page the header is still and the page's moment has the screen. Everything else is quiet: the national strip below the fold settles once, small and in under a second, and the "How it works" receipt only follows the reader's own scroll.
 5. **Nothing loops.** Every animation settles once and stops. A scroll-linked piece stops when the scroll does; the 3D canvas requests no frames while idle.
 6. **Reduced motion gets the final state from the first paint.** `animation: none` rather than a shorter animation, so nothing is stranded at opacity 0. Scroll-linked pieces are not shown or not pinned, the 3D scene is one still frame, and the map to store morph becomes a crossfade.
 7. **Hover is gated** behind `(hover: hover) and (pointer: fine)` so a tap doesn't leave a phantom hover.
@@ -120,10 +121,13 @@ Fixed timings outside the tokens, each in one place:
 | Primitive | Class | What it does |
 |---|---|---|
 | Press | `.press` | Scales to 0.97 on press, 120ms |
+| Site header | `SiteHeader.tsx`, `.site-header` | The price board across the top of every page; see The header |
+| Stamp | `.stamp` + `.stamp-face` | An ink button on a navy offset that presses down like a price stamp; its focus ring is drawn on the face, not the 44px tap area |
+| Ink stroke | `.nav-ink` | The hand-drawn stroke under the current tab; draws once, then glides between tabs |
 | Primary button | `.btn-primary` + `.btn-arrow` | Accent fill with depth, darker on hover, arrow steps 3px forward |
 | Quiet button | `.btn-quiet` | Hairline box that lifts to white with an accent edge |
 | On ink | `.btn-paper`, `.btn-quiet-ink`, `.on-ink` | The same pair for the ink band; the focus ring turns paper |
-| Link | `.link-wipe` + `.wipe` | Underline wipes in from the left, stays under the current page |
+| Link | `.link-wipe` + `.wipe` | Underline wipes in from the left on hover and focus; in the header the ink stroke marks the current page instead |
 | Prose link | `.link-prose` | Underline darkens; it wraps, so it isn't drawn |
 | Field | `.field` | Border to accent on hover, soft halo with the focus ring |
 | Chip | `.chip`, `.chip-dot` | Pill stat with an optional tier dot |
@@ -146,17 +150,38 @@ Fixed timings outside the tokens, each in one place:
 | Pill layout | `lib/pill-layout.ts` | Decides which pills show when they would overlap |
 | Numbers funnel | `NumbersFunnel.tsx` | The about page's three counts (on file, priced, confirmed recently), each a subset of the one above, from the landing page's snapshot so the two never disagree; figures on the odometer, ink bars at their final width |
 
+## The header
+
+One small price board across the top of every page (`components/ui/SiteHeader.tsx`). It comes alive once and then holds still; nothing in it loops. One `nav` landmark ("Main"), the current page marked with `aria-current="page"` and the ink stroke, never by colour alone.
+
+| Token | Value | Where |
+|---|---|---|
+| Bar | Solid `--color-paper` with `--grain` (4%). No blur, no shadow, no sheen | `.site-header` |
+| Height | `--site-header-height`, 3.5rem. The layout box never changes | `globals.css` |
+| Slim | Past 24px of scroll: the bar moves up 8px, its row down 4px, the wordmark scales to 0.92. 200ms (`--duration-ui`), `--ease-out-quart`, transform only. The reading-progress line follows it up | `.site-header[data-slim]` |
+| Rule | A plain hairline (`--color-rule`) at the top of the page. Slimmed: a dashed receipt rule, 5px dashes of `--color-ink-subtle` with 4px gaps | `.site-header-rule` |
+| Receipt print | The first time the bar slims after a page load, the dashes print left to right over 220ms, `--ease-out-quart`, as the hairline tears away behind them. Back at the top the hairline returns at once; later slims show the receipt without a replay | `[data-rule="print"]` |
+| Logo build | First page of a browser session only (`sessionStorage` `si-logo-built`): the mark's four layers (heel, patty, lettuce, bun) drop 9px into a stack, bottom first, 60ms apart, on a spring (bounce 0.2, visual duration 360ms; opacity 120ms linear). At 420ms the wordmark inks in left to right, a clip over 600ms, `--ease-out-quart`. Later pages show it built | `SiteHeader.tsx`, `SandwichMark.tsx` |
+| Logo hover | The top bun tips 9° and lifts 1.5px, 200ms | `.logo-bun` |
+| Masthead | The national median and the date of the newest reading behind it, in Plex Mono uppercase: 10px under the wordmark below 768px, 12px with 0.06em tracking beside it from 768px behind a hairline, left out under 375px. The figure is the median in `src/data/landing/price-map.json` (`loadNationalMedian`), the same snapshot as the landing map and the store page's national strip. Never typed in by hand | `.masthead` |
+| Masthead roll | The Odometer's own timing (1100ms a wheel, 70ms apart, `--ease-out-expo`), starting with the wordmark (420ms) or at once on a later page. Once per browser, then again only when the figure has changed (`localStorage` `si-masthead-seen`) | `SiteHeader.tsx` |
+| Ink stroke | A 2px ink pen line with round caps under the current tab (6px tall, 9px below the label; 11px below the stamp, clear of its focus ring). It draws in once on the page a visit starts on (220ms after 120ms, `--ease-out-quart`), then glides to the next tab (Motion `layoutId` on a span, 220ms, `--ease-out-quart`) and never draws again | `.nav-ink` |
+| Stamp | "Log prices" (`Log` on phones): ink face, paper type, 6px radius, 32px tall in a 44px tap area, on a navy (`--color-accent`) offset 2px down and right. Press: 120ms (`--duration-micro`), the face moves 1px and scales to 0.97 while the offset collapses under it. Focus ring 2px `--color-focus`, 3px out, on the face | `.stamp`, `.stamp-face` |
+| Pre-paint gate | An inline script ahead of the header (`lib/header-boot.ts`) holds the logo's layers hidden and the figure's wheels at zero from the first paint when either moment is due, so neither paints finished, snaps back and replays. The header takes over in one frame. If the app's JavaScript never runs, the gate lets go by itself after 3s | `app/layout.tsx` |
+
+Reduced motion: every piece in its final state from the first paint. The gate never runs, the rule swaps without printing, the stroke is simply there, and the stamp's press is instant rather than eased. `tests/browser/header.js` checks all of it at 375 and 1440px.
+
 ## Surfaces and elevation
 
 - **Flat by default.** Cards are paper raised on a rule border; depth comes from the rule, not shadow.
-- **Shadows are rare**, and tinted with ink (`rgb(21 20 15 / …)`) where they can be: the header's hairline once anything scrolls under it, the price dialog and the map's store sheet, the primary button, and the map's price pills, which need lifting off the street tiles.
+- **Shadows are rare**, and tinted with ink (`rgb(21 20 15 / …)`) where they can be: the price dialog and the map's store sheet, the primary button, and the map's price pills, which need lifting off the street tiles.
 - **One inverted band per page at most:** ink with paper text and the halftone, for the landing page's closing ask.
 - **Radius:** `rounded-md` is the house radius for controls and cards; `rounded-full` for chips and pills; `rounded-xl`/`2xl` only for sheets and dialogs.
-- **Dashed borders mean "not yet":** a held report waiting for a second sighting, a receipt's tear line.
+- **Dashed borders mean "not yet":** a held report waiting for a second sighting, a receipt's tear line, the header's receipt rule once the page scrolls under it.
 
 ## Layout
 
-- 16px base, zoom left alone. Fixed header of `3.5rem`; anchors stop below it.
+- 16px base, zoom left alone. Fixed header of `3.5rem`; anchors stop below it. Slimming moves the bar with a transform and never changes that box.
 - Prose and forms sit in `max-w-md` to `max-w-xl` columns. Equal side gutters at every width.
 - Every control is at least 44px to tap.
 - The map takes the full viewport under the header; nothing else is full-bleed except the landing page's 3D stage and the ink band.
@@ -232,3 +257,5 @@ TARGET_URL=http://localhost:3100 npm run check:pages -- <label>
 It screenshots the landing page, the map (after "Use my location"), a priced store page, the about page and the newest monthly story at 375 and 1440 px. Each gets a first screen with motion on and a full page with reduced motion, so every scroll-linked and settle-on-view piece is drawn finished. It also runs axe (WCAG 2.0 to 2.2 A and AA, plus best practice) on each. Serious and critical findings fail the run unless they are listed, with a reason, in `ACCEPTED` at the top of `tests/browser/check-pages.js`. Output goes to `tests/browser/screenshots/check/<label>/` (git-ignored): the PNGs, `axe.json` and `summary.md`.
 
 A full-page capture never scrolls, so anything drawn only near the viewport (the reduced-motion dot map, settle-on-view pieces) can look blank in it. Check those with a real scroll before calling it a bug.
+
+For the header on its own, `TARGET_URL=http://localhost:3100 node tests/browser/header.js` checks its moments, its reduced-motion final state and its landmarks, and screenshots the landing, map, store and about pages at 375 and 1440px, at the top and scrolled, with motion on and off.

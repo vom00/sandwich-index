@@ -578,49 +578,314 @@ h6 {
   transform: rotate(45deg);
 }
 
-/* --- Pinned header: solid paper with grain, and a hairline shadow that
-   fades in as soon as anything scrolls underneath it. ------------------- */
+/* --- Pinned header: solid paper with a grain under 5% (the tile above is
+   drawn at 4%). No blur and no shadow: the edge is a rule, a plain hairline
+   at the top of the page and a dashed receipt rule once it scrolls (below). */
 .site-header {
   background-color: var(--color-paper);
   background-image: var(--grain);
 }
 
-.site-header::after {
-  content: "";
+/* --- The header as a small price board (components/ui/SiteHeader.tsx).
+   Everything here plays once and then holds still; nothing loops.
+
+   Slim: once the page scrolls past 24px the bar gives up 8px. Its layout
+   box keeps --site-header-height, so nothing below it reflows and a scroll
+   anchor can never bounce it back; the whole bar moves up 8px instead (the
+   strip it leaves belongs to the page again), its row moves down 4px to stay
+   centred, and the wordmark shrinks. Transform only, 200ms. -------------- */
+.site-header {
+  transition: transform var(--duration-ui) var(--ease-out-quart);
+}
+
+.site-header[data-slim] {
+  transform: translateY(-8px);
+}
+
+.site-header-row,
+.logo-type {
+  transition: transform var(--duration-ui) var(--ease-out-quart);
+}
+
+.site-header[data-slim] .site-header-row {
+  transform: translateY(4px);
+}
+
+.logo-type {
+  transform-origin: left center;
+}
+
+.site-header[data-slim] .logo-type {
+  transform: scale(0.92);
+}
+
+/* The masthead: the national median and the date of the newest reading
+   behind it, in Plex Mono like every price. Beside the wordmark from 768px;
+   below that it sits under the wordmark (which moves up 7px to make room),
+   and under 375px it is left out rather than crowd the nav. */
+.masthead {
   position: absolute;
-  inset: 100% 0 auto;
-  height: 14px;
+  left: 2.25rem;
+  top: calc(50% + 5px);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-ink-muted);
   pointer-events: none;
-  background: linear-gradient(rgb(21 20 15 / 0.07), transparent);
+}
+
+.masthead-figure {
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.logo-block[data-masthead] .logo-type {
+  translate: 0 -7px;
+}
+
+@media (max-width: 374.98px) {
+  .masthead {
+    display: none;
+  }
+
+  .logo-block[data-masthead] .logo-type {
+    translate: none;
+  }
+}
+
+@media (min-width: 48rem) {
+  .masthead {
+    position: static;
+    margin-left: 0.75rem;
+    padding-left: 0.75rem;
+    border-left: 1px solid var(--color-rule);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    letter-spacing: 0.06em;
+    pointer-events: auto;
+  }
+
+  .logo-block[data-masthead] .logo-type {
+    translate: none;
+  }
+}
+
+/* The page's reading-progress line sits under the bar, so it follows it up. */
+.scroll-progress {
+  transition: translate var(--duration-ui) var(--ease-out-quart);
+}
+
+:root[data-header-slim] .scroll-progress {
+  translate: 0 -8px;
+}
+
+/* The rule under the bar: a plain hairline at the top of the page. The first
+   time the bar slims, a dashed receipt rule prints across it left to right
+   (220ms) while the hairline is torn off behind the print head. Back at the
+   top the hairline returns at once; the print never plays again. -------- */
+.site-header-rule {
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  pointer-events: none;
+}
+
+.site-header-rule > i {
+  position: absolute;
+  inset: 0;
+}
+
+.rule-plain {
+  background-color: var(--color-rule);
+}
+
+.rule-receipt {
+  background-image: repeating-linear-gradient(90deg, var(--color-ink-subtle) 0 5px, transparent 5px 9px);
   opacity: 0;
 }
 
-@keyframes header-lift {
+.site-header[data-rule="receipt"] .rule-plain,
+.site-header[data-rule="print"] .rule-plain {
+  opacity: 0;
+}
+
+.site-header[data-rule="receipt"] .rule-receipt,
+.site-header[data-rule="print"] .rule-receipt {
+  opacity: 1;
+}
+
+@keyframes receipt-print {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes receipt-tear {
+  from {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
   to {
     opacity: 1;
+    clip-path: inset(0 0 0 100%);
   }
 }
 
-/* Under reduced motion the shadow simply stays off: the header still has its
-   border, and nothing on the page changes as it scrolls. */
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: scroll()) {
-    .site-header::after {
-      animation: header-lift linear both;
-      animation-timeline: scroll(root);
-      animation-range: 0 64px;
-    }
-  }
+.site-header[data-rule="print"] .rule-receipt {
+  animation: receipt-print 220ms var(--ease-out-quart) both;
 }
 
-/* The mark tips its hat on hover. */
-.logo-mark {
+.site-header[data-rule="print"] .rule-plain {
+  animation: receipt-tear 220ms var(--ease-out-quart) both;
+}
+
+/* The mark: four layers that drop into a stack on a session's first page
+   (SiteHeader runs it with Motion; lib/header-boot.ts hides the layers before
+   the first paint). On hover the top bun tips like a hat. */
+.logo-bun {
+  transform-box: fill-box;
+  transform-origin: 15% 100%;
   transition: transform var(--duration-ui) var(--ease-out-quart);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  a:hover > .logo-mark {
-    transform: rotate(-10deg) translateY(-1px);
+  a:hover .logo-bun {
+    transform: translateY(-1.5px) rotate(-9deg);
+  }
+}
+
+/* The ink stroke under the current page. It draws in once, on the page the
+   visit starts on (220ms); after that it glides from tab to tab (Motion
+   layoutId, 220ms) and never draws again. The plain wipe underline still
+   answers hover and focus on the other links. */
+.nav-ink {
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  bottom: -9px;
+  display: block;
+  height: 6px;
+  pointer-events: none;
+}
+
+/* Under the stamp it sits a little lower, clear of the focus ring. */
+.stamp-face > .nav-ink {
+  bottom: -11px;
+}
+
+.nav-ink svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.nav-ink path {
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+@keyframes ink-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+.nav-ink:not([data-settled]) path {
+  animation: ink-draw 220ms var(--ease-out-quart) 120ms both;
+}
+
+.site-header [aria-current="page"] .wipe::after {
+  content: none;
+}
+
+/* "Log prices" as a price stamp: ink face, paper type, and a hard navy
+   offset beneath it that the face presses down onto (scale 0.97, the
+   offset collapses), 120ms. Its tap area is the whole 44px link. */
+.stamp-face {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 0.625rem;
+  border-radius: 6px;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  transition: transform var(--duration-micro) ease;
+}
+
+.stamp-face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background-color: var(--color-accent);
+  transform: translate(2px, 2px);
+  transition: transform var(--duration-micro) ease;
+}
+
+.stamp {
+  isolation: isolate;
+}
+
+@media (min-width: 40rem) {
+  .stamp-face {
+    padding: 0 0.75rem;
+  }
+}
+
+.stamp:active .stamp-face {
+  transform: translate(1px, 1px) scale(0.97);
+}
+
+.stamp:active .stamp-face::before {
+  transform: translate(0, 0);
+}
+
+.stamp:focus-visible {
+  outline: none;
+}
+
+.stamp:focus-visible .stamp-face {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .stamp:hover .stamp-face {
+    background-color: var(--color-accent-hover);
+  }
+}
+
+/* Reduced motion: every piece in its final state from the first paint. The
+   logo is never hidden (lib/header-boot.ts checks the same query), the rule
+   swaps without printing, the stroke is simply there, and nothing slides.
+   The stamp still presses, but at once rather than over 120ms. */
+@media (prefers-reduced-motion: reduce) {
+  .site-header,
+  .site-header-row,
+  .logo-type,
+  .logo-bun,
+  .scroll-progress,
+  .stamp-face,
+  .stamp-face::before {
+    transition: none;
+  }
+
+  .site-header[data-rule="print"] .rule-receipt,
+  .site-header[data-rule="print"] .rule-plain,
+  .nav-ink:not([data-settled]) path {
+    animation: none;
   }
 }
 
@@ -1161,7 +1426,6 @@ h6 {
   .row-go .row-arrow,
   .row-go .row-body,
   .btn-arrow,
-  .logo-mark,
   .wipe::after,
   .link-prose,
   .btn-primary,

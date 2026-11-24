@@ -47,3 +47,21 @@ export async function loadPriceMap(): Promise<PriceMap> {
   const mod = await import("@/data/landing/price-map.json");
   return mod.default as unknown as PriceMap;
 }
+
+export interface NationalMedian {
+  cents: number;
+  /** ISO date of the newest reading behind it. */
+  checkedAt: string;
+}
+
+/**
+ * The national median McChicken price and the newest reading behind it. One
+ * figure, one file: the landing page's map chapter states it and the site
+ * header's masthead line shows it, so the two can never disagree. The store
+ * page's national strip (`price-strip.json`) is built from the same feed
+ * snapshot; tests/unit/header-boot.test.ts fails if the two drift apart.
+ */
+export async function loadNationalMedian(): Promise<NationalMedian | null> {
+  const map = await loadPriceMap();
+  return map.priceCents.median > 0 ? { cents: map.priceCents.median, checkedAt: map.generatedFrom.newestObservedAt } : null;
+}

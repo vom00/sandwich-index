@@ -31,7 +31,9 @@ const FOCUSED = () => {
   const el = document.activeElement;
   if (!el || el === document.body) return null;
   const r = el.getBoundingClientRect();
-  const s = getComputedStyle(el);
+  // A control can draw its ring on an inner face instead of its whole tap
+  // area (the header's stamp button: `.stamp-face`).
+  const s = getComputedStyle(el.querySelector(':scope > .stamp-face') ?? el);
   return {
     tag: el.tagName,
     text: (el.innerText || el.getAttribute('aria-label') || el.placeholder || '').trim().slice(0, 40),

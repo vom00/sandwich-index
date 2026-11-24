@@ -6,6 +6,8 @@ import { FirebaseBoot } from "@/components/ui/FirebaseBoot";
 import { SiteFooter } from "@/components/ui/SiteFooter";
 import { SiteHeader } from "@/components/ui/SiteHeader";
 import { HAS_ACTIVE_FEED } from "@/lib/feeds";
+import { headerBootScript } from "@/lib/header-boot";
+import { loadNationalMedian } from "@/lib/landing-map";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -60,7 +62,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // The masthead figure in the header: the same national median the landing
+  // page states, from the same file.
+  const national = await loadNationalMedian();
   return (
     <html
       lang="en"
@@ -85,7 +90,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <a className="skip-link" href="#main">
           Skip to main content
         </a>
-        <SiteHeader />
+        {/* Before the header is parsed: holds the logo's layers and the
+            masthead's wheels at their start when their once-only moment is
+            due, so SiteHeader can play it without a flash (lib/header-boot.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: headerBootScript(national === null ? null : String(national.cents)) }} />
+        <SiteHeader national={national} />
         {children}
         <SiteFooter />
         <ConnectionNotice />
