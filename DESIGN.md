@@ -94,6 +94,8 @@ Fixed timings outside the tokens, each in one place:
 | Odometer roll | 1100ms per wheel, 70ms between wheels, `--ease-out-expo` | `.odo-col` |
 | Link underline wipe | 280ms, `--ease-out-quart` | `.wipe` |
 | Menu board split-flap | 75ms per flap, 30ms between turning columns, forward only, settles once | `components/landing/world/splitflap.ts` |
+| Map pill drop-in | Once per map, when its stores first arrive: each pill drops 10px into place over 220ms, nearest the middle first, rippling outward in at most ten steps 35ms apart however many stores there are. None under reduced motion | `components/map/MapCanvas.tsx`, `VectorMapCanvas.tsx` |
+| Vector map camera | Panning to a selection 240ms (`--duration-modal`); framing search results and returning from them 600ms (`--duration-hero`); both `--ease-out-quart`, instant under reduced motion | `components/map/VectorMapCanvas.tsx` |
 | Map list filtering | Rows left by a search slide into the gaps (200ms, `--ease-out-quart`, Motion `layout="position"`); hidden rows fade out in 160ms | `components/map/StoreList.tsx` |
 | Receipt GIF | Prints top to bottom over 1100ms, then the price wheels roll with the odometer timing; the last frame holds; plays once (no loop block) | `components/store/share-gif/` |
 | Store page reveal stagger | `animation-delay` from 70ms to 280ms, in reading order | `app/store/[id]/page.tsx` |
@@ -138,6 +140,9 @@ Fixed timings outside the tokens, each in one place:
 | How-it-works receipt | `HowReceipt` in `app/page.tsx` | Sticky till slip whose lines print as the steps scroll past |
 | Still this price | `StillThisPrice.tsx` | One quiet button per place a price is seen; a tap is an ordinary report of the price on file (same Turnstile, App Check and once-a-day rule), then the check tick and a dated thanks. No field, no dialog |
 | Monthly story | `app/story/[month]/page.tsx`, `lib/monthly-story.ts` | One month in a few counted figures from `src/data/monthly/<yyyy-mm>.json` (`npm run build:monthly-story`). A figure with no data sits blank in a dashed slot that says why; the introduction names every blank |
+| Price pill | `components/map/pill.ts`, `.marker-pill` | A store's price, tier glyph and colour on the map; one markup for both maps |
+| Vector map | `VectorMapCanvas.tsx`, `lib/map-style.ts`, `.vmap` | The MapLibre map in paper and ink; pills are 44px buttons on top. Behind its flag (see The map) |
+| Pill layout | `lib/pill-layout.ts` | Decides which pills show when they would overlap |
 | Numbers funnel | `NumbersFunnel.tsx` | The about page's three counts (on file, priced, confirmed recently), each a subset of the one above, from the landing page's snapshot so the two never disagree; figures on the odometer, ink bars at their final width |
 
 ## Surfaces and elevation
@@ -154,6 +159,22 @@ Fixed timings outside the tokens, each in one place:
 - Prose and forms sit in `max-w-md` to `max-w-xl` columns. Equal side gutters at every width.
 - Every control is at least 44px to tap.
 - The map takes the full viewport under the header; nothing else is full-bleed except the landing page's 3D stage and the ink band.
+
+## The map
+
+- **Two maps, one page.** Visitors get the Leaflet map on OpenStreetMap's raster tiles. The MapLibre vector map is built and sits behind a flag until the owner approves a tile host: `VECTOR_TILES` in `lib/map-style.ts`, proposal in `docs/plans/vector-map.md`. Preview it in development with `/map?map=vector`, and add `&tiles=<TileJSON URL>` to see it on a host.
+- **The base map is printed in the palette.**
+  - Land is paper; parks and woods are paper sunken; buildings are a wash of paper muted.
+  - Roads are hairlines in rule, motorways and rail in paper muted, with no casings.
+  - Labels are ink, ink muted and ink subtle in Plex Mono, haloed in paper.
+  - Water is the accent navy, the only colour in it, with its names reversed in paper.
+  - `MAP_COLORS` mirrors the tokens by name, since a map style can't read CSS variables. `tests/unit/map-style.test.ts` holds the values equal.
+- **Tier colours belong to the pills alone.** Nothing in the base map uses them.
+- **Labels use the site's own font.** The glyph files in `public/map/glyphs` are drawn from Plex Mono by `scripts/build-map-glyphs.mjs`. No font is fetched from the tile host.
+- **Pills never overlap on the vector map.**
+  - They are ranked: the selected store first, then priced stores cheapest first, then stale ones, then unpriced. The nearest store breaks ties.
+  - In that order, each pill takes its place if it has room. One without room is hidden (`data-collided`, `visibility: hidden`, `inert`) until a zoom makes room.
+  - A hidden store is still a row in the list. Every shown pill is a 44px button named with its address, price and tier.
 
 ## Imagery
 
@@ -207,6 +228,6 @@ After every phase, with the dev server and emulator running:
 TARGET_URL=http://localhost:3100 npm run check:pages -- <label>
 ```
 
-It screenshots the landing page, the map (after "Use my location"), a priced store page and the about page at 375 and 1440 px. Each gets a first screen with motion on and a full page with reduced motion, so every scroll-linked and settle-on-view piece is drawn finished. It also runs axe (WCAG 2.0 to 2.2 A and AA, plus best practice) on each. Serious and critical findings fail the run unless they are listed, with a reason, in `ACCEPTED` at the top of `tests/browser/check-pages.js`. Output goes to `tests/browser/screenshots/check/<label>/` (git-ignored): the PNGs, `axe.json` and `summary.md`.
+It screenshots the landing page, the map (after "Use my location"), the vector map behind its flag (`map-vector`, development only; `CHECK_VECTOR_MAP=0` skips it), a priced store page, the about page and the newest monthly story at 375 and 1440 px. Each gets a first screen with motion on and a full page with reduced motion, so every scroll-linked and settle-on-view piece is drawn finished. It also runs axe (WCAG 2.0 to 2.2 A and AA, plus best practice) on each. Serious and critical findings fail the run unless they are listed, with a reason, in `ACCEPTED` at the top of `tests/browser/check-pages.js`. Output goes to `tests/browser/screenshots/check/<label>/` (git-ignored): the PNGs, `axe.json` and `summary.md`.
 
 A full-page capture never scrolls, so anything drawn only near the viewport (the reduced-motion dot map, settle-on-view pieces) can look blank in it. Check those with a real scroll before calling it a bug.

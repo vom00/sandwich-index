@@ -10,6 +10,7 @@ import { StoreList, StoreListSkeleton } from "@/components/map/StoreList";
 import { StoreSheet } from "@/components/map/StoreSheet";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import type { LatLng } from "@/lib/geohash";
+import { chooseVectorMap } from "@/lib/map-choice";
 import { formatCents } from "@/lib/money";
 import { storeLabel } from "@/lib/store-label";
 import { matchesSearch, searchTerms } from "@/lib/store-search";
@@ -23,14 +24,28 @@ import type { StoreWithId } from "@/types";
  * map's own background colour, so the tiles arrive on it rather than replace
  * it. No spinner: the list beside it shows skeleton rows, and nothing loops.
  */
-const MapCanvas = dynamic(() => import("@/components/map/MapCanvas"), {
-  ssr: false,
-  loading: () => (
-    <div className="size-full bg-paper-sunken">
-      <span className="sr-only">Loading map</span>
-    </div>
-  ),
-});
+const MapCanvas = dynamic(
+  async () => {
+    // The vector map, while it is behind its flag (`lib/map-choice`). The
+    // choice is made here, in the browser, so only one map's code loads.
+    const vector = chooseVectorMap();
+    if (vector === null) return import("@/components/map/MapCanvas");
+    const { default: VectorMapCanvas } = await import("@/components/map/VectorMapCanvas");
+    return {
+      default: function VectorMap(props: Omit<React.ComponentProps<typeof VectorMapCanvas>, "tiles">) {
+        return <VectorMapCanvas {...props} tiles={vector.tiles} />;
+      },
+    };
+  },
+  {
+    ssr: false,
+    loading: () => (
+      <div className="size-full bg-paper-sunken">
+        <span className="sr-only">Loading map</span>
+      </div>
+    ),
+  },
+);
 
 export function MapExperience() {
   const geo = useGeolocation();

@@ -448,6 +448,46 @@ h6 {
   outline-offset: 2px;
 }
 
+/* The vector map (VectorMapCanvas, behind its flag). Its pill target is a real
+   button, 44px tall and as wide as the pill; the pill and its drop-in are the
+   ones above. A pill with no room is hidden by the map (`data-collided`). */
+.vmap {
+  background-color: var(--color-paper);
+  font-family: var(--font-body);
+}
+
+.vmap-marker {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.vmap-marker:focus-visible {
+  outline: none;
+}
+
+.vmap-marker:focus-visible .marker-pill {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.vmap .maplibregl-ctrl-group {
+  border: 1px solid var(--color-rule);
+  border-radius: 0.375rem;
+  background-color: var(--color-paper-raised);
+  box-shadow: none;
+}
+
+.vmap .maplibregl-ctrl-attrib {
+  background-color: rgb(255 255 255 / 0.85);
+  font-size: 0.6875rem;
+}
+
 /* Leaflet paints its own controls and attribution; align them with the palette
    rather than leaving two visual systems on one screen. */
 .leaflet-container {

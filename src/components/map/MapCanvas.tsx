@@ -4,12 +4,9 @@ import L from "leaflet";
 import { useEffect, useMemo, useRef } from "react";
 import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 
+import { escapeHtml, pillParts } from "@/components/map/pill";
 import type { LatLng } from "@/lib/geohash";
-import { formatCents } from "@/lib/money";
-import { provenanceSummary } from "@/lib/provenance";
-import { storeLabelText } from "@/lib/store-label";
 import {
-  TIER_PRESENTATION,
   assignTiers,
   displayStateFor,
   type PriceTier,
@@ -45,19 +42,12 @@ const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 const TILE_ATTRIBUTION =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 /**
  * Build a marker.
  *
- * The visible pill sits inside a 44px-tall transparent box so the touch target
- * meets the minimum without inflating the pill itself.
+ * The visible pill (`pill.ts`, shared with the vector map) sits inside a
+ * 44px-tall transparent box so the touch target meets the minimum without
+ * inflating the pill itself.
  */
 function buildIcon(
   store: StoreWithId,
@@ -65,47 +55,14 @@ function buildIcon(
   state: StoreDisplayState,
   isSelected: boolean,
 ): L.DivIcon {
-  const priceLabel =
-    store.priceCents === null ? "—" : formatCents(store.priceCents);
-
-  const presentation = tier === null ? null : TIER_PRESENTATION[tier];
-
-  // The glyph is what keeps the tier readable in greyscale and under every
-  // form of colour blindness. Colour alone would fail those users entirely.
-  const glyph = state === "unmeasured" ? "?" : state === "stale" ? "◷" : presentation?.glyph ?? "●";
-
-  const color =
-    state === "priced" && presentation !== null
-      ? presentation.colorVar
-      : "var(--color-stale)";
-
-  const ariaParts = [
-    store.name,
-    storeLabelText(store),
-    state === "unmeasured"
-      ? "no prices submitted yet"
-      : state === "stale"
-        ? `${priceLabel}, price is stale`
-        : `${priceLabel}, ${presentation?.label ?? ""}`,
-    provenanceSummary(store),
-  ];
-
-  const width = Math.max(64, priceLabel.length * 10 + 34);
+  const { html: pill, label, width } = pillParts(store, tier, state, isSelected);
 
   // No role or tabindex here. Leaflet already renders the marker element with
   // role="button" and tabindex="0"; repeating them on a child would announce
   // two nested buttons and would swallow the pointer event before Leaflet's own
   // handler saw it. The aria-label stays, because a button named from its
   // contents picks up a descendant's label.
-  const html = `
-    <span class="marker-hit" aria-label="${escapeHtml(ariaParts.join(", "))}">
-      <span class="marker-pill${isSelected ? " marker-pill--selected" : ""}${
-        state !== "priced" ? " marker-pill--muted" : ""
-      }" style="--pill-color:${color}">
-        <span class="marker-glyph" aria-hidden="true">${glyph}</span>
-        <span class="marker-price tabular">${escapeHtml(priceLabel)}</span>
-      </span>
-    </span>`;
+  const html = `<span class="marker-hit" aria-label="${escapeHtml(label)}">${pill}</span>`;
 
   return L.divIcon({
     html,

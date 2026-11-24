@@ -38,7 +38,7 @@ const BLOCKING = new Set(['serious', 'critical']);
  */
 const ACCEPTED = {
   'map:target-size':
-    'WCAG 2.5.8 "equivalent" exception: where pins overlap in a dense area, every pin is also a 44px row in the list beside the map (91 pins, 91 rows checked). The overlap itself goes once the MapLibre map (Phase H) hides colliding pills.',
+    'WCAG 2.5.8 "equivalent" exception: where pins overlap in a dense area, every pin is also a 44px row in the list beside the map (91 pins, 91 rows checked). The overlap itself goes when the vector map (Phase H, behind its flag until a tile host is approved) replaces this one: it hides colliding pills, and `map-vector` has no target-size finding.',
 };
 
 /** The newest month with a data story (`src/data/monthly/<yyyy-mm>.json`). */
@@ -57,6 +57,9 @@ async function pages() {
     { name: 'landing', url: '/' },
     // The map asks before it locates anyone; the check answers yes.
     { name: 'map', url: '/map', ready: '.marker-pill', prepare: (page) => page.getByRole('button', { name: /use my location/i }).click() },
+    // The vector map behind its flag (Phase H), development only, with no
+    // tile source: its pills and their targets are what axe checks.
+    ...(process.env.CHECK_VECTOR_MAP === '0' ? [] : [{ name: 'map-vector', url: '/map?map=vector', ready: '.vmap-marker', prepare: (page) => page.getByRole('button', { name: /use my location/i }).click() }]),
     { name: 'store', url: `/store/${priced.id}` },
     { name: 'about', url: '/about' },
     // The monthly data story (Phase G), its newest month.
