@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { milesToMeters } from "@/lib/geohash";
+import { STORES_RATE, rateLimited } from "@/lib/rate-limit";
 import { getStoresNear } from "@/lib/stores.server";
 import { nearbyQuerySchema } from "@/lib/validation";
 
@@ -12,6 +13,9 @@ import { nearbyQuerySchema } from "@/lib/validation";
  * /api/stores/sync. A map pan should never reach a third-party API.
  */
 export async function GET(request: Request): Promise<NextResponse> {
+  const limited = rateLimited(STORES_RATE, request);
+  if (limited !== null) return limited;
+
   const { searchParams } = new URL(request.url);
 
   const parsed = nearbyQuerySchema.safeParse({

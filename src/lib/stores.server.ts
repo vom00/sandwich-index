@@ -15,6 +15,7 @@ import {
   OBSERVATIONS_COLLECTION,
   STORES_COLLECTION,
   SUBMISSIONS_COLLECTION,
+  SUBMISSION_REPORTERS_FIELD,
   getAdminDb,
 } from "@/lib/firebase/admin";
 import {
@@ -332,14 +333,31 @@ export async function getSubmissionsForStore(
   storeId: string,
   db: Firestore = getAdminDb(),
 ): Promise<SubmissionWithId[]> {
+  return (await getSubmissionRecordsForStore(storeId, db)).map(({ submission }) => submission);
+}
+
+/**
+ * The submissions with their reporter codes, for the recompute only. The code
+ * is kept out of `SubmissionWithId` so no API response can carry it.
+ */
+async function getSubmissionRecordsForStore(
+  storeId: string,
+  db: Firestore,
+): Promise<{ submission: SubmissionWithId; reporter: string | null }[]> {
   const snapshot = await db
     .collection(SUBMISSIONS_COLLECTION)
     .where("storeId", "==", storeId)
     .get();
 
   return snapshot.docs
-    .map((document) => toSubmission(document.id, document.data()))
-    .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
+    .map((document) => {
+      const reporter = document.get(SUBMISSION_REPORTERS_FIELD);
+      return {
+        submission: toSubmission(document.id, document.data()),
+        reporter: typeof reporter === "string" ? reporter : null,
+      };
+    })
+    .sort((a, b) => b.submission.submittedAt.localeCompare(a.submission.submittedAt));
 }
 
 /**
@@ -474,15 +492,17 @@ export async function recomputeStoreRollupReporting(
   const storeSnapshot = await storeRef.get();
   if (!storeSnapshot.exists) return null;
 
-  const [submissions, observations] = await Promise.all([
-    getSubmissionsForStore(storeId, db),
+  const [records, observations] = await Promise.all([
+    getSubmissionRecordsForStore(storeId, db),
     getObservationsForStore(storeId, db),
   ]);
-  const candidates: PriceCandidate[] = submissions.map((submission) => ({
+  const submissions = records.map(({ submission }) => submission);
+  const candidates: PriceCandidate[] = records.map(({ submission, reporter }) => ({
     priceCents: submission.priceCents,
     source: submission.source,
     status: submission.status,
     submittedAt: submission.submittedAt,
+    reporter,
   }));
   const observed: ObservedPrice[] = observations.map((observation) => ({
     priceCents: observation.priceCents,

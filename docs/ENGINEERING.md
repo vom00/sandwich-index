@@ -48,8 +48,8 @@ Still open:
 - **Drive Thru Index can withdraw.** It names no operator and publishes no
   terms beyond "free to quote with attribution". If it asks, the feed comes
   down the way MenuPriceTracker's did (see [Price feeds](#price-feeds)).
-- **App Check** is off in production until the Fraud Defense (reCAPTCHA
-  Enterprise) site key is set. See [App Check](#app-check).
+- **App Check and Turnstile** are wired but off in production until their
+  keys are set. See [App Check](#app-check) and [Turnstile](#turnstile).
 - **The photo reader** has only been tested on mock photos. Real receipts
   and screenshots may need tuning.
 
@@ -247,7 +247,10 @@ lost. Export first if it matters: `npx firebase emulators:export .emulator-data`
 | `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | yes | Client SDK config. |
 | `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | yes | Client SDK config. |
 | `NEXT_PUBLIC_FIREBASE_APP_ID` | yes | Client SDK config. |
-| `NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY` | no | reCAPTCHA v3 site key. Unset keeps App Check inert. |
+| `NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY` | no | Fraud Defense (reCAPTCHA Enterprise) site key. Unset keeps App Check inert, in the browser and in the submission route. |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | no | Cloudflare Turnstile site key (public). Unset: no widget loads. |
+| `TURNSTILE_SECRET_KEY` | no | Turnstile secret, server only. Unset: the submission route does not ask for a token. Set both Turnstile keys together. |
+| `REPORTER_HASH_SECRET` | no | Long random string, server only. Keys the reporter code (see [Abuse and data quality](#abuse-and-data-quality)). Unset: the reporter is the anonymous sign-in, as before. Changing it later makes every reporter look new for one day. |
 | `FIREBASE_PROJECT_ID` | yes | Admin SDK project id. |
 | `FIRESTORE_EMULATOR_HOST` | dev | Presence of this puts the Admin SDK in emulator mode; no credentials needed. |
 | `FIREBASE_AUTH_EMULATOR_HOST` | dev | Same, for auth. |
@@ -259,11 +262,13 @@ lost. Export first if it matters: `npx firebase emulators:export .emulator-data`
 
 ### App Check
 
-App Check is wired, and on in production since 2026-10-12. `initAppCheck()`
-runs on every page load from `src/components/ui/FirebaseBoot.tsx` and returns
-immediately unless `NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY` is set. In Vercel
-it is set for Production only, to the site key (public; it ships in the
-page). The provider is Fraud Defense (reCAPTCHA Enterprise), the one the
+App Check is wired but **not on in production**: on 2026-11-24 the live site
+requested no App Check token, so `NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY` is
+not set in Vercel (an earlier note here said it had been on since
+2026-10-12; it was not). `initAppCheck()` runs on every page load from
+`src/components/ui/FirebaseBoot.tsx` and returns immediately while the key is
+unset. Set it in Vercel for Production only, to the site key (public; it ships
+in the page). The provider is Fraud Defense (reCAPTCHA Enterprise), the one the
 Firebase console registers now: it no longer accepts new classic reCAPTCHA v3
 keys, and a classic key sent to an Enterprise registration fails with "App
 not registered". `NEXT_PUBLIC_FIREBASE_APPCHECK_PROVIDER=v3` switches back to
@@ -272,11 +277,28 @@ Firebase console, never in this repo or in Vercel. The CSP allows
 reCAPTCHA's scripts (including `/recaptcha/enterprise.js`), token endpoint
 and frame.
 
-Setting the key makes the site *send* App Check tokens; Firestore only
-*requires* them once enforcement is switched on (Firebase console → App
-Check → APIs → Cloud Firestore → Enforce). Watch that page's verified versus
-unverified request counts for a few days before enforcing, so no real
-visitor is locked out. The server's Admin SDK is not affected by enforcement.
+Setting the key makes the site *send* App Check tokens, and makes the
+submission route *require* one: price reports are written by the server's
+Admin SDK, which Firestore's own enforcement does not cover, so
+`POST /api/stores/[id]/submissions` verifies the `X-Firebase-AppCheck` header
+itself. Firestore's enforcement (Firebase console → App Check → APIs → Cloud
+Firestore → Enforce) then only matters for anonymous sign-in, since browsers
+no longer read or write Firestore at all.
+
+### Turnstile
+
+Cloudflare Turnstile is the human check on logging a price. The widget
+(`src/components/ui/useTurnstile.ts`) sits inside the price form and the log
+run, runs when the visitor submits, and is invisible unless Cloudflare wants
+to challenge them. The token goes with the report and the submission route
+verifies it with Cloudflare (`verifyTurnstile` in `src/lib/submit.server.ts`).
+The CSP allows `https://challenges.cloudflare.com` for its script and frame.
+
+To switch it on: in the Cloudflare dashboard, Turnstile → Add widget, domain
+`sandwich-index.vercel.app`, mode Managed. Put the site key in
+`NEXT_PUBLIC_TURNSTILE_SITE_KEY` and the secret in `TURNSTILE_SECRET_KEY`
+(Vercel, Production), then redeploy. Unset, nothing loads and nothing is
+checked.
 
 It is left unset locally because a headless browser cannot solve a reCAPTCHA
 challenge, so enabling it against the emulator would break every browser test
@@ -374,18 +396,21 @@ their own report and walk anything past the gate.
   "submittedAt": "<Timestamp>", // server clock; clients cannot backdate
   "source": "in_store",         // in_store | drive_thru | app | delivery
   "status": "accepted",         // accepted | pending | rejected
-  "flagCount": 0
+  "flagCount": 0,
+  "reporter": "9f2c…"           // opaque reporter code; absent before 2026-11-24
 }
 ```
 
-Append-only. Updates and deletes are refused by the rules; a correction is a new
-submission.
+Append-only, and written only by the submission route
+(`src/lib/submit.server.ts`); browsers can neither read nor write this
+collection. A correction is a new submission.
 
-`submittedBy` is deliberately **not** stored. Submissions are publicly readable
-so the store page can render its history, and Firestore has no field-level read
-security — a UID on a public document would let anyone correlate every
-submission from one device. The rate limit does not need it, because ownership
-lives in the private ledger below.
+`reporter` is an HMAC of either a signed-in account or the visitor's network
+(see [Abuse and data quality](#abuse-and-data-quality)). It is what stops one
+person confirming their own big price change. Because it links one
+person's reports together, it never leaves the server: the collection is
+unreadable to browsers, and `getSubmissionsForStore` (which feeds the store
+page and the history API) leaves it out.
 
 `status: "rejected"` and `flagCount` are reserved. Nothing in v1 sets them —
 there is no moderation UI yet. They are in the schema so adding one later is not
@@ -412,16 +437,15 @@ observation is a third party's record. Merging them would either inflate the
 new. Public read, Admin SDK write only: an observation can set a store's
 price, so a client-writable one would skip the move gate entirely.
 
-### `rateLimits/{uid}_{storeId}`
+### `rateLimits/{reporter}_{storeId}`
 
 ```jsonc
 { "storeId": "node-1234567890", "lastSubmittedAt": "<Timestamp>" }
 ```
 
-Private to the device that owns it. Exists because **security rules cannot run
-queries** — there is no way to ask "what was this device's last submission for
-this store?" from a rule. The answer has to live at a path a rule can `get()`
-directly, and a deterministic document id is that path.
+The one-report-per-store-per-day ledger, keyed by reporter code, read and
+stamped inside the submission route's transaction. Server-only. Ledgers from
+before 2026-11-24 are keyed by sign-in uid and simply age out.
 
 ### Indexes
 
@@ -448,42 +472,44 @@ that a deploy would have happily built against a field that never gets written.
 ## Abuse and data quality
 
 Crowdsourced price data is only worth anything if the numbers survive contact
-with people who want to break them. Six mechanisms, all enforced where a client
-cannot reach them.
+with people who want to break them. The mechanisms below are all enforced where
+a client cannot reach them: since 2026-11-24 in the submission route,
+`POST /api/stores/[id]/submissions` (`src/lib/submit.server.ts`), with
+`firestore.rules` refusing every browser read and write of `submissions` and
+`rateLimits` so the route is the only way in. Before that, browsers wrote
+submissions directly and the rules made these checks; the route moved them
+because a Turnstile token and a network address cannot be checked in a rule.
 
-**1. Range validation.** Anything outside 100–1500 cents is rejected. Enforced
-in `firestore.rules`, not only in the form. Client-side validation exists to
+Before any of them the route checks, cheapest first: a per-address request
+limit (`src/lib/rate-limit.ts`, also on `/api/stores`, `/api/stores/sync` and
+the recompute), the Firebase sign-in token, App Check and Turnstile.
+
+**Reporter.** Each report carries a reporter code (`src/lib/reporter.server.ts`):
+a signed-in account if the visitor has one, otherwise their network (IPv4 /24,
+IPv6 /56), hashed with `REPORTER_HASH_SECRET`. Clearing site data, a private
+window or another browser on the same connection are all the same reporter.
+Two people on one Wi-Fi network are too, which only means a change they agree
+on waits for a third report or the feed.
+
+**1. Range validation.** Anything outside 100–1500 cents is rejected, by the
+route's schema, not only in the form. Client-side validation exists to
 give honest contributors a fast error message; it stops nobody with a console
 open.
 
-**2. Rate limit — one submission per device, per store, per 24 hours.** The
-mechanism is worth understanding, because the obvious implementation does not
-work. Rules cannot query, so the limit lives in `rateLimits/{uid}_{storeId}`.
-But a client could simply write the submission and never stamp the ledger — so
-the submission rule uses `getAfter()` to require that both documents land in the
-same atomic batch:
-
-```
-function ledgerStampedInSameBatch() {
-  return getAfter(rateLimitPath(data().storeId)).data.lastSubmittedAt == request.time;
-}
-```
-
-`lastSubmittedAt == request.time` is what blocks backdating. The value is the
-server's clock, not the client's claim. Deleting the ledger is also refused,
-since that would reset the window.
+**2. Rate limit — one submission per reporter, per store, per 24 hours.** The
+ledger `rateLimits/{reporter}_{storeId}` is read and stamped in the same
+transaction as the submission, so two racing requests cannot both pass, and
+both timestamps are the server's clock.
 
 **3. Move gate.** A report more than 40% from a store's current price becomes
 `pending` instead of `accepted`, and a held report does not change the price.
 There is no minimum-sample threshold — a store has a price or it does not.
-Status is *derived, not chosen*: the rule computes what the status must be and
-rejects any report claiming a different one, including an ordinary price trying
-to mark itself pending, which would otherwise let someone keep honest prices
-out. The comparison uses integer math (`deviation * 100 > current * 40`) so the
-rule and `src/lib/pricing.ts` cannot disagree on a boundary value.
+Status is *derived, not chosen*: the route computes it (`statusForSubmission`)
+and the client has no say.
 
 **4. Corroboration.** A held report becomes the price once a second report
-lands within 5% of it. Promotion happens server-side in the recompute, never
+from a *different reporter* lands within 5% of it. The same reporter saying it
+twice is one opinion. Promotion happens server-side in the recompute, never
 from a client — it is a judgement about the whole history, not about one write.
 This is also what rescues a store whose very first report was a typo: no single
 report can beat a wrong price, but two that agree with each other always can.
@@ -499,17 +525,19 @@ authoritative.
 
 ### What this does not solve
 
-Anonymous auth means clearing site data mints a fresh UID and resets the rate
-limit. App Check raises the cost of scripted abuse but does not close that hole.
-The rate limit is friction, not security.
+A determined person can still change networks (mobile data, a VPN) to become
+a new reporter. Turnstile and App Check make doing that from a script
+expensive, and the per-address request limit is per server instance, so it
+slows a flood rather than stopping it. These are friction, not proof of
+identity.
 
 **Showing one real price costs robustness, and the trade is real.** Under the
 old median model a single false report among ten barely moved the number.
 Under this one the newest report that clears the gate *becomes* the price, so
 one plausible-looking lie moves a store's displayed price outright — by up to
-40% of it, once per day, from one device. Two reports that agree with each
-other can move it arbitrarily far, and "two reports" means two anonymous
-identities, which is a browser profile apart.
+40% of it, once per day, from one reporter. Two reports that agree with each
+other can move it arbitrarily far, and "two reports" means two networks or
+two accounts.
 
 That is the deliberate cost of never showing a midpoint nobody was ever
 charged. What holds the numbers up is not arithmetic robustness but the fact

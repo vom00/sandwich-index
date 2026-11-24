@@ -168,18 +168,21 @@ export default function AboutPage() {
           <ul className="ml-5 list-disc space-y-2">
             <li>
               Anything outside {formatCents(PRICE_MIN_CENTS)} to{" "}
-              {formatCents(PRICE_MAX_CENTS)} is rejected outright, at the
-              database level rather than only in the form.
+              {formatCents(PRICE_MAX_CENTS)} is rejected outright, on the
+              server rather than only in the form.
             </li>
             <li>
-              One submission per device per store per day, also enforced at the
-              database level.
+              One submission per person per store per day, also enforced on the
+              server. A person here is the network you are on (or your account,
+              if you are signed in), kept only as a scrambled code that cannot
+              be turned back into an address, so clearing your browser does not
+              make you someone new.
             </li>
             <li>
               A report more than {BIG_MOVE_PERCENT}% away from what a store is
               currently listed at does not change the price on its own. It is
-              held until a second report agrees with it, within{" "}
-              {CORROBORATION_PERCENT}%.
+              held until a second report, from someone else, agrees with it
+              within {CORROBORATION_PERCENT}%.
             </li>
             <li>
               Each store shows one price: the most recent report that passed the

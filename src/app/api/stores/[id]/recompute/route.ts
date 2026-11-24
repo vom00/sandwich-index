@@ -2,6 +2,7 @@ import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { INDEX_SNAPSHOT_TAG } from "@/lib/index-snapshot.server";
+import { RECOMPUTE_RATE, rateLimited } from "@/lib/rate-limit";
 import { recomputeStoreRollupReporting } from "@/lib/stores.server";
 import { storeIdSchema } from "@/lib/validation";
 
@@ -18,12 +19,17 @@ import { storeIdSchema } from "@/lib/validation";
  *
  * Unauthenticated on purpose: it takes no input beyond a store id and can only
  * ever make the stored rollup agree with the submissions that already exist.
- * The worst an abuser achieves is making us do arithmetic.
+ * The worst an abuser achieves is making us do arithmetic, and that
+ * arithmetic reads every report the store has, so it is rate limited per
+ * address.
  */
 export async function POST(
-  _request: Request,
+  request: Request,
   context: RouteContext<"/api/stores/[id]/recompute">,
 ): Promise<NextResponse> {
+  const limited = rateLimited(RECOMPUTE_RATE, request);
+  if (limited !== null) return limited;
+
   const { id } = await context.params;
 
   const parsed = storeIdSchema.safeParse(id);

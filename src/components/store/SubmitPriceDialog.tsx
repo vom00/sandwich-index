@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { ReadFromPhoto } from "@/components/store/ReadFromPhoto";
+import { useTurnstile } from "@/components/ui/useTurnstile";
 import { formatCents } from "@/lib/money";
 import { readPriceInput } from "@/lib/price-input";
 import { submitPrice, type SubmitFailureReason } from "@/lib/submissions";
@@ -104,6 +105,7 @@ export function SubmitPriceDialog({
   const [submitting, setSubmitting] = useState(false);
   const [accepted, setAccepted] = useState<Accepted | null>(null);
   const [failure, setFailure] = useState<Failure | null>(null);
+  const { slotRef: turnstileSlot, getToken: getTurnstileToken } = useTurnstile();
 
   // Open the dialog once its contents are committed, so `showModal()` has
   // something to move focus into.
@@ -150,7 +152,8 @@ export function SubmitPriceDialog({
       setFailure(null);
       setSubmitting(true);
 
-      const result = await submitPrice({ storeId, priceCents: parsed.cents, source });
+      const turnstileToken = await getTurnstileToken();
+      const result = await submitPrice({ storeId, priceCents: parsed.cents, source, turnstileToken });
       setSubmitting(false);
 
       if (result.ok) {
@@ -167,7 +170,7 @@ export function SubmitPriceDialog({
         retryAfter: result.retryAfter,
       });
     },
-    [priceInput, source, storeId, router],
+    [priceInput, source, storeId, router, getTurnstileToken],
   );
 
   const transitionIn = { duration: reducedMotion ? 0 : ENTER_SECONDS, ease: EASE_OUT_QUART };
@@ -264,6 +267,7 @@ export function SubmitPriceDialog({
                       onSourceChange={setSource}
                       onSubmit={handleSubmit}
                       onCancel={onClose}
+                      turnstileSlotRef={turnstileSlot}
                     />
                   ) : (
                     <Confirmation
@@ -298,6 +302,7 @@ function PriceForm({
   onSourceChange,
   onSubmit,
   onCancel,
+  turnstileSlotRef,
 }: {
   formIds: { priceId: string; priceHintId: string; priceErrorId: string };
   priceInputRef: React.RefObject<HTMLInputElement | null>;
@@ -315,6 +320,7 @@ function PriceForm({
   onSourceChange: (source: PriceSource) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   onCancel: () => void;
+  turnstileSlotRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const { priceId, priceHintId, priceErrorId } = formIds;
 
@@ -450,6 +456,10 @@ function PriceForm({
           because the platforms add their own markup.
         </p>
       </fieldset>
+
+      {/* Turnstile renders here, and only shows itself to a visitor it
+          needs to challenge. Empty, and so collapsed, while it is off. */}
+      <div ref={turnstileSlotRef} className="mt-5 empty:hidden" />
 
       <div className="mt-6 flex flex-wrap gap-2">
         <button

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 
 import { LocationGate } from "@/components/map/LocationGate";
 import { Odometer } from "@/components/ui/Odometer";
+import { useTurnstile } from "@/components/ui/useTurnstile";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import type { LatLng } from "@/lib/geohash";
 import {
@@ -53,6 +54,7 @@ const DEFAULT_SOURCE: PriceSource = "app";
 
 export function LogRunExperience() {
   const router = useRouter();
+  const { slotRef: turnstileSlot, getToken: getTurnstileToken } = useTurnstile();
   const geo = useGeolocation();
   const baseId = useId();
 
@@ -191,6 +193,7 @@ export function LogRunExperience() {
         storeId: store.id,
         priceCents: parsed.cents,
         source,
+        turnstileToken: await getTurnstileToken(),
       });
 
       const outcome: RowOutcome = result.ok
@@ -208,7 +211,7 @@ export function LogRunExperience() {
     setAnnouncement(describeRun(summarise(collected)));
     // Every other surface reads these prices server-side.
     router.refresh();
-  }, [filled, inputs, source, router, enterable]);
+  }, [filled, inputs, source, router, enterable, getTurnstileToken]);
 
   // One frame at most, and only before the restore has been attempted.
   if (!restoreAttempted && geo.position === null) {
@@ -506,6 +509,9 @@ export function LogRunExperience() {
           </ol>
 
           <div className="sticky bottom-0 mt-6 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-rule bg-paper py-4">
+            {/* Turnstile, run once per saved row; only visible to a visitor
+                it needs to challenge, and empty while it is off. */}
+            <div ref={turnstileSlot} className="basis-full empty:hidden" />
             <button
               type="button"
               onClick={() => void handleRun()}

@@ -37,6 +37,11 @@ export interface PriceCandidate {
   status: SubmissionStatus;
   /** ISO 8601. */
   submittedAt: string;
+  /**
+   * Opaque code for who sent it (see `lib/reporter.server.ts`). Absent on
+   * reports from before reporter codes existed.
+   */
+  reporter?: string | null;
 }
 
 /**
@@ -84,6 +89,17 @@ export function isBigMove(priceCents: number, currentCents: number | null): bool
 
 export function corroborates(priceCents: number, heldCents: number): boolean {
   return !movesMoreThan(CORROBORATION_PERCENT, priceCents, heldCents);
+}
+
+/**
+ * Whether two reports come from different people, so one may confirm the
+ * other. A report from before reporter codes existed has none and counts as
+ * its own reporter: there is nothing left to compare, and refusing would
+ * strand every change held before the codes were added.
+ */
+export function differentReporters(a: string | null | undefined, b: string | null | undefined): boolean {
+  if (!a || !b) return true;
+  return a !== b;
 }
 
 /**
@@ -222,7 +238,7 @@ export function reconcile(
   let confirmedCount = 0;
 
   /** The outstanding report waiting for a second opinion, if any. */
-  let held: { priceCents: number; index: number } | null = null;
+  let held: { priceCents: number; index: number; reporter: string | null } | null = null;
 
   const changed: ReconciledSubmission[] = [];
   const settle = (index: number, status: SubmissionStatus, was: SubmissionStatus) => {
@@ -259,8 +275,14 @@ export function reconcile(
       continue;
     }
 
-    if (held !== null && corroborates(reported, held.priceCents)) {
-      // Two independent reports agree the price moved. Promote both.
+    if (
+      held !== null &&
+      corroborates(reported, held.priceCents) &&
+      differentReporters(held.reporter, submission.reporter)
+    ) {
+      // Two independent reports agree the price moved. Promote both. The same
+      // reporter saying it twice is one opinion, so it falls through and the
+      // newer report waits in the held one's place.
       settle(held.index, "accepted", "pending");
       settle(index, "accepted", storedStatus);
       priceCents = reported;
@@ -271,7 +293,7 @@ export function reconcile(
       continue;
     }
 
-    held = { priceCents: reported, index };
+    held = { priceCents: reported, index, reporter: submission.reporter ?? null };
     settle(index, "pending", storedStatus);
   }
 

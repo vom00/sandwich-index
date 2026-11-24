@@ -21,6 +21,7 @@
  */
 
 import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
+import type { AppCheck } from "firebase/app-check";
 import {
   connectAuthEmulator,
   getAuth,
@@ -103,19 +104,41 @@ export async function ensureAnonymousUser(): Promise<User> {
  * a headless browser cannot solve reCAPTCHA. When the key is set, local runs
  * still need a debug token — see docs/ENGINEERING.md.
  */
-export async function initAppCheck(): Promise<void> {
-  const siteKey = process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY;
-  if (siteKey === undefined || siteKey === "") return;
+let appCheck: Promise<AppCheck | null> | null = null;
 
-  // Fraud Defense (reCAPTCHA Enterprise) is what the Firebase console
-  // registers now; it no longer accepts new classic v3 keys. A classic key can
-  // still be used by setting the provider to "v3".
-  const { initializeAppCheck, ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } = await import(
-    "firebase/app-check"
-  );
-  const provider =
-    process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_PROVIDER === "v3"
-      ? new ReCaptchaV3Provider(siteKey)
-      : new ReCaptchaEnterpriseProvider(siteKey);
-  initializeAppCheck(getFirebaseApp(), { provider, isTokenAutoRefreshEnabled: true });
+export function initAppCheck(): Promise<AppCheck | null> {
+  appCheck ??= (async () => {
+    const siteKey = process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY;
+    if (siteKey === undefined || siteKey === "") return null;
+
+    // Fraud Defense (reCAPTCHA Enterprise) is what the Firebase console
+    // registers now; it no longer accepts new classic v3 keys. A classic key can
+    // still be used by setting the provider to "v3".
+    const { initializeAppCheck, ReCaptchaEnterpriseProvider, ReCaptchaV3Provider } = await import(
+      "firebase/app-check"
+    );
+    const provider =
+      process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_PROVIDER === "v3"
+        ? new ReCaptchaV3Provider(siteKey)
+        : new ReCaptchaEnterpriseProvider(siteKey);
+    return initializeAppCheck(getFirebaseApp(), { provider, isTokenAutoRefreshEnabled: true });
+  })();
+  return appCheck;
+}
+
+/**
+ * An App Check token for the submission route, or null while App Check is
+ * off. Submissions go through a server route now, which the Admin SDK serves,
+ * so Firestore's own enforcement no longer covers them; the route checks this
+ * token itself.
+ */
+export async function getAppCheckToken(): Promise<string | null> {
+  const instance = await initAppCheck().catch(() => null);
+  if (instance === null) return null;
+  try {
+    const { getToken } = await import("firebase/app-check");
+    return (await getToken(instance, false)).token;
+  } catch {
+    return null;
+  }
 }

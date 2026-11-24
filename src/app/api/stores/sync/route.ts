@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { milesToMeters } from "@/lib/geohash";
 import { OverpassError, fetchNearbyStores } from "@/lib/overpass";
+import { SYNC_RATE, rateLimited } from "@/lib/rate-limit";
 import { reverseGeocode } from "@/lib/reverse-geocode";
 import {
   backfillFeedObservations,
@@ -33,6 +34,9 @@ import { nearbyQuerySchema } from "@/lib/validation";
 export const maxDuration = 60;
 
 export async function POST(request: Request): Promise<NextResponse> {
+  const limited = rateLimited(SYNC_RATE, request);
+  if (limited !== null) return limited;
+
   let body: unknown;
   try {
     body = await request.json();

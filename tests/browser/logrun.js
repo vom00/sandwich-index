@@ -109,7 +109,13 @@ async function coverage(page) {
     });
 
     const consoleErrors = [];
-    context.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
+    context.on('console', (m) => {
+      if (m.type() !== 'error') return;
+      // Step E repeats a store on purpose; the submission route refuses it
+      // with a real 429, which the browser logs. That one is expected.
+      if (/status of 429/.test(m.text()) && /\/api\/stores\/[^/]+\/submissions$/.test(m.location().url ?? '')) return;
+      consoleErrors.push(m.text());
+    });
 
     // ---------------------------------------------------------------
     console.log('\nA. The run loads and is ordered by what it would learn most from');

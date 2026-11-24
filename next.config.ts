@@ -14,8 +14,9 @@ import type { NextConfig } from "next";
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   // 'wasm-unsafe-eval': the photo reader's OCR engine is WebAssembly. Google's
-  // reCAPTCHA loader and its versioned release, for App Check.
-  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/",
+  // reCAPTCHA loader and its versioned release, for App Check. Cloudflare
+  // Turnstile, the human check on logging a price.
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://challenges.cloudflare.com",
   // React style attributes and Leaflet's positioning are inline styles.
   "style-src 'self' 'unsafe-inline'",
   // Map tiles; data: for Leaflet's icons; blob: for the photo being read.
@@ -27,8 +28,8 @@ const CONTENT_SECURITY_POLICY = [
     (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true" ? ` http://127.0.0.1:${process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT ?? 8080} http://127.0.0.1:${process.env.NEXT_PUBLIC_AUTH_EMULATOR_PORT ?? 9099}` : ""),
   // tesseract.js starts its worker from a blob: URL.
   "worker-src 'self' blob:",
-  // reCAPTCHA's invisible frame, for App Check.
-  "frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/",
+  // reCAPTCHA's invisible frame, for App Check; Turnstile's challenge frame.
+  "frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/ https://challenges.cloudflare.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

@@ -211,6 +211,44 @@ describe("reconcile — holding and corroboration", () => {
     ]);
   });
 
+  it("does not let one reporter confirm their own big change", () => {
+    const { rollup, changed } = reconcile([
+      report(319, 0, { reporter: "a" }),
+      report(899, 1, { status: "pending", reporter: "b" }),
+      report(905, 2, { status: "pending", reporter: "b" }),
+    ]);
+
+    expect(rollup.priceCents).toBe(319);
+    expect(rollup.heldPriceCents).toBe(905);
+    expect(changed).toEqual([]);
+  });
+
+  it("promotes once a different reporter agrees, after a repeat from the first", () => {
+    const { rollup, changed } = reconcile([
+      report(319, 0, { reporter: "a" }),
+      report(899, 1, { status: "pending", reporter: "b" }),
+      report(905, 2, { status: "pending", reporter: "b" }),
+      report(902, 3, { status: "pending", reporter: "c" }),
+    ]);
+
+    expect(rollup.priceCents).toBe(902);
+    expect(rollup.heldPriceCents).toBeNull();
+    expect(changed).toEqual([
+      { index: 2, status: "accepted" },
+      { index: 3, status: "accepted" },
+    ]);
+  });
+
+  it("treats reports from before reporter codes as separate reporters", () => {
+    const { rollup } = reconcile([
+      report(319, 0),
+      report(899, 1, { status: "pending" }),
+      report(905, 2, { status: "pending", reporter: "b" }),
+    ]);
+
+    expect(rollup.priceCents).toBe(905);
+  });
+
   it("does not promote on a second report that disagrees with the first", () => {
     const { rollup } = reconcile([
       report(319, 0),

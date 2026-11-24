@@ -90,13 +90,25 @@ async function launchBrowser() {
   throw new Error('No usable browser');
 }
 
+/**
+ * The one refusal this suite provokes on purpose (step 6, the 24-hour limit)
+ * is a real 429 from the submission route, which enforces it server-side.
+ * The browser logs any 4xx as a console error, so that one is expected; step
+ * 6 checks the refusal itself. Anything else still fails the run.
+ */
+const expectedRefusal = (status, url) => status === 429 && /\/api\/stores\/[^/]+\/submissions$/.test(url);
+
 function watch(page) {
   const consoleErrors = [];
   const badResponses = [];
-  page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
+  page.on('console', (m) => {
+    if (m.type() !== 'error') return;
+    if (/status of 429/.test(m.text()) && expectedRefusal(429, m.location().url ?? '')) return;
+    consoleErrors.push(m.text());
+  });
   page.on('pageerror', (e) => consoleErrors.push('pageerror: ' + e.message));
   page.on('response', (r) => {
-    if (r.status() >= 400) badResponses.push(`${r.status()} ${r.url()}`);
+    if (r.status() >= 400 && !expectedRefusal(r.status(), r.url())) badResponses.push(`${r.status()} ${r.url()}`);
   });
   return { consoleErrors, badResponses };
 }
@@ -450,9 +462,11 @@ async function apiStore(page, id) {
     // =================================================================
     console.log('\n5. Submitting — accepted');
     // =================================================================
-    const recomputeCalls = [];
+    // The submission route writes and recomputes in one request, so there is
+    // no separate recompute call to watch for any more.
+    const submitCalls = [];
     page.on('request', (r) => {
-      if (r.url().includes('/recompute')) recomputeCalls.push(r.method() + ' ' + r.url());
+      if (/\/submissions$/.test(r.url())) submitCalls.push(r.method() + ' ' + r.url());
     });
 
     await page.locator('input[name="source"][value="drive_thru"]').check();
@@ -464,8 +478,8 @@ async function apiStore(page, id) {
       /\$3\.29 logged/.test(confirmation), confirmation.slice(0, 80));
     check('accepted price is described as the store price now',
       /price from now on/.test(confirmation));
-    check('recompute was called after the write', recomputeCalls.length >= 1,
-      recomputeCalls.join(', '));
+    check('the price went through the submission route', submitCalls.length === 1 && submitCalls[0].startsWith('POST '),
+      submitCalls.join(', '));
 
     const after = await apiStore(page, RICH);
     check('submission count went up by exactly one',

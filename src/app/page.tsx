@@ -146,10 +146,14 @@ export default async function Home() {
           <div className="lp-copy">
             <p className="lp-eyebrow">04 · The country</p>
             <h2 id="lp-map" className="wr mt-3 font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
-              <WordRise text={`Now multiply by ${formatCount(map.generatedFrom.stores)}`} />
+              <WordRise text={`Now multiply by ${formatCount(snapshot.trackedStoreCount)}`} />
             </h2>
+            {/* Store counts come from the live snapshot, the same figures as the
+                hero and the lists below. The map file is built from the price
+                feed when the site deploys, so its own counts drift from the
+                database between deploys; only its patches and median are used. */}
             <p className="mt-4 leading-relaxed text-ink-muted">
-              {formatCount(map.generatedFrom.stores)} restaurants in {formatCount(map.points.length)} patches
+              {formatCount(snapshot.trackedStoreCount)} restaurants in {formatCount(map.points.length)} patches
               of the country. Each patch is coloured by the median price of the
               restaurants in it, and the dearer the price, the taller it stands.
             </p>
@@ -160,8 +164,9 @@ export default async function Home() {
               <li data-tier="none"><i aria-hidden="true" />No price yet <span>{formatCount(tiers.none)}</span></li>
             </ul>
             <p className="mt-3 text-xs leading-relaxed text-ink-subtle">
-              National median {formatCents(scale.median)}, from {formatCount(map.generatedFrom.priced)} priced
-              stores checked {checkedFrom} to {checkedTo}. {DTI_CREDIT}.
+              National median {formatCents(scale.median)}, from prices checked {checkedFrom} to{" "}
+              {checkedTo}. {formatCount(snapshot.pricedStoreCount)} restaurants have a current price.{" "}
+              {DTI_CREDIT}.
             </p>
             <StaticDotMap />
           </div>
@@ -275,6 +280,8 @@ function FeedSources() {
 function Ends({ snapshot }: { snapshot: IndexSnapshot }) {
   if (snapshot.pricedStoreCount === 0) return null;
   const split = snapshot.pricedStoreCount >= LEADER_LIMIT * 2;
+  // One width for both lists, so their names line up side by side.
+  const rankDigits = Math.max(2, String(snapshot.pricedStoreCount).length);
 
   return (
     <section className="lp-ends" aria-labelledby="lp-ends">
@@ -288,13 +295,14 @@ function Ends({ snapshot }: { snapshot: IndexSnapshot }) {
       </div>
 
       <div className="mt-10 grid gap-x-14 gap-y-14 md:grid-cols-2">
-        <Leaderboard heading="Cheapest right now" tier="low" stores={snapshot.cheapest} startRank={1} />
+        <Leaderboard heading="Cheapest right now" tier="low" stores={snapshot.cheapest} startRank={1} rankDigits={rankDigits} />
         {split ? (
           <Leaderboard
             heading="Priciest right now"
             tier="high"
             stores={snapshot.priciest}
             startRank={snapshot.pricedStoreCount}
+            rankDigits={rankDigits}
             descending
           />
         ) : null}
@@ -319,12 +327,14 @@ function Leaderboard({
   tier,
   stores,
   startRank,
+  rankDigits,
   descending = false,
 }: {
   heading: string;
   tier: "low" | "high";
   stores: readonly StoreWithId[];
   startRank: number;
+  rankDigits: number;
   descending?: boolean;
 }) {
   const first = stores[0];
@@ -342,7 +352,14 @@ function Leaderboard({
             {/* The row nudges right and an arrow appears on hover (`.row-go`). */}
             <Link href={`/store/${store.id}`} className="row-go hover-accent flex min-h-16 items-center gap-3 py-3">
               <span className="row-body flex min-w-0 flex-1 items-center gap-4">
-                <span aria-hidden="true" className="tabular w-8 shrink-0 text-sm text-ink-subtle">
+                {/* Wide enough for the longest rank on the page: a priciest
+                    rank runs to five digits, which a fixed 2rem column
+                    pushed into the store name. `ch` is one digit's width. */}
+                <span
+                  aria-hidden="true"
+                  className="tabular shrink-0 text-sm text-ink-subtle"
+                  style={{ width: `${rankDigits}ch` }}
+                >
                   {String(descending ? startRank - index : startRank + index).padStart(2, "0")}
                 </span>
                 <span className="min-w-0 flex-1">
