@@ -23,8 +23,10 @@ const CONTENT_SECURITY_POLICY = [
   "img-src 'self' data: blob: https://tile.openstreetmap.org",
   "font-src 'self' data:",
   // Firestore, anonymous sign-in and its token refresh, and App Check; the
-  // local emulators when a local production build points at them.
-  "connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://content-firebaseappcheck.googleapis.com https://www.google.com/recaptcha/" +
+  // map's vector tiles (OpenFreeMap: its TileJSON and the tiles, fetched by
+  // the page and the map's worker); the local emulators when a local
+  // production build points at them.
+  "connect-src 'self' https://tiles.openfreemap.org https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://content-firebaseappcheck.googleapis.com https://www.google.com/recaptcha/" +
     (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true" ? ` http://127.0.0.1:${process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT ?? 8080} http://127.0.0.1:${process.env.NEXT_PUBLIC_AUTH_EMULATOR_PORT ?? 9099}` : ""),
   // tesseract.js starts its worker from a blob: URL.
   "worker-src 'self' blob:",

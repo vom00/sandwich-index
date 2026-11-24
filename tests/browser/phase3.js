@@ -76,7 +76,7 @@ async function launchBrowser() {
     const markerCount = await page.locator('.marker-pill').count();
     check('markers render for the seeded area', markerCount > 0, `${markerCount} markers`);
 
-    const listRows = await page.locator('[data-store-id]').count();
+    const listRows = await page.locator('li[data-store-id]').count();
     check('side panel lists stores', listRows > 0, `${listRows} rows`);
     check('marker count matches panel row count', markerCount === listRows,
       `${markerCount} markers vs ${listRows} rows`);
@@ -100,7 +100,7 @@ async function launchBrowser() {
     // The panel deliberately orders by distance — "Nearby stores, nearest
     // first" — not by price tier. The pre-refactor build ranked by median;
     // those checks tested a superseded design.
-    const rows = await page.$$eval('[data-store-id]', (elements) =>
+    const rows = await page.$$eval('li[data-store-id]', (elements) =>
       elements.map((element) => {
         const text = element.innerText;
         const distance = text.match(/([\d.]+) miles away/);
@@ -139,25 +139,20 @@ async function launchBrowser() {
     // can legitimately be intercepted by a neighbour. Activating via keyboard
     // avoids that ambiguity and tests something more valuable: that a marker is
     // operable without a mouse at all.
-    const firstMarker = page.locator('.leaflet-marker-icon').first();
+    const firstMarker = page.locator('.vmap-marker:not([data-collided])').first();
 
-    const markerName = await firstMarker.evaluate((el) => {
-      const labelled = el.querySelector('[aria-label]');
-      return labelled ? labelled.getAttribute('aria-label') : null;
-    });
+    const markerName = await firstMarker.evaluate((el) => el.getAttribute('aria-label'));
     check('marker carries a full accessible name',
       markerName !== null && markerName.length > 10,
       markerName ?? 'none');
 
     const markerRoles = await firstMarker.evaluate((el) => ({
-      outer: el.getAttribute('role'),
-      tabindex: el.getAttribute('tabindex'),
-      nestedButtons: el.querySelectorAll('[role="button"]').length,
+      tag: el.tagName,
+      type: el.getAttribute('type'),
+      nestedButtons: el.querySelectorAll('button, [role="button"]').length,
     }));
     check('marker is focusable with a single button role',
-      markerRoles.outer === 'button' &&
-        markerRoles.tabindex === '0' &&
-        markerRoles.nestedButtons === 0,
+      markerRoles.tag === 'BUTTON' && markerRoles.type === 'button' && markerRoles.nestedButtons === 0,
       JSON.stringify(markerRoles));
 
     // Find a point that is inside the map viewport AND whose topmost element
@@ -166,11 +161,11 @@ async function launchBrowser() {
     // compute the point ourselves and click it directly, exactly as a user
     // pointing at a visible pill would.
     const target = await page.evaluate(() => {
-      const mapEl = document.querySelector('.leaflet-container');
+      const mapEl = document.querySelector('.vmap');
       if (mapEl === null) return null;
       const bounds = mapEl.getBoundingClientRect();
 
-      for (const marker of Array.from(document.querySelectorAll('.leaflet-marker-icon'))) {
+      for (const marker of Array.from(document.querySelectorAll('.vmap-marker:not([data-collided])'))) {
         const rect = marker.getBoundingClientRect();
         const x = rect.left + rect.width / 2;
         const y = rect.bottom - 12;
@@ -181,8 +176,7 @@ async function launchBrowser() {
 
         const hit = document.elementFromPoint(x, y);
         if (hit !== null && marker.contains(hit)) {
-          const labelled = marker.querySelector('[aria-label]');
-          return { x, y, label: labelled ? labelled.getAttribute('aria-label') : null };
+          return { x, y, label: marker.getAttribute('aria-label') };
         }
       }
       return null;
@@ -206,7 +200,7 @@ async function launchBrowser() {
       await sheet.getByRole('link', { name: /log (a|the first) price/i }).isVisible());
 
     // --- two-way sync: map selection highlights the panel row ---
-    const selectedInPanel = await page.locator('[data-store-id] button[aria-pressed="true"]').count();
+    const selectedInPanel = await page.locator('li[data-store-id] button[aria-pressed="true"]').count();
     check('map selection reflected in the panel', selectedInPanel === 1, `${selectedInPanel} row pressed`);
 
     // --- escape closes ---
@@ -215,7 +209,7 @@ async function launchBrowser() {
     check('Escape closes the sheet', (await page.getByRole('dialog').count()) === 0);
 
     // --- two-way sync: panel selection drives the map ---
-    const unselectedRow = page.locator('[data-store-id] button[aria-pressed="false"]').first();
+    const unselectedRow = page.locator('li[data-store-id] button[aria-pressed="false"]').first();
     await unselectedRow.scrollIntoViewIfNeeded();
     await unselectedRow.click();
     await page.getByRole('dialog').waitFor({ state: 'visible', timeout: 8000 });

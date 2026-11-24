@@ -8,3 +8,6 @@ import story_2026_11 from "./2026-11.json";
 export const MONTHLY_STORIES: Readonly<Record<string, MonthlyStory>> = {
   "2026-11": story_2026_11 as MonthlyStory,
 };
+
+/** The newest month, which the footer, the about page and the sitemap link to. */
+export const NEWEST_STORY_MONTH: string | null = "2026-11";

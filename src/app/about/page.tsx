@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { NumbersFunnel } from "@/components/about/NumbersFunnel";
 import { RailToc, type RailItem } from "@/components/ui/RailToc";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import { WordRise } from "@/components/ui/WordRise";
+import { NEWEST_STORY_MONTH } from "@/data/monthly";
 import { ACTIVE_FEEDS, HAS_ACTIVE_FEED } from "@/lib/feeds";
 import { getCachedIndexSnapshot } from "@/lib/index-snapshot.server";
 import { PRICE_MAX_CENTS, PRICE_MIN_CENTS, formatCents } from "@/lib/money";
+import { storyMonthName } from "@/lib/monthly-story";
 import { BIG_MOVE_PERCENT, CORROBORATION_PERCENT } from "@/lib/pricing";
 import { STALE_AFTER_DAYS } from "@/types";
 
@@ -250,6 +253,17 @@ export default async function AboutPage() {
                 </li>
               ))}
             </ul>
+            {NEWEST_STORY_MONTH !== null ? (
+              <p>
+                Each month&rsquo;s readings are counted up in a short story:
+                the cheapest and priciest states, the stores whose price moved
+                most, and how many visitor reports were accepted.{" "}
+                <Link href={`/story/${NEWEST_STORY_MONTH}`} className="link-prose">
+                  Read {storyMonthName(NEWEST_STORY_MONTH)}&rsquo;s
+                </Link>
+                .
+              </p>
+            ) : null}
           </Section>
         ) : null}
 

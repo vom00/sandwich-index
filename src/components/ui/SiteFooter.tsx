@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { NEWEST_STORY_MONTH } from "@/data/monthly";
 import { HAS_ACTIVE_FEED } from "@/lib/feeds";
 
 /**
@@ -69,13 +70,21 @@ export function SiteFooter() {
               target rather than the height of one line of text. The inline
               links inside the sentences are exempt under WCAG 2.5.8 — their
               size is constrained by the prose around them. */}
-          <p>
+          <p className="flex flex-wrap gap-x-6">
             <Link
               className="link-prose inline-flex min-h-11 items-center"
               href="/about"
             >
               How this data works
             </Link>
+            {NEWEST_STORY_MONTH !== null ? (
+              <Link
+                className="link-prose inline-flex min-h-11 items-center"
+                href={`/story/${NEWEST_STORY_MONTH}`}
+              >
+                The month in prices
+              </Link>
+            ) : null}
           </p>
         </div>
       </div>

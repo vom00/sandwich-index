@@ -1,13 +1,13 @@
 {
   "month": "2026-11",
-  "generatedAt": "2026-11-24T12:53:54.223Z",
+  "generatedAt": "2026-11-24T17:48:29.553Z",
   "feed": {
     "id": "drivethruindex",
     "from": "2026-11-01T08:00:00.000Z",
-    "to": "2026-11-01T08:00:00.000Z",
-    "stores": 13697
+    "to": "2026-11-15T08:00:00.000Z",
+    "stores": 13725
   },
-  "listedStores": 13831,
+  "listedStores": 13849,
   "states": {
     "minStores": 20,
     "ranked": 51,
@@ -16,7 +16,7 @@
       "states": [
         {
           "state": "TX",
-          "stores": 1286
+          "stores": 1292
         }
       ]
     },
@@ -40,39 +40,39 @@
   },
   "movers": {
     "previous": {
-      "from": "2026-10-22T08:00:00.000Z",
+      "from": "2026-10-08T08:00:00.000Z",
       "to": "2026-10-31T08:00:00.000Z"
     },
-    "compared": 13642,
-    "up": 1229,
-    "down": 7,
+    "compared": 13644,
+    "up": 1749,
+    "down": 55,
     "top": [
       {
-        "storeId": "atp-6173",
-        "label": "3301 Battleground Ave, Greensboro, NC",
-        "fromCents": 199,
-        "toCents": 279,
+        "storeId": "atp-5858",
+        "label": "1450 S Molalla, Oregon City, OR",
+        "fromCents": 200,
+        "toCents": 349,
         "fromAt": "2026-10-22T08:00:00.000Z",
-        "toAt": "2026-11-01T08:00:00.000Z"
+        "toAt": "2026-11-15T08:00:00.000Z"
       },
       {
-        "storeId": "atp-18551",
-        "label": "5701 Inman Road, Greensboro, NC",
-        "fromCents": 199,
-        "toCents": 279,
+        "storeId": "atp-6021",
+        "label": "12440 Se 82nd, Happy Valley, OR",
+        "fromCents": 200,
+        "toCents": 329,
         "fromAt": "2026-10-22T08:00:00.000Z",
-        "toAt": "2026-11-01T08:00:00.000Z"
+        "toAt": "2026-11-15T08:00:00.000Z"
       },
       {
-        "storeId": "atp-1630",
-        "label": "1212 Emancipation Hwy, Fredericksburg, VA",
-        "fromCents": 219,
-        "toCents": 299,
+        "storeId": "atp-11574",
+        "label": "5613 Se 82nd Ave, Portland, OR",
+        "fromCents": 200,
+        "toCents": 309,
         "fromAt": "2026-10-22T08:00:00.000Z",
-        "toAt": "2026-11-01T08:00:00.000Z"
+        "toAt": "2026-11-15T08:00:00.000Z"
       }
     ],
-    "tiedAtTop": 6
+    "tiedAtTop": 1
   },
   "confirmed": null,
   "missing": [

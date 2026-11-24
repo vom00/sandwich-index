@@ -25,12 +25,12 @@ export interface VectorTileSource {
 }
 
 /**
- * The approved tile source, or null until the owner chooses one
- * (docs/plans/vector-map.md proposes OpenFreeMap). Until then the vector map
- * is off for visitors, and in development it can be previewed against any
- * source with `?map=vector&tiles=<TileJSON URL>`.
+ * The approved tile source: OpenFreeMap, free and keyless, on the OpenMapTiles
+ * schema this style is written for (docs/plans/vector-map.md; approved
+ * 2026-11-24). Its host is allowed in the CSP's connect-src (next.config.ts).
+ * Setting this to null puts every visitor back on the Leaflet map.
  */
-export const VECTOR_TILES: VectorTileSource | null = null;
+export const VECTOR_TILES: VectorTileSource | null = { url: "https://tiles.openfreemap.org/planet" };
 
 /**
  * The colour tokens the base map uses (DESIGN.md, Tokens: colour), by the

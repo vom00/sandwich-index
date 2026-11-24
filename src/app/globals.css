@@ -448,12 +448,18 @@ h6 {
   outline-offset: 2px;
 }
 
-/* The vector map (VectorMapCanvas, behind its flag). Its pill target is a real
-   button, 44px tall and as wide as the pill; the pill and its drop-in are the
-   ones above. A pill with no room is hidden by the map (`data-collided`). */
+/* The vector map (VectorMapCanvas). Its pill target is a real button, 44px
+   tall and as wide as the pill; the pill and its drop-in are the ones above. A
+   pill with no room is hidden by the map (`data-collided`). */
 .vmap {
   background-color: var(--color-paper);
   font-family: var(--font-body);
+}
+
+/* MapLibre fades a marker's opacity over 0.2s when terrain hides it. There is
+   no terrain here, and the drop-in is the pills' only motion. */
+.vmap .vmap-marker {
+  transition: none;
 }
 
 .vmap-marker {

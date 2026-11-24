@@ -31,7 +31,7 @@ async function openMap(context, path = '/map') {
   await page.goto(`${TARGET_URL}${path}`, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
   await page.getByRole('button', { name: /use my location/i }).click();
-  await page.waitForSelector('[data-store-id]', { timeout: 30000 });
+  await page.waitForSelector('li[data-store-id]', { timeout: 30000 });
   await page.waitForSelector('.marker-pill', { state: 'attached', timeout: 30000 });
   return page;
 }
@@ -40,7 +40,7 @@ async function snapshot(page) {
   // Give the filter and Leaflet a beat to settle.
   await page.waitForTimeout(400);
   return page.evaluate(() => ({
-    rows: [...document.querySelectorAll('[data-store-id]')].map((row) => ({
+    rows: [...document.querySelectorAll('li[data-store-id]')].map((row) => ({
       id: row.getAttribute('data-store-id'),
       text: row.textContent.replace(/\s+/g, ' '),
     })),
@@ -95,8 +95,8 @@ async function snapshot(page) {
     check('a receipt\'s restaurant number finds its store',
       byNumber.rows.length === 1 && byNumber.rows[0].id === numbered.id,
       `#${numbered.restaurantNumber} → ${byNumber.rows.map((row) => row.id).join(', ')}`);
-    const marker = await page.locator('.marker-pill').first().boundingBox();
-    const mapBox = await page.locator('.leaflet-container').boundingBox();
+    const marker = await page.locator('.vmap-marker:not([data-collided]) .marker-pill').first().boundingBox();
+    const mapBox = await page.locator('.vmap').boundingBox();
     check('the map frames the result',
       marker !== null && mapBox !== null &&
       marker.x >= mapBox.x && marker.x + marker.width <= mapBox.x + mapBox.width &&

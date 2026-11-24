@@ -53,9 +53,6 @@ import { dropTwinStores } from "@/lib/store-twins";
 import type { ResolvedAddress } from "@/lib/reverse-geocode";
 import { displayStateFor } from "@/lib/tiers";
 import { buildNumberIndex, chooseNumbers, type NumberIndex, type NumberRow } from "@/lib/store-numbers";
-import restaurantNumberRows from "@/data/restaurant-numbers.json";
-import usStoreRows from "@/data/us-stores.json";
-import driveThruIndexSnapshot from "@/data/feeds/drivethruindex.json";
 import { observationId, parseFeedFile, pinnedOrMatched, type FeedRow, type ListedLookup } from "@/lib/feed-match";
 import { FEEDS, feedById, isFeedActive, type FeedDefinition } from "@/lib/feeds";
 import { STALE_AFTER_DAYS, type ObservationWithId, type Store, type StoreWithId, type SubmissionWithId } from "@/types";
@@ -700,30 +697,66 @@ export type StoreFetcher = (
  * circle is outside the list. In production, the bundled US list
  * (`lib/store-list`).
  */
-export type ListedStoreSource = (center: LatLng, radiusMeters: number) => ListedStore[] | null;
+export type ListedStoreSource = (
+  center: LatLng,
+  radiusMeters: number,
+) => ListedStore[] | null | Promise<ListedStore[] | null>;
 
 /**
- * The US list shipped with the server: All The Places (`src/data/us-stores.json`)
- * and the few stores it lacks that Drive Thru Index places (`us-stores-dti.json`).
+ * The data shipped with the server: the US list (All The Places,
+ * `src/data/us-stores.json`, and the few stores it lacks that Drive Thru Index
+ * places, `us-stores-dti.json`), the restaurant-number table and the feed
+ * snapshots. About 4.4 MB of JSON, loaded on first use instead of imported,
+ * so the bundler gives it chunks of its own and only a sync ever loads it.
+ * Pages, share cards and the other routes never touch it
+ * (docs/plans/data-out-of-bundle.md, option A).
  */
-const BUNDLED_ROWS: readonly ListedRow[] = [...(usStoreRows as unknown as ListedRow[]), ...DTI_LISTED_ROWS];
+interface BundledData {
+  rows: readonly ListedRow[];
+  numberRows: readonly NumberRow[];
+  feeds: readonly BundledFeed[];
+}
 
-export const bundledStoresNear: ListedStoreSource = (center, radiusMeters) =>
-  listedStoresNear(BUNDLED_ROWS, center, radiusMeters);
+let bundledData: Promise<BundledData> | null = null;
 
-let listedLocations: Map<string, LatLng> | null = null;
+function loadBundledData(): Promise<BundledData> {
+  if (bundledData === null) {
+    const loading = Promise.all([
+      import("@/data/us-stores.json"),
+      import("@/data/restaurant-numbers.json"),
+      import("@/data/feeds/drivethruindex.json"),
+    ]).then(([stores, numbers, driveThruIndex]) => ({
+      rows: [...(stores.default as unknown as ListedRow[]), ...DTI_LISTED_ROWS],
+      numberRows: numbers.default as unknown as NumberRow[],
+      feeds: [{ feed: FEEDS["drivethruindex"]!, file: driveThruIndex.default }],
+    }));
+    // A failed load is tried again by the next sync rather than remembered.
+    loading.catch(() => {
+      if (bundledData === loading) bundledData = null;
+    });
+    bundledData = loading;
+  }
+  return bundledData;
+}
+
+export const bundledStoresNear: ListedStoreSource = async (center, radiusMeters) =>
+  listedStoresNear((await loadBundledData()).rows, center, radiusMeters);
+
+let listedLocations: { rows: readonly ListedRow[]; at: Map<string, LatLng> } | null = null;
 
 /** Where the bundled list puts a restaurant number. Indexed on first use. */
-function listedLocation(number: string): LatLng | null {
-  listedLocations ??= new Map(BUNDLED_ROWS.map(([ref, lat, lng]) => [ref, { lat, lng }]));
-  return listedLocations.get(number) ?? null;
+function listedLocation(rows: readonly ListedRow[], number: string): LatLng | null {
+  if (listedLocations?.rows !== rows) {
+    listedLocations = { rows, at: new Map(rows.map(([ref, lat, lng]) => [ref, { lat, lng }])) };
+  }
+  return listedLocations.at.get(number) ?? null;
 }
 
 /** How many listed stores stand within `LISTED_DUPLICATE_METERS` of a point. */
-function listedCountNear(point: LatLng): number {
+function listedCountNear(rows: readonly ListedRow[], point: LatLng): number {
   // A degree of latitude is 111 km, so this passes over all but a sliver.
   const band = LISTED_DUPLICATE_METERS / 111_000;
-  return BUNDLED_ROWS.filter(
+  return rows.filter(
     ([, lat, lng]) =>
       Math.abs(lat - point.lat) <= band && distanceMeters(point, { lat, lng }) < LISTED_DUPLICATE_METERS,
   ).length;
@@ -815,7 +848,7 @@ export async function syncAreaIfStale(
     };
   }
 
-  const fromList = listed(coverage.center, coverage.radiusMeters);
+  const fromList = await listed(coverage.center, coverage.radiusMeters);
   if (fromList !== null) {
     const known = await getStoresNear(coverage.center, coverage.radiusMeters, db);
     const { kept } = dropListedDuplicates(fromList, known);
@@ -948,8 +981,8 @@ const ADDRESS_BACKFILL_CONCURRENCY = 3;
 let numberIndex: NumberIndex | null = null;
 
 /** Built on first use: 13,600 rows, so not on every cold start that never syncs. */
-function restaurantNumberIndex(): NumberIndex {
-  numberIndex ??= buildNumberIndex(restaurantNumberRows as unknown as NumberRow[]);
+async function restaurantNumberIndex(): Promise<NumberIndex> {
+  numberIndex ??= buildNumberIndex([...(await loadBundledData()).numberRows]);
   return numberIndex;
 }
 
@@ -966,13 +999,14 @@ export async function backfillRestaurantNumbers(
   center: LatLng,
   radiusMeters: number,
   db: Firestore = getAdminDb(),
-  index: NumberIndex = restaurantNumberIndex(),
+  /** The bundled table (`src/data/restaurant-numbers.json`) when left out. */
+  index?: NumberIndex,
   /** The stores around `center`, when the caller has already read them. */
   known?: readonly StoreWithId[],
 ): Promise<{ assigned: number; updates: { id: string; number: string }[] }> {
   const nearby = known ?? (await getStoresNear(center, radiusMeters, db));
   const held = new Set(nearby.map((store) => store.restaurantNumber).filter((n) => n !== null));
-  const picks = chooseNumbers(nearby, index);
+  const picks = chooseNumbers(nearby, index ?? (await restaurantNumberIndex()));
 
   const updates = nearby.flatMap((store) => {
     const number = picks.get(store.id);
@@ -1002,10 +1036,6 @@ export interface BundledFeed {
   feed: FeedDefinition;
   file: unknown;
 }
-
-const BUNDLED_FEEDS: readonly BundledFeed[] = [
-  { feed: FEEDS["drivethruindex"]!, file: driveThruIndexSnapshot },
-];
 
 /**
  * A feed file's rows, parsed at most once an hour per file. A bundled file
@@ -1047,14 +1077,16 @@ export async function backfillFeedObservations(
   center: LatLng,
   radiusMeters: number,
   db: Firestore = getAdminDb(),
-  feeds: readonly BundledFeed[] = BUNDLED_FEEDS,
+  /** The snapshots shipped with the server when left out. */
+  feeds?: readonly BundledFeed[],
   now: Date = new Date(),
   /** The stores around `center`, when the caller has already read them. */
   known?: readonly StoreWithId[],
 ): Promise<{ recorded: number; recomputed: number; retired: number }> {
-  const active = feeds.filter(({ feed }) => isFeedActive(feed));
+  const bundled = await loadBundledData();
+  const active = (feeds ?? bundled.feeds).filter(({ feed }) => isFeedActive(feed));
   const nearby = known ?? (await getStoresNear(center, radiusMeters, db));
-  const result = await recordFeedRows(active, nearby, db, now, { center, radiusMeters });
+  const result = await recordFeedRows(active, nearby, db, now, { center, radiusMeters }, bundled.rows);
 
   const removedFeed = (id: string) => {
     const feed = feedById(id);
@@ -1078,6 +1110,8 @@ async function recordFeedRows(
   now: Date,
   /** A circle every store in `nearby` covers: the caller's, inside whatever was read. */
   area: { center: LatLng; radiusMeters: number },
+  /** The bundled US list, where listed pins and their neighbours are looked up. */
+  rows: readonly ListedRow[],
 ): Promise<{ recorded: number; recomputed: number; storeIds: Set<string> }> {
   if (active.length === 0) return { recorded: 0, recomputed: 0, storeIds: new Set() };
 
@@ -1087,12 +1121,12 @@ async function recordFeedRows(
   // (`pinnedOrMatched`); usually none are left once an area is synced.
   const unnumbered = nearby.filter((store) => store.restaurantNumber === null);
   const listedNear = (number: string) => {
-    const at = listedLocation(number);
+    const at = listedLocation(rows, number);
     return at !== null && unnumbered.some((store) => distanceMeters(at, store) < LISTED_DUPLICATE_METERS);
   };
   const listed: ListedLookup = {
-    at: listedLocation,
-    countNear: listedCountNear,
+    at: (number) => listedLocation(rows, number),
+    countNear: (point) => listedCountNear(rows, point),
     sees: (point) => distanceMeters(area.center, point) + 2 * LISTED_DUPLICATE_METERS <= area.radiusMeters,
   };
   const planned = new Map<string, ObservationInput>();

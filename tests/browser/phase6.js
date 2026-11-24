@@ -128,7 +128,7 @@ async function liveMotion(page) {
     await page.waitForLoadState('networkidle');
     await axeScan(page, 'map location gate');
     await page.getByRole('button', { name: /Use my location/i }).click();
-    await page.waitForSelector('.leaflet-marker-icon', { timeout: 20000 });
+    await page.waitForSelector('.vmap-marker', { timeout: 20000 });
     await page.waitForTimeout(600);
     await axeScan(page, 'map with markers');
     await context.close();
@@ -170,20 +170,23 @@ async function liveMotion(page) {
     await stillPage.goto(`${TARGET_URL}/map`, { waitUntil: 'load' });
     await stillPage.waitForLoadState('networkidle');
     await stillPage.getByRole('button', { name: /Use my location/i }).click();
-    await stillPage.waitForSelector('.leaflet-marker-icon', { timeout: 20000 });
+    await stillPage.waitForSelector('.vmap-marker', { timeout: 20000 });
     await stillPage.waitForTimeout(800);
     const mapMotion = await liveMotion(stillPage);
-    check('no unguarded motion on the map, including Leaflet\'s own',
+    check('no unguarded motion on the map, including MapLibre\'s own',
       mapMotion.length === 0, mapMotion.slice(0, 4).join(' | '));
 
-    // Zooming is the biggest movement on the site; confirm it is instant.
-    const zoomAnimated = await stillPage.evaluate(() => {
-      const container = document.querySelector('.leaflet-container');
-      const pane = container.querySelector('.leaflet-map-pane');
-      return getComputedStyle(pane).transitionDuration;
-    });
-    check('map pane has no zoom transition under reduced motion',
-      parseFloat(zoomAnimated) === 0, zoomAnimated);
+    // Zooming is the biggest movement on the site; confirm it is instant: a
+    // pill has reached its new place 80ms after the click and stays there.
+    const pillAt = () => stillPage.evaluate(() => document.querySelector('.vmap-marker')?.style.transform ?? '');
+    const beforeZoom = await pillAt();
+    await stillPage.locator('.maplibregl-ctrl-zoom-in').click();
+    await stillPage.waitForTimeout(80);
+    const soon = await pillAt();
+    await stillPage.waitForTimeout(500);
+    const later = await pillAt();
+    check('a zoom is instant under reduced motion',
+      soon !== beforeZoom && soon === later, `${beforeZoom.slice(0, 60)} → ${soon.slice(0, 60)} → ${later.slice(0, 60)}`);
     await stillContext.close();
 
     // =================================================================

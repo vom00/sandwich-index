@@ -7,11 +7,15 @@
  *     medians and names, the change counts and each named store's two prices.
  *   - A figure the file leaves null is shown blank, says why, and is named in
  *     the introduction. No number stands in for it.
+ *   - The visitor count is read live from the database: with
+ *     FIRESTORE_EMULATOR_HOST set it must equal the accepted reports sent in
+ *     the month there.
  *   - Only months on file exist; any other is a 404.
  *   - One moment: the two medians roll up once as the page opens, then stop.
  *     Under reduced motion nothing rolls.
  *
- * Needs only the dev server; it reads no database.
+ * Needs the dev server; with FIRESTORE_EMULATOR_HOST it also reads the
+ * emulator the server uses, to check the live count.
  */
 const fs = require('fs');
 const path = require('path');
@@ -28,6 +32,29 @@ function check(name, passed, detail = '') {
 
 const dollars = (cents) => `$${(cents / 100).toFixed(2)}`;
 const count = (n) => n.toLocaleString('en-US');
+
+/** Accepted reports sent in the month, read from the emulator the way the page reads them. */
+async function emulatorConfirmed(month) {
+  const host = process.env.FIRESTORE_EMULATOR_HOST;
+  if (!host) return null;
+  const [year, mm] = month.split('-').map(Number);
+  const at = (y, m) => ({ timestampValue: new Date(Date.UTC(y, m - 1, 1)).toISOString() });
+  const project = process.env.FIREBASE_PROJECT_ID || 'demo-sandwich-index';
+  const response = await fetch(`http://${host}/v1/projects/${project}/databases/(default)/documents:runQuery`, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ structuredQuery: {
+      from: [{ collectionId: 'submissions' }],
+      select: { fields: [{ fieldPath: 'status' }] },
+      where: { compositeFilter: { op: 'AND', filters: [
+        { fieldFilter: { field: { fieldPath: 'submittedAt' }, op: 'GREATER_THAN_OR_EQUAL', value: at(year, mm) } },
+        { fieldFilter: { field: { fieldPath: 'submittedAt' }, op: 'LESS_THAN', value: at(year, mm + 1) } },
+      ] } },
+    } }),
+  });
+  const rows = await response.json();
+  return rows.filter((row) => row.document?.fields?.status?.stringValue === 'accepted').length;
+}
 
 (async () => {
   let browser;
@@ -62,6 +89,7 @@ const count = (n) => n.toLocaleString('en-US');
         })),
         blanks: Object.fromEntries(['states', 'movers', 'confirmed'].map((id) => [id, text(section(id)?.querySelector('.border-dashed'))])),
         confirmed: text(section('confirmed')),
+        counted: section('confirmed')?.querySelector('[data-counted]')?.getAttribute('data-counted') ?? null,
         rolling: document.getAnimations().filter((a) => a.effect?.pseudoElement === '::before' && a.effect.target?.classList?.contains('odo-col')).length,
       };
     });
@@ -92,7 +120,12 @@ const count = (n) => n.toLocaleString('en-US');
       check('no store changes, and the slot says why', seen.rows.length === 0 && seen.blanks.movers.includes(story.missing.find((x) => x.field === 'movers').reason));
     }
 
-    if (story.confirmed) {
+    const live = await emulatorConfirmed(month);
+    if (live !== null) {
+      const figure = /([\d,]+)\s*reports? from visitors accepted/.exec(seen.confirmed)?.[1];
+      check('the confirmed count is read live and equals the database\'s', seen.counted !== null && figure === count(live),
+        `page ${figure ?? 'none'}, emulator ${live}`);
+    } else if (story.confirmed) {
       check('the confirmed count is the file\'s', seen.confirmed.includes(count(story.confirmed.count)));
     } else {
       const reason = story.missing.find((x) => x.field === 'confirmed').reason;
@@ -100,7 +133,7 @@ const count = (n) => n.toLocaleString('en-US');
         seen.blanks.confirmed.includes(reason) && !/\d/.test(seen.confirmed.replace(reason, '')), seen.confirmed);
     }
 
-    const blanks = story.missing.filter((m) => m.field !== 'feed');
+    const blanks = story.missing.filter((m) => m.field !== 'feed' && !(m.field === 'confirmed' && seen.counted !== null));
     check('the introduction names every blank', blanks.length === 0 || /left blank/.test(seen.intro), seen.intro);
 
     check('the medians roll as the page opens', seen.rolling > 0, `${seen.rolling} wheels`);

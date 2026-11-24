@@ -7,9 +7,12 @@ import { Odometer } from "@/components/ui/Odometer";
 import { WordRise } from "@/components/ui/WordRise";
 import { MONTHLY_STORIES } from "@/data/monthly";
 import { feedName } from "@/lib/feeds";
+import { getAdminDb } from "@/lib/firebase/admin";
+import { countConfirmed } from "@/lib/monthly-confirmed.server";
 import { formatCents, formatCentsDelta, formatCount } from "@/lib/money";
 import {
   MOVERS_SHOWN,
+  monthBounds,
   stateName,
   storyDateSpan,
   storyMonthName,
@@ -27,8 +30,14 @@ import {
  * opens. Everything else is still. A figure the month has no data for is shown
  * blank, in a dashed "not yet" slot that says why, and the introduction names
  * every blank up front.
+ *
+ * The one live figure is the count of visitor reports, read from the database
+ * when the page is built and again every six hours (`revalidate`), at one read
+ * per report sent that month. If the database can't be read the file's count
+ * stands, or the slot is blank and says so.
  */
 export const dynamicParams = false;
+export const revalidate = 21600;
 
 export function generateStaticParams(): { month: string }[] {
   return Object.keys(MONTHLY_STORIES).map((month) => ({ month }));
@@ -65,6 +74,20 @@ function listStates(rank: StateRank): string {
   const names = rank.states.map((s) => stateName(s.state));
   return names.length <= 1 ? (names[0] ?? "") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
 }
+
+type LiveCount = { count: number; at: string } | { reason: string };
+
+async function liveConfirmed(month: string): Promise<LiveCount> {
+  try {
+    const result = await countConfirmed(getAdminDb(), month);
+    return result.count === null ? { reason: result.reason } : { count: result.count, at: new Date().toISOString() };
+  } catch (error) {
+    console.error(`[story] visitor reports for ${month} not counted:`, error);
+    return { reason: "The site’s database could not be read when this page was last built; it is read again every six hours." };
+  }
+}
+
+const dayName = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "UTC" });
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
@@ -114,11 +137,22 @@ export default async function StoryPage(props: PageProps<"/story/[month]">) {
   if (story === null) notFound();
 
   const name = storyMonthName(month);
-  const reason = (field: StoryField) => story.missing.find((m) => m.field === field)?.reason ?? "";
+  // The live count wins; failing that, the count in the file; failing both,
+  // the slot is blank with the live read's reason.
+  const live = await liveConfirmed(month);
+  const confirmed =
+    "count" in live ? live : story.confirmed !== null ? { count: story.confirmed.count, at: story.generatedAt } : null;
+  const missing =
+    confirmed !== null
+      ? story.missing.filter((m) => m.field !== "confirmed")
+      : [...story.missing.filter((m) => m.field !== "confirmed"), { field: "confirmed" as const, reason: "reason" in live ? live.reason : "" }];
+  // Counted before the month was out, so the figure is "so far".
+  const ongoing = confirmed !== null && confirmed.at < monthBounds(month).end;
+  const reason = (field: StoryField) => missing.find((m) => m.field === field)?.reason ?? "";
   const source = story.feed === null ? null : feedName(story.feed.id);
   // The figures with a section of their own that is left blank; the feed's
   // absence is said in the introduction itself.
-  const blanks = story.missing.map((m) => m.field).filter((field) => field !== "feed");
+  const blanks = missing.map((m) => m.field).filter((field) => field !== "feed");
 
   return (
     <main id="main" className="mx-auto w-full max-w-3xl px-5 py-16 sm:px-8 sm:py-24">
@@ -215,10 +249,13 @@ export default async function StoryPage(props: PageProps<"/story/[month]">) {
       </Section>
 
       <Section id="confirmed" title="Prices confirmed by visitors">
-        {story.confirmed !== null ? (
-          <p className="flex flex-wrap items-baseline gap-x-3">
-            <span className="tabular text-4xl font-medium">{formatCount(story.confirmed.count)}</span>
-            <span className="text-ink-muted">reports from visitors accepted in {name}.</span>
+        {confirmed !== null ? (
+          <p className="flex flex-wrap items-baseline gap-x-3" data-counted={confirmed.at}>
+            <span className="tabular text-4xl font-medium">{formatCount(confirmed.count)}</span>{" "}
+            <span className="text-ink-muted">
+              {confirmed.count === 1 ? "report" : "reports"} from visitors accepted in {name}
+              {ongoing ? `, as of ${dayName(confirmed.at)}` : ""}.
+            </span>
           </p>
         ) : (
           <Blank reason={reason("confirmed")} />

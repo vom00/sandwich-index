@@ -1,5 +1,5 @@
 /**
- * The vector map (MapLibre), behind its flag: `/map?map=vector` in development.
+ * The vector map (MapLibre) on OpenFreeMap's tiles, the map every visitor gets.
  *
  * What it promises:
  *   - The flag is off by default: /map is still the Leaflet map.
@@ -26,7 +26,7 @@ function check(name, passed, detail = '') {
   console.log(`${passed ? 'PASS' : 'FAIL'}  ${name}${detail ? `  [${detail}]` : ''}`);
 }
 
-async function openMap(context, query = '?map=vector') {
+async function openMap(context, query = '') {
   const page = await context.newPage();
   await page.goto(`${TARGET_URL}/map${query}`, { waitUntil: 'load' });
   await page.getByRole('button', { name: /use my location/i }).click().catch(() => {});
@@ -76,8 +76,8 @@ const survey = (page) => page.evaluate(() => {
     // ---------------------------------------------------------------
     console.log('\nThe flag');
     // ---------------------------------------------------------------
-    const plain = await openMap(context, '');
-    check('without the flag, /map is the Leaflet map', await plain.evaluate(() =>
+    const plain = await openMap(context, '?map=leaflet');
+    check('?map=leaflet still draws the Leaflet map in development', await plain.evaluate(() =>
       document.querySelector('.leaflet-container') !== null && document.querySelector('.maplibregl-canvas') === null));
     await plain.close();
 

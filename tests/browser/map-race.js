@@ -128,13 +128,13 @@ async function enterZip(page, zip) {
       (zip) => {
         const h1 = document.querySelector('h1');
         const headingReady = h1 !== null && h1.textContent.includes(zip);
-        return headingReady && document.querySelectorAll('[data-store-id]').length > 0;
+        return headingReady && document.querySelectorAll('li[data-store-id]').length > 0;
       },
       FAST_ZIP,
       { timeout: 20000 },
     );
 
-    const settledCount = await page.locator('[data-store-id]').count();
+    const settledCount = await page.locator('li[data-store-id]').count();
     check('the replacement load settled with its own stores', settledCount > 0,
       `list was empty for ${FAST_ZIP}`);
 
@@ -143,7 +143,7 @@ async function enterZip(page, zip) {
     await page.waitForTimeout(2500);
 
     const heading = await page.getByRole('heading', { level: 1 }).innerText();
-    const afterCount = await page.locator('[data-store-id]').count();
+    const afterCount = await page.locator('li[data-store-id]').count();
 
     check('heading still names the location the user actually chose',
       heading.includes(FAST_ZIP), `heading was "${heading}"`);
@@ -160,7 +160,7 @@ async function enterZip(page, zip) {
       return (body.stores ?? []).map((s) => s.id);
     }, heldUrl);
 
-    const shownIds = await page.locator('[data-store-id]').evaluateAll((nodes) =>
+    const shownIds = await page.locator('li[data-store-id]').evaluateAll((nodes) =>
       nodes.map((n) => n.getAttribute('data-store-id')),
     );
     const bleed = shownIds.filter((id) => staleIds.includes(id));

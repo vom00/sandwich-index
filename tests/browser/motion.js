@@ -118,11 +118,11 @@ function followAndWatch(page, selector) {
     await page.waitForSelector('aside ul[aria-hidden="true"] li', { timeout: 10000 });
     const loading = await page.evaluate(() => ({
       skeleton: document.querySelectorAll('aside ul[aria-hidden="true"] li').length,
-      rows: document.querySelectorAll('[data-store-id]').length,
+      rows: document.querySelectorAll('li[data-store-id]').length,
       // Anything set to repeat forever, other than the existing sync notice.
       loops: document.getAnimations().filter((a) =>
         a.effect?.getTiming().iterations === Infinity &&
-        (a.effect.target?.closest?.('aside') || a.effect.target?.closest?.('.leaflet-container') ||
+        (a.effect.target?.closest?.('aside') || a.effect.target?.closest?.('.vmap') ||
           a.effect.target?.closest?.('.bg-paper-sunken'))).length,
     }));
     check('the list shows skeleton rows while stores load', loading.skeleton === 6 && loading.rows === 0,
@@ -136,9 +136,10 @@ function followAndWatch(page, selector) {
     // The drop starts on the next frame after the pills arrive.
     await page.waitForFunction(() => window.__drops.length > 0, null, { timeout: 5000 }).catch(() => {});
     const drop = await page.evaluate(() => window.__drops);
-    const pills = await page.locator('.marker-pill').count();
+    // A pill hidden for overlap (data-collided) waits for a zoom and never drops.
+    const pills = await page.locator('.vmap-marker:not([data-collided]) .marker-pill').count();
     const delays = [...new Set(drop.map((d) => d.delay))].sort((a, b) => a - b);
-    check('every pill drops in', drop.length === pills && pills > 0, `${drop.length} of ${pills}`);
+    check('every shown pill drops in', drop.length === pills && pills > 0, `${drop.length} of ${pills}`);
     check('nearest first, in at most ten 35ms steps',
       delays[0] === 0 && delays.length <= 10 && delays.every((d, i) => i === 0 || d - delays[i - 1] === 35),
       delays.join(','));
@@ -148,11 +149,12 @@ function followAndWatch(page, selector) {
     await page.waitForTimeout(700);
     check('the pills end fully visible', await page.evaluate(() =>
       [...document.querySelectorAll('.marker-pill')].every((pill) => getComputedStyle(pill).opacity === '1')));
-    check('the street map is toned to paper',
-      /saturate\(0\.3\)/.test(await page.evaluate(() => getComputedStyle(document.querySelector('.leaflet-tile-pane')).filter)));
+    // Its colours are held to the tokens by tests/unit/map-style.test.ts.
+    check('the street map is the vector map in paper and ink',
+      await page.evaluate(() => document.querySelector('.vmap .maplibregl-canvas') !== null && document.querySelector('.leaflet-container') === null));
 
     const dropped = drop.length;
-    await page.locator('.leaflet-marker-icon').nth(2).click();
+    await page.locator('.vmap-marker:not([data-collided])').nth(2).click();
     await page.waitForSelector('[role="dialog"]');
     await page.waitForTimeout(150);
     check('selecting a store does not replay the drop',
@@ -194,9 +196,9 @@ function followAndWatch(page, selector) {
       JSON.stringify(settled));
 
     await page.getByRole('link', { name: /back to the map/i }).click();
-    await page.waitForSelector('[data-store-id]', { timeout: 30000 });
+    await page.waitForSelector('li[data-store-id]', { timeout: 30000 });
     await page.waitForTimeout(800);
-    const rowId = await page.evaluate(() => document.querySelectorAll('[data-store-id]')[1].getAttribute('data-store-id'));
+    const rowId = await page.evaluate(() => document.querySelectorAll('li[data-store-id]')[1].getAttribute('data-store-id'));
     const fromRow = await followAndWatch(page, `[data-store-id="${rowId}"] a[href="/store/${rowId}"]`);
     await page.waitForURL(new RegExp(`/store/${rowId}$`));
     check('a row\'s History link morphs its name and price too',
@@ -205,11 +207,11 @@ function followAndWatch(page, selector) {
       JSON.stringify(fromRow?.groups));
     check('a cmd/ctrl-click still opens a new tab, untouched', await (async () => {
       await page.goBack();
-      await page.waitForSelector('[data-store-id]', { timeout: 30000 });
+      await page.waitForSelector('li[data-store-id]', { timeout: 30000 });
       const before = await page.evaluate(() => window.__transitions.length);
       const [popup] = await Promise.all([
         context.waitForEvent('page', { timeout: 5000 }).catch(() => null),
-        page.locator(`[data-store-id] a`).filter({ hasText: 'History' }).first().click({ modifiers: ['Control'] }),
+        page.locator(`li[data-store-id] a`).filter({ hasText: 'History' }).first().click({ modifiers: ['Control'] }),
       ]);
       const after = await page.evaluate(() => window.__transitions.length);
       if (popup) await popup.close();
@@ -372,7 +374,7 @@ function followAndWatch(page, selector) {
     await page.waitForTimeout(300);
     check('the pills appear at once',
       (await pillAnimations(page)).length === 0 && (await page.evaluate(() => window.__drops.length)) === 0);
-    const calmId = await page.evaluate(() => document.querySelector('[data-store-id]').getAttribute('data-store-id'));
+    const calmId = await page.evaluate(() => document.querySelector('li[data-store-id]').getAttribute('data-store-id'));
     const faded = await followAndWatch(page, `[data-store-id="${calmId}"] a[href="/store/${calmId}"]`);
     check('the page crossfades with nothing named',
       faded !== null && faded.mode === 'fade' && faded.groups.length === 1 && faded.groups[0] === '::view-transition-group(root)',

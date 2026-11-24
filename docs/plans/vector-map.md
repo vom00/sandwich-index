@@ -1,7 +1,8 @@
 # Proposal: a tile source for the vector map (Phase H)
 
-Built and behind a flag. Not switched on: the owner chooses a tile host first, and wiring one in
-changes the site's content security policy.
+**Approved 2026-11-24: OpenFreeMap.** Wired in on `doc-remaining`: `VECTOR_TILES` is set, the host is
+in `connect-src`, and every visitor gets the vector map. Step 3 below runs after the deploy; step 4
+is still for later.
 
 ## What's built
 
@@ -80,7 +81,7 @@ OpenStreetMap", read from the TileJSON. It sits bottom right, compact on a phone
 
 ## What wiring it in needs
 
-These are the asks. Nothing below is done.
+Steps 1 and 2 are done (2026-11-24). Step 3 runs after the deploy; step 4 is for later.
 
 1. **Set the source.** In `src/lib/map-style.ts` line 33, change it to
    `export const VECTOR_TILES = { url: "https://tiles.openfreemap.org/planet" };`.

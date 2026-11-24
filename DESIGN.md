@@ -139,7 +139,7 @@ Fixed timings outside the tokens, each in one place:
 | Price strip | `PriceStrip.tsx` | Every nationally priced store as dots by price, this store ringed; positions precomputed by `npm run build:price-strip` |
 | How-it-works receipt | `HowReceipt` in `app/page.tsx` | Sticky till slip whose lines print as the steps scroll past |
 | Still this price | `StillThisPrice.tsx` | One quiet button per place a price is seen; a tap is an ordinary report of the price on file (same Turnstile, App Check and once-a-day rule), then the check tick and a dated thanks. No field, no dialog |
-| Monthly story | `app/story/[month]/page.tsx`, `lib/monthly-story.ts` | One month in a few counted figures from `src/data/monthly/<yyyy-mm>.json` (`npm run build:monthly-story`). A figure with no data sits blank in a dashed slot that says why; the introduction names every blank |
+| Monthly story | `app/story/[month]/page.tsx`, `lib/monthly-story.ts` | One month in a few counted figures from `src/data/monthly/<yyyy-mm>.json` (`npm run build:monthly-story`). The visitor-report count is read live from the database every six hours (`lib/monthly-confirmed.server.ts`). A figure with no data sits blank in a dashed slot that says why; the introduction names every blank. Linked from the footer ("The month in prices"), the about page's feeds section and the sitemap |
 | Price pill | `components/map/pill.ts`, `.marker-pill` | A store's price, tier glyph and colour on the map; one markup for both maps |
 | Vector map | `VectorMapCanvas.tsx`, `lib/map-style.ts`, `.vmap` | The MapLibre map in paper and ink; pills are 44px buttons on top. Behind its flag (see The map) |
 | Pill layout | `lib/pill-layout.ts` | Decides which pills show when they would overlap |
@@ -162,7 +162,7 @@ Fixed timings outside the tokens, each in one place:
 
 ## The map
 
-- **Two maps, one page.** Visitors get the Leaflet map on OpenStreetMap's raster tiles. The MapLibre vector map is built and sits behind a flag until the owner approves a tile host: `VECTOR_TILES` in `lib/map-style.ts`, proposal in `docs/plans/vector-map.md`. Preview it in development with `/map?map=vector`, and add `&tiles=<TileJSON URL>` to see it on a host.
+- **One map, on OpenFreeMap.** Every visitor gets the MapLibre vector map on OpenFreeMap's tiles (approved 2026-11-24; `VECTOR_TILES` in `lib/map-style.ts`, its host allowed in the CSP's `connect-src`). Setting `VECTOR_TILES` to null puts everyone back on the Leaflet map. Until the Leaflet map is removed, `/map?map=leaflet` still draws it in development, and `/map?map=vector&tiles=<TileJSON URL>` tries another host.
 - **The base map is printed in the palette.**
   - Land is paper; parks and woods are paper sunken; buildings are a wash of paper muted.
   - Roads are hairlines in rule, motorways and rail in paper muted, with no casings.
@@ -228,6 +228,6 @@ After every phase, with the dev server and emulator running:
 TARGET_URL=http://localhost:3100 npm run check:pages -- <label>
 ```
 
-It screenshots the landing page, the map (after "Use my location"), the vector map behind its flag (`map-vector`, development only; `CHECK_VECTOR_MAP=0` skips it), a priced store page, the about page and the newest monthly story at 375 and 1440 px. Each gets a first screen with motion on and a full page with reduced motion, so every scroll-linked and settle-on-view piece is drawn finished. It also runs axe (WCAG 2.0 to 2.2 A and AA, plus best practice) on each. Serious and critical findings fail the run unless they are listed, with a reason, in `ACCEPTED` at the top of `tests/browser/check-pages.js`. Output goes to `tests/browser/screenshots/check/<label>/` (git-ignored): the PNGs, `axe.json` and `summary.md`.
+It screenshots the landing page, the map (after "Use my location"), a priced store page, the about page and the newest monthly story at 375 and 1440 px. Each gets a first screen with motion on and a full page with reduced motion, so every scroll-linked and settle-on-view piece is drawn finished. It also runs axe (WCAG 2.0 to 2.2 A and AA, plus best practice) on each. Serious and critical findings fail the run unless they are listed, with a reason, in `ACCEPTED` at the top of `tests/browser/check-pages.js`. Output goes to `tests/browser/screenshots/check/<label>/` (git-ignored): the PNGs, `axe.json` and `summary.md`.
 
 A full-page capture never scrolls, so anything drawn only near the viewport (the reduced-motion dot map, settle-on-view pieces) can look blank in it. Check those with a real scroll before calling it a bug.

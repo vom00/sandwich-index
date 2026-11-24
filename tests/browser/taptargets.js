@@ -82,7 +82,7 @@ const MEASURE = () => {
       text: (el.innerText || el.getAttribute('aria-label') || el.placeholder || '').trim().slice(0, 30),
       height: Math.round(height),
       width: Math.round(r.width),
-      thirdParty: el.closest('.leaflet-container') !== null,
+      thirdParty: el.closest('.leaflet-container, .maplibregl-ctrl') !== null,
       exempt: inlineInProse,
     });
   }

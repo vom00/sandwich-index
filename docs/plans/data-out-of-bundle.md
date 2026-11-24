@@ -1,6 +1,8 @@
 # Proposal: the store and price data out of the server bundle (Phase F, item 3)
 
-Not built. The owner chooses an option first.
+**Option A approved and built (2026-11-24).** `src/lib/stores.server.ts` loads the store list, the
+restaurant numbers and the feed file with dynamic `import()` the first time a sync needs them
+(`loadBundledData`), so they sit in their own server chunks instead of every route's bundle.
 
 ## What's in the bundle today
 

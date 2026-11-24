@@ -17,8 +17,9 @@
  *     quotes the same readings the site shows; a refresh still waiting on its
  *     own branch is left out until it is merged.
  *   - Visitor reports accepted in the month: only with `--firestore`, which
- *     reads the live database (read only; at most READ_LIMIT documents, one
- *     query). It needs the Admin credentials the server uses
+ *     reads the live database (read only; one query, at most
+ *     CONFIRMED_READ_LIMIT documents: `lib/monthly-confirmed.server`, which the
+ *     page itself also runs every six hours). It needs the Admin credentials the server uses
  *     (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY) in
  *     the environment, and refuses the emulator, whose reports are test data,
  *     unless the output goes outside `src/data/monthly` (`--out`).
@@ -44,8 +45,6 @@ import {
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const FEED_PATH = "src/data/feeds/drivethruindex.json";
 const STORY_DIR = resolve(ROOT, "src/data/monthly");
-/** More reports than this in one month and the count is left blank rather than half read. */
-const READ_LIMIT = 5000;
 
 function arg(name: string): string | undefined {
   const at = process.argv.indexOf(`--${name}`);
@@ -90,7 +89,7 @@ function previousReading(start: string): { rows: FeedRow[]; rev: string } | null
   return null;
 }
 
-async function countConfirmed(start: string, end: string, out: string): Promise<{ count: number | null; reason?: string }> {
+async function countConfirmed(month: string, out: string): Promise<{ count: number | null; reason?: string }> {
   if (process.env.FIRESTORE_EMULATOR_HOST !== undefined && out.startsWith(STORY_DIR)) {
     throw new Error(
       "FIRESTORE_EMULATOR_HOST is set: the emulator's reports are test data, not a month's figures. " +
@@ -98,18 +97,8 @@ async function countConfirmed(start: string, end: string, out: string): Promise<
     );
   }
   const { getAdminDb } = await import("../src/lib/firebase/admin");
-  const snapshot = await getAdminDb()
-    .collection("submissions")
-    .where("submittedAt", ">=", new Date(start))
-    .where("submittedAt", "<", new Date(end))
-    .select("status")
-    .limit(READ_LIMIT + 1)
-    .get();
-  console.log(`Read ${snapshot.size} report(s) from the database.`);
-  if (snapshot.size > READ_LIMIT) {
-    return { count: null, reason: `More than ${READ_LIMIT} reports this month; the count was not read in full.` };
-  }
-  return { count: snapshot.docs.filter((doc) => doc.get("status") === "accepted").length };
+  const { countConfirmed: count } = await import("../src/lib/monthly-confirmed.server");
+  return count(getAdminDb(), month);
 }
 
 /** Rewrites `src/data/monthly/index.ts` from the story files present. */
@@ -131,6 +120,9 @@ function writeIndex(): string[] {
     ...months.map((month) => `  "${month}": ${ident(month)} as MonthlyStory,`),
     "};",
     "",
+    "/** The newest month, which the footer, the about page and the sitemap link to. */",
+    `export const NEWEST_STORY_MONTH: string | null = ${months.length > 0 ? `"${months.at(-1)}"` : "null"};`,
+    "",
   ];
   writeFileSync(resolve(STORY_DIR, "index.ts"), lines.join("\n"));
   return months;
@@ -140,7 +132,7 @@ async function main() {
   const current = readJson<{ rows: FeedRow[] }>(FEED_PATH).rows;
   const month = arg("month") ?? newestOf(current).slice(0, 7);
   if (!isStoryMonth(month)) throw new Error(`--month must be yyyy-mm, got ${month}`);
-  const { start, end } = monthBounds(month);
+  const { start } = monthBounds(month);
   const out = resolve(ROOT, arg("out") ?? `src/data/monthly/${month}.json`);
 
   const previous = previousReading(start);
@@ -155,7 +147,7 @@ async function main() {
   let confirmedMissingReason = "Reports from visitors are counted in the site’s live database, which was not read when this story was built.";
   if (!flag("firestore")) console.log("Visitor reports not counted: run with --firestore and the live database's Admin credentials to count them.");
   if (flag("firestore")) {
-    const result = await countConfirmed(start, end, out);
+    const result = await countConfirmed(month, out);
     confirmed = result.count;
     if (result.reason) confirmedMissingReason = result.reason;
   }
