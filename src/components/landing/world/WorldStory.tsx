@@ -195,6 +195,7 @@ export function WorldStory({ prices, children }: { prices: readonly number[]; ch
           return;
         }
         world = created;
+        root!.dataset.clips = created.clips.join(",");
         root!.dataset.board ??= String(prices[0] ?? "");
         measure();
         canvas!.dataset.ready = "true";

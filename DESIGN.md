@@ -94,6 +94,7 @@ Fixed timings outside the tokens, each in one place:
 | Odometer roll | 1100ms per wheel, 70ms between wheels, `--ease-out-expo` | `.odo-col` |
 | Link underline wipe | 280ms, `--ease-out-quart` | `.wipe` |
 | Menu board split-flap | 75ms per flap, 30ms between turning columns, forward only, settles once | `components/landing/world/splitflap.ts` |
+| Burger opening | Scroll-linked, no duration: a 30-frame clip keyed in Blender (`burger-open`, `soda-straw`) scrubbed by the beat from 0.04 to 0.76. The bun lifts and tips, the lettuce, mayo and patty part under it, the straw rises, and all of it settles back closed. Reduced motion holds frame 0 | `scripts/blender/clips.json`, `components/landing/world/world.ts` (`pose`) |
 | Map pill drop-in | Once per map, when its stores first arrive: each pill drops 10px into place over 220ms, nearest the middle first, rippling outward in at most ten steps 35ms apart however many stores there are. None under reduced motion | `components/map/MapCanvas.tsx`, `VectorMapCanvas.tsx` |
 | Vector map camera | Panning to a selection 240ms (`--duration-modal`); framing search results and returning from them 600ms (`--duration-hero`); both `--ease-out-quart`, instant under reduced motion | `components/map/VectorMapCanvas.tsx` |
 | Map list filtering | Rows left by a search slide into the gaps (200ms, `--ease-out-quart`, Motion `layout="position"`); hidden rows fade out in 160ms | `components/map/StoreList.tsx` |

@@ -40,7 +40,6 @@ All in `Models/GLB format/`, each referencing the shared `Textures/colormap.png`
 
 | File under `public/` | Origin | Licence | Size |
 |----------------------|--------|---------|------|
-| `landing/burger.glb` | Kenney Food Kit 2.0, `Models/GLB format/burger.glb`, unmodified (cheese and tomato hidden and the patty retinted in code) | CC0 | 34 KB |
-| `landing/Textures/colormap.png` | Kenney Food Kit 2.0, `Models/GLB format/Textures/colormap.png`, unmodified | CC0 | 11 KB |
-| `landing/soda.glb` | Kenney Food Kit 2.0, `Models/GLB format/soda.glb`, unmodified (the cup on the tray in the opening shot; shares `colormap.png`) | CC0 | 12 KB |
+| `landing/burger.glb` | Kenney Food Kit 2.0, `Models/GLB format/burger.glb`, modified by `scripts/blender/burger-clip.py` (source copy in `scripts/blender/source/`): cheese and tomato removed, a `mayo` empty added, materials and UVs dropped (code colours every part), and the `burger-open` clip keyed from `scripts/blender/clips.json` | CC0 | 11.4 KB |
+| `landing/soda.glb` | Kenney Food Kit 2.0, `Models/GLB format/soda.glb`, modified by the same script: the straw split into its own `straw` node, materials and UVs dropped, and the `soda-straw` clip keyed (the cup on the tray in the opening shot) | CC0 | 5.5 KB |
 | `landing/town.bin.gz` | Built by `scripts/pack-landing-models.mjs` from 19 Kenney models. Mini Shop: `wall`, `wall-window`, `wall-door-rotate`, `cash-register` (top only), `freezers-standing`, `character-employee` (idle pose). City Kit Suburban: `building-type-a`, `-c`, `-g`, `-h`, `tree-large`, `tree-small`. Car Kit: `sedan`, `hatchback-sports`, `suv`, `van`. City Kit Roads: `road-straight`, `road-driveway-single`, `light-curved`. Modified: textures dropped, colours moved onto the site's palette plus street colours (no red or yellow), positions quantised, gzipped. Rebuild with `node scripts/pack-landing-models.mjs`. | CC0 | 126 KB |

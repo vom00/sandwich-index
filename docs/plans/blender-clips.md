@@ -1,6 +1,30 @@
 # Plan: Blender clips for the burger and the soda (Phase D, item 11)
 
-Plan only. Nothing here is installed, exported or wired in yet.
+**Status: built (2026-11-24).** Blender 5.3.0 (portable zip, `tools/blender/`, outside the repo)
+runs `scripts/blender/burger-clip.py`, which writes `public/landing/burger.glb` (11.7 KB, budget
+40 KB) and `public/landing/soda.glb` (5.6 KB, budget 16 KB). `Textures/colormap.png` is gone from
+`public/landing`, so the opening shot loads 17 KB instead of 57 KB, in one request fewer.
+`tests/unit/landing-models.test.ts` holds both files to the budget, the clip names and a
+translation and rotation channel for every keyed part; `tests/browser/scenes.js` checks the scene
+bound both clips (`data-clips`) and shoots beat 0.4 (`world-burger-open.png`).
+
+Where the build differs from the plan below:
+
+- **No `AnimationMixer`.** The scene still rebuilds each part as its own smoothed mesh with the
+  palette's material, so there is no GLB node tree to bind a mixer to. `world.ts` reads each
+  part's tracks with three's linear interpolants (`partClip`, `pose`) and evaluates them at
+  `span(beat, 0.04, 0.76) × duration`. Same rule: a beat always gives the same pose, no clock.
+- **The scale tweaks and the mayo disc stay in code.** Mayo is an empty node in the GLB that
+  carries only its track; the code draws the disc. Baking the scales into the mesh would have
+  changed the stack heights the rest of the scene is placed against.
+- **Keys are in scene units.** `clips.json` gives each lift in the landing scene's units, and the
+  script divides by the model's unit (bun width 0.64, cup height 0.62) so the numbers read the
+  same as the old `lift` values.
+- **The soda's straw** is split off as the loose parts thinner than 0.009 and higher than 0.34 in
+  model units (20 vertices).
+- **Fallback kept:** a model without a clip still opens on the old `sin` lift.
+
+The original plan follows.
 
 ## What changes for the reader
 

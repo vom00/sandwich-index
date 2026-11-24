@@ -23,6 +23,7 @@
 
 import {
   AmbientLight,
+  type AnimationClip,
   BoxGeometry,
   BufferAttribute,
   BufferGeometry,
@@ -33,6 +34,7 @@ import {
   Group,
   HemisphereLight,
   InstancedMesh,
+  type Interpolant,
   Material,
   Matrix4,
   Mesh,
@@ -417,17 +419,73 @@ function meshNamed(root: Object3D, name: string): Mesh | null {
   return found;
 }
 
+/**
+ * One part's moves in an authored clip (`scripts/blender/burger-clip.py`,
+ * keys in `scripts/blender/clips.json`), sampled straight from its tracks: no
+ * mixer and no clock, so a beat always gives the same pose and nothing moves
+ * by itself. The clip's lifts are in the model's units; `unit` turns them into
+ * the scene's.
+ */
+interface PartClip {
+  position: Interpolant | null;
+  quaternion: Interpolant | null;
+  /** Where the part rests in the clip: its last key, since every clip ends at rest. */
+  restY: number;
+  duration: number;
+  unit: number;
+}
+
+function partClip(clip: AnimationClip | undefined, name: string, unit: number): PartClip | null {
+  if (clip === undefined) return null;
+  const track = (property: string) => clip.tracks.find((t) => t.name === `${name}.${property}`) ?? null;
+  const position = track("position");
+  const quaternion = track("quaternion");
+  if (position === null && quaternion === null) return null;
+  return {
+    position: position?.InterpolantFactoryMethodLinear() ?? null,
+    quaternion: quaternion?.InterpolantFactoryMethodLinear() ?? null,
+    restY: position === null ? 0 : (position.values[position.values.length - 2] ?? 0),
+    duration: clip.duration,
+    unit,
+  };
+}
+
+/** Puts a part where its clip has it at `t` (0..1 of the clip), relative to where the code stacked it. */
+function pose(mesh: Mesh, base: number, clip: PartClip, t: number): void {
+  const time = t * clip.duration;
+  if (clip.position !== null) {
+    const at = clip.position.evaluate(time) as ArrayLike<number>;
+    mesh.position.y = base + ((at[1] ?? clip.restY) - clip.restY) * clip.unit;
+  }
+  if (clip.quaternion !== null) {
+    const q = clip.quaternion.evaluate(time) as ArrayLike<number>;
+    mesh.quaternion.set(q[0] ?? 0, q[1] ?? 0, q[2] ?? 0, q[3] ?? 1);
+  }
+}
+
 interface SandwichLayer {
   mesh: Mesh;
   base: number;
   lift: number;
+  clip: PartClip | null;
 }
 
-async function buildSandwich(loader: GLTFLoader): Promise<{ group: Group; layers: SandwichLayer[]; soda: Mesh | null }> {
+interface Sandwich {
+  group: Group;
+  layers: SandwichLayer[];
+  soda: Group | null;
+  straw: { mesh: Mesh; clip: PartClip } | null;
+  /** The authored clips found in the model files, for the browser tests. */
+  clips: string[];
+}
+
+async function buildSandwich(loader: GLTFLoader): Promise<Sandwich> {
   const [burger, soda] = await Promise.all([
     loader.loadAsync("/landing/burger.glb"),
     loader.loadAsync("/landing/soda.glb").catch(() => null),
   ]);
+  const burgerClip = burger.animations.find((clip) => clip.name === "burger-open");
+  const strawClip = soda?.animations.find((clip) => clip.name === "soda-straw");
   const group = new Group();
   const order: { name: string; color: string; scale: V3; lift: number; nest: number }[] = [
     { name: "bun-bottom", color: C.bunBottom, scale: [1, 1, 1], lift: 0, nest: 0 },
@@ -461,43 +519,59 @@ async function buildSandwich(loader: GLTFLoader): Promise<{ group: Group; layers
     mesh.position.y = base;
     mesh.castShadow = true;
     group.add(mesh);
-    layers.push({ mesh, base, lift: entry.lift });
+    layers.push({ mesh, base, lift: entry.lift, clip: partClip(burgerClip, entry.name, unit) });
     top = base + height;
     previousHeight = height;
     if (entry.name === "salad") {
-      // A thin line of mayo on the lettuce.
+      // A thin line of mayo on the lettuce. The model carries no mayo mesh,
+      // only an empty node holding its track in the clip.
       const mayo = new Mesh(new CylinderGeometry(0.25, 0.26, 0.018, 24), new MeshLambertMaterial({ color: C.mayo }));
       const mayoBase = top - height * 0.25;
       mayo.position.y = mayoBase;
       mayo.castShadow = true;
       group.add(mayo);
-      layers.push({ mesh: mayo, base: mayoBase, lift: entry.lift + 0.05 });
+      layers.push({ mesh: mayo, base: mayoBase, lift: entry.lift + 0.05, clip: partClip(burgerClip, "mayo", unit) });
     }
   }
   group.position.copy(SANDWICH_AT);
   disposeTree(burger.scene);
 
-  let cup: Mesh | null = null;
+  // The cup and, in a model with the clip, its straw as a part of its own.
+  // Both are scaled and centred together, so the soda keeps its look either way.
+  let cup: Group | null = null;
+  let straw: Sandwich["straw"] = null;
   if (soda !== null) {
-    let first: Mesh | null = null;
+    const parts: { name: string; geometry: BufferGeometry }[] = [];
     soda.scene.traverse((object) => {
       const candidate = object as Mesh;
-      if (first === null && candidate.isMesh === true) first = candidate;
+      if (candidate.isMesh === true) parts.push({ name: object.name, geometry: smoothPart(candidate) });
     });
-    if (first !== null) {
-      const geometry = smoothPart(first);
-      geometry.computeBoundingBox();
-      const box = geometry.boundingBox!;
-      const scale = 0.62 / Math.max(box.max.y - box.min.y, 0.01);
-      geometry.translate(-(box.min.x + box.max.x) / 2, -box.min.y, -(box.min.z + box.max.z) / 2);
-      geometry.scale(scale, scale, scale);
-      cup = new Mesh(geometry, new MeshLambertMaterial({ color: C.cup }));
+    if (parts.length > 0) {
+      const min = new Vector3(Infinity, Infinity, Infinity);
+      const max = new Vector3(-Infinity, -Infinity, -Infinity);
+      for (const part of parts) {
+        part.geometry.computeBoundingBox();
+        min.min(part.geometry.boundingBox!.min);
+        max.max(part.geometry.boundingBox!.max);
+      }
+      const scale = 0.62 / Math.max(max.y - min.y, 0.01);
+      const material = new MeshLambertMaterial({ color: C.cup });
+      cup = new Group();
       cup.position.copy(SODA_AT);
-      cup.castShadow = true;
+      for (const part of parts) {
+        part.geometry.translate(-(min.x + max.x) / 2, -min.y, -(min.z + max.z) / 2);
+        part.geometry.scale(scale, scale, scale);
+        const mesh = new Mesh(part.geometry, material);
+        mesh.castShadow = true;
+        cup.add(mesh);
+        const clip = partClip(strawClip, part.name, scale);
+        if (clip !== null) straw = { mesh, clip };
+      }
     }
     disposeTree(soda.scene);
   }
-  return { group, layers, soda: cup };
+  const clips = [burgerClip, strawClip].flatMap((clip) => (clip === undefined ? [] : [clip.name]));
+  return { group, layers, soda: cup, straw, clips };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -739,6 +813,8 @@ export interface World {
   resize(layout: WorldLayout, pixelRatio: number): void;
   setShadows(on: boolean): void;
   readonly drawCalls: () => number;
+  /** The authored clips the models carry (`burger-open`, `soda-straw`), for the browser tests. */
+  readonly clips: readonly string[];
   dispose(): void;
 }
 
@@ -1089,9 +1165,17 @@ export async function createWorld(canvas: HTMLCanvasElement, options: WorldOptio
   function update(beat: number, now?: number): void {
     const distance = placeCamera(beat);
 
-    // 0 → 1: the sandwich comes apart into its layers and closes again.
-    const open = Math.sin(Math.PI * clamp01((beat - 0.04) / 0.72));
-    for (const layer of sandwich.layers) layer.mesh.position.y = layer.base + layer.lift * open;
+    // 0 → 1: the sandwich comes apart into its layers and closes again, and
+    // the straw lifts out of the lid and drops back in. Each part follows its
+    // authored clip at this point in the window; a part with no clip (an old
+    // model file) lifts on a sine instead.
+    const apart = clamp01((beat - 0.04) / 0.72);
+    const open = Math.sin(Math.PI * apart);
+    for (const layer of sandwich.layers) {
+      if (layer.clip !== null) pose(layer.mesh, layer.base, layer.clip, apart);
+      else layer.mesh.position.y = layer.base + layer.lift * open;
+    }
+    if (sandwich.straw !== null) pose(sandwich.straw.mesh, 0, sandwich.straw.clip, apart);
     sandwich.group.rotation.y = -0.35 + 0.9 * span(beat, 0, 1.1);
     const sandwichBeat = Math.min(beat, 1.2);
     if (shadowsOn && sandwichBeat !== lastSandwichBeat) renderer.shadowMap.needsUpdate = true;
@@ -1179,6 +1263,7 @@ export async function createWorld(canvas: HTMLCanvasElement, options: WorldOptio
       if (next) renderer.shadowMap.needsUpdate = true;
     },
     drawCalls: () => renderer.info.render.calls,
+    clips: sandwich.clips,
     dispose() {
       const textures = new Set<Texture>([boardTexture, atlasTexture, blobMap]);
       scene.traverse((object) => {

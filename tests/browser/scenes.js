@@ -149,6 +149,13 @@ const cents = (text) => Math.round(Number(text.replace(/[^0-9.]/g, '')) * 100);
     const followed = Number(await wide.page.locator('.lp-story').getAttribute('data-beat'));
     check('the camera follows the scroll position', Math.abs(followed - 2.5) < 0.02, `beat ${followed}`);
 
+    // The burger opens and the straw lifts on clips authored in Blender
+    // (scripts/blender/burger-clip.py); the scene says which ones it bound.
+    const clips = await wide.page.locator('.lp-story').getAttribute('data-clips');
+    check('[tray] the burger and the straw play their Blender clips', clips === 'burger-open,soda-straw', `clips ${clips}`);
+    await scrollToBeat(wide.page, 0.4);
+    await stage.screenshot({ path: path.join(SHOTS, 'world-burger-open.png') });
+
     const listed = await wide.page.evaluate(() =>
       [...document.querySelectorAll('.lp-board li .tabular')].map((el) => el.textContent.trim()));
     const listedCents = listed.map(cents);
