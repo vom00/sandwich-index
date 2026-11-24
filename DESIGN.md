@@ -97,13 +97,15 @@ Fixed timings outside the tokens, each in one place:
 | Map list filtering | Rows left by a search slide into the gaps (200ms, `--ease-out-quart`, Motion `layout="position"`); hidden rows fade out in 160ms | `components/map/StoreList.tsx` |
 | Receipt GIF | Prints top to bottom over 1100ms, then the price wheels roll with the odometer timing; the last frame holds; plays once (no loop block) | `components/store/share-gif/` |
 | Store page reveal stagger | `animation-delay` from 70ms to 280ms, in reading order | `app/store/[id]/page.tsx` |
+| National price strip | Settles once when it first scrolls into view (35% visible): each column rises 10px over 200ms (`--duration-ui`, `--ease-out-quart`), 16ms apart left to right; the ring draws at 560ms over 240ms (`--duration-modal`); the "This store" label fades in at 680ms. Armed only when it starts below the fold | `components/store/PriceStrip.tsx`, `components/ui/SettleOnView.tsx` |
+| "How a price gets here" receipt | Scroll-linked, no duration: each line is unclipped left to right as its step crosses the middle of the screen. Wide screens: `cover 40%` to `cover 47%` of the step's view timeline, +7% per line; narrow screens: the receipt's own view timeline, a pair of lines per step. Stops when the scroll does | `app/landing.css` (`.lp-rc-line`) |
 
 ## Motion rules
 
 1. **Only `transform` and `opacity` animate.** Never width, height, top, padding or anything that relays out.
 2. **Never `ease-in` for UI.** It withholds feedback when it is most needed and reads as lag. (A falling flap may accelerate; that is physics, not UI.)
 3. **Exits run about 20% faster than entrances.** Product UI stays under 300ms; only the hero and the odometer go longer.
-4. **One moment per page.** Landing: the camera pull-back from sandwich to country. Store page: the price rolling onto its card. Everything else is quiet.
+4. **One moment per page.** Landing: the camera pull-back from sandwich to country. Store page: the price rolling onto its card. Everything else is quiet: the national strip below the fold settles once, small and in under a second, and the "How it works" receipt only follows the reader's own scroll.
 5. **Nothing loops.** Every animation settles once and stops. A scroll-linked piece stops when the scroll does; the 3D canvas requests no frames while idle.
 6. **Reduced motion gets the final state from the first paint.** `animation: none` rather than a shorter animation, so nothing is stranded at opacity 0. Scroll-linked pieces are not shown or not pinned, the 3D scene is one still frame, and the map to store morph becomes a crossfade.
 7. **Hover is gated** behind `(hover: hover) and (pointer: fine)` so a tap doesn't leave a phantom hover.
@@ -131,6 +133,9 @@ Fixed timings outside the tokens, each in one place:
 | Receipt | `components/og/receipt.tsx` | The till slip every share card is printed on |
 | Receipt lines | `lib/store-card.ts` | What a store's receipt says, shared by the link card and the GIF |
 | Receipt GIF | `ShareGifButton.tsx` | Draws the receipt's frames with the page's fonts, encodes them in a Web Worker (gifenc), shares on a phone, downloads elsewhere |
+| Settle on view | `SettleOnView.tsx`, `[data-settle]` | Server-rendered finished; arms (`armed`) only below the fold with motion allowed, then flips to `in` once and lets CSS transitions settle it |
+| Price strip | `PriceStrip.tsx` | Every nationally priced store as dots by price, this store ringed; positions precomputed by `npm run build:price-strip` |
+| How-it-works receipt | `HowReceipt` in `app/page.tsx` | Sticky till slip whose lines print as the steps scroll past |
 
 ## Surfaces and elevation
 

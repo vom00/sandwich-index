@@ -269,6 +269,68 @@ function followAndWatch(page, selector) {
     check('the primary button has no grain and no sheen', !grain.buttonGrain && grain.buttonSheen === 'none', grain.buttonSheen);
     check('the ink band has a halftone screen, not grain', grain.bandHalftone && !grain.bandGrain);
     check('the halftone stays faint', grain.halftoneOpacity > 0 && grain.halftoneOpacity <= 0.12, String(grain.halftoneOpacity));
+
+    // ---------------------------------------------------------------
+    console.log('\nThe receipt beside "How a price gets here"');
+    // ---------------------------------------------------------------
+    const printed = async (k) => {
+      await page.evaluate((k) => {
+        const li = document.querySelectorAll('.lp-how .lp-step')[k];
+        const r = li.getBoundingClientRect();
+        window.scrollBy(0, r.top + r.height / 2 - innerHeight * 0.45);
+      }, k);
+      await page.waitForTimeout(400);
+      return page.evaluate(() => [...document.querySelectorAll('.lp-rc-line')].map((g) => {
+        const m = getComputedStyle(g).clipPath.match(/inset\(\S+ (\S+)%/);
+        return m ? Number(m[1]) < 1 : true;
+      }));
+    };
+    const atFirst = await printed(0);
+    check('as step 1 reaches the middle, its lines are printed and step 3\'s are not',
+      atFirst[0] && atFirst[1] && !atFirst[4] && !atFirst[5], JSON.stringify(atFirst));
+    const atSecond = await printed(1);
+    check('as step 2 does, its lines print too', atSecond.slice(0, 4).every(Boolean) && !atSecond[5], JSON.stringify(atSecond));
+    const atThird = await printed(2);
+    const stuck = await page.evaluate(() => {
+      const receipt = document.querySelector('.lp-how-receipt');
+      return { top: receipt.getBoundingClientRect().top, sticky: parseFloat(getComputedStyle(receipt).top) };
+    });
+    check('as step 3 does, its lines print, and the receipt is held in place (sticky)',
+      atThird.slice(0, 6).every(Boolean) && Math.abs(stuck.top - stuck.sticky) < 2,
+      `${JSON.stringify(atThird)}, top ${Math.round(stuck.top)}, sticks at ${Math.round(stuck.sticky)}`);
+    // The footer line closes the receipt a moment after step 3's own lines.
+    await page.evaluate(() => window.scrollBy(0, innerHeight * 0.2));
+    await page.waitForTimeout(400);
+    check('and the footer line prints last, just after', await page.evaluate(() =>
+      [...document.querySelectorAll('.lp-rc-line')].every((g) => !/inset\(\S+ [1-9]/.test(getComputedStyle(g).clipPath))));
+
+    // ---------------------------------------------------------------
+    console.log('\nThe national price strip on a store page');
+    // ---------------------------------------------------------------
+    const stripStore = await (await fetch(`${TARGET_URL}/api/stores?lat=${COPPELL.latitude}&lng=${COPPELL.longitude}&radiusMiles=15`)).json()
+      .then((listing) => listing.stores.find((store) => store.priceCents !== null));
+    await page.goto(`${TARGET_URL}/store/${stripStore.id}`, { waitUntil: 'networkidle' });
+    const armed = await page.evaluate(() => document.querySelector('[data-settle]')?.dataset.settle ?? 'none');
+    // The picture itself, not the heading: the heading can sit just inside the
+    // fold while the strip below it is still out of sight.
+    await page.evaluate(() => document.querySelector('[data-settle]').scrollIntoView({ block: 'center' }));
+    await page.waitForTimeout(1300);
+    const strip = await page.evaluate(() => {
+      const host = document.querySelector('[data-settle]');
+      const dots = [...document.querySelectorAll('.strip-dot')];
+      return {
+        state: host?.dataset.settle,
+        dots: dots.length,
+        visible: dots.every((d) => getComputedStyle(d).opacity === '1'),
+        ring: getComputedStyle(document.querySelector('.strip-ring')).strokeDashoffset,
+        text: document.querySelector('#against-country').parentElement.textContent,
+        running: document.getAnimations().length,
+      };
+    });
+    check('the strip waits below the fold, then settles once in view', armed === 'armed' && strip.state === 'in', `${armed} → ${strip.state}`);
+    check('every dot is in place and the ring is drawn', strip.dots > 50 && strip.visible && /^0(px)?$/.test(strip.ring), `${strip.dots} dots, ring ${strip.ring}`);
+    check('it names this store\'s price and its national shares',
+      strip.text.includes(`$${(stripStore.priceCents / 100).toFixed(2)}`) && /cheaper than \S+ of the [\d,]+ stores/.test(strip.text));
     await page.close();
     await context.close();
 
@@ -295,6 +357,11 @@ function followAndWatch(page, selector) {
     await page.waitForURL(/\/store\//);
     check('and the price does not roll', await page.evaluate(() =>
       document.getAnimations().filter((a) => a.effect?.pseudoElement === '::before' && a.effect.target?.classList?.contains('odo-col')).length === 0));
+    check('the national strip is simply there, never armed', await page.evaluate(() =>
+      document.querySelector('[data-settle]') === null && document.querySelectorAll('.strip-dot').length > 50));
+    await page.goto(`${TARGET_URL}/`, { waitUntil: 'load' });
+    check('the receipt is fully printed from the start', await page.evaluate(() =>
+      [...document.querySelectorAll('.lp-rc-line')].every((g) => !/inset\(\S+ [1-9]/.test(getComputedStyle(g).clipPath))));
     await calm.close();
   } catch (error) {
     check('suite ran to completion', false, error.message);

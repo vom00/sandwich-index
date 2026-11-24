@@ -22,6 +22,7 @@
     "import:store-numbers": "tsx --conditions=react-server --env-file=.env.local scripts/import-store-numbers.ts",
     "build:store-numbers": "tsx scripts/build-store-numbers.ts",
     "build:landing-map": "tsx scripts/build-landing-map.ts",
+    "build:price-strip": "tsx scripts/build-price-strip.ts",
     "build:landing-models": "node scripts/pack-landing-models.mjs",
     "build:store-list": "tsx scripts/build-store-list.ts",
     "fetch:drivethruindex": "tsx scripts/fetch-drivethruindex.ts",

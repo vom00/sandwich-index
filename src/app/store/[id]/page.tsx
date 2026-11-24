@@ -6,6 +6,7 @@ import { cache } from "react";
 import { ObservationLog } from "@/components/store/ObservationLog";
 import { PriceComparison } from "@/components/store/PriceComparison";
 import { PriceHistory } from "@/components/store/PriceHistory";
+import { PriceStrip } from "@/components/store/PriceStrip";
 import { ShareGifButton } from "@/components/store/ShareGifButton";
 import { SubmissionLog } from "@/components/store/SubmissionLog";
 import { StoreMorphLanding } from "@/components/store/StoreMorphLanding";
@@ -260,6 +261,7 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
       ) : null}
 
       <PriceComparison comparison={comparison} />
+      {store.priceCents !== null ? <PriceStrip priceCents={store.priceCents} /> : null}
 
       <section className="mt-12">
         <h2 className="wr font-display text-2xl">

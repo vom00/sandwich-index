@@ -403,12 +403,62 @@ const STEPS = [
   },
 ] as const;
 
+/**
+ * The till slip beside the steps. Each pair of lines belongs to a step and
+ * prints, left to right, as that step reaches the middle of the screen (CSS
+ * view timelines in landing.css). It says what each step does, not a made-up
+ * sale: there is no figure on it to invent.
+ */
+const RECEIPT_LINES = [
+  { step: 1, label: "SEEN", value: "RECEIPT, BOARD, APP" },
+  { step: 1, label: "1 MCCHICKEN", value: "AS PRINTED" },
+  { step: 2, label: "STORE", value: "ONE RESTAURANT" },
+  { step: 2, label: "LOGGED", value: "ONCE A DAY" },
+  { step: 3, label: "CHECK", value: "WITHIN 40%" },
+  { step: 3, label: "PRICE", value: "UPDATED" },
+] as const;
+
+function HowReceipt() {
+  const tooth = 10;
+  const width = 320;
+  const height = 320;
+  let edge = `M0 8`;
+  for (let x = 0; x < width; x += tooth) edge += ` L${x + tooth / 2} 0 L${x + tooth} 8`;
+  edge += ` L${width} ${height - 8}`;
+  for (let x = width; x > 0; x -= tooth) edge += ` L${x - tooth / 2} ${height} L${x - tooth} ${height - 8}`;
+  const lineY = (index: number) => 104 + index * 24 + Math.floor(index / 2) * 12;
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="lp-how-receipt" role="img" aria-label="A till receipt that prints each step as you read it: seen on a receipt, board or app; logged against one restaurant once a day; checked within 40%; price updated. Not one figure estimated.">
+      <path d={`${edge} Z`} className="lp-rc-slip" />
+      <text x={width / 2} y={40} textAnchor="middle" className="lp-rc-head">SANDWICH INDEX</text>
+      <text x={width / 2} y={60} textAnchor="middle" className="lp-rc-sub">HOW A PRICE GETS HERE</text>
+      <line x1={24} x2={width - 24} y1={78} y2={78} className="lp-rc-rule" />
+      {RECEIPT_LINES.map((line, index) => (
+        <g key={line.label} className="lp-rc-line" data-step={line.step} style={{ "--i": index % 2 } as React.CSSProperties}>
+          {index % 2 === 0 ? (
+            <text x={24} y={lineY(index)} className="lp-rc-n">{`0${line.step}`}</text>
+          ) : null}
+          <text x={56} y={lineY(index)} className="lp-rc-label">{line.label}</text>
+          <text x={width - 24} y={lineY(index)} textAnchor="end" className="lp-rc-value">{line.value}</text>
+        </g>
+      ))}
+      <line x1={24} x2={width - 24} y1={270} y2={270} className="lp-rc-rule" />
+      <g className="lp-rc-line" data-step={3} style={{ "--i": 2 } as React.CSSProperties}>
+        <text x={width / 2} y={296} textAnchor="middle" className="lp-rc-foot">NOT ONE FIGURE ESTIMATED</text>
+      </g>
+    </svg>
+  );
+}
+
 function HowItWorks() {
   return (
     <section className="lp-how" aria-labelledby="lp-how">
-      <h2 id="lp-how" className="wr font-display text-[1.75rem] leading-[1.1] sm:text-4xl lg:col-span-4">
-        <WordRise text="How a price gets here" />
-      </h2>
+      <div className="lp-how-side lg:col-span-4">
+        <h2 id="lp-how" className="wr font-display text-[1.75rem] leading-[1.1] sm:text-4xl">
+          <WordRise text="How a price gets here" />
+        </h2>
+        <HowReceipt />
+      </div>
       <ol className="lg:col-span-7 lg:col-start-6">
         {STEPS.map((step, index) => (
           <li key={step.title} className="lp-step lp-rise">

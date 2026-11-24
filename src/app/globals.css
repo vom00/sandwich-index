@@ -333,6 +333,55 @@ h6 {
 }
 
 /* ---------------------------------------------------------------------------
+   Settle on view (`SettleOnView`)
+
+   The national price strip's dots rise into place column by column, cheapest
+   first, the first time it scrolls into view; then the ring draws round this
+   store's price and its label appears. Once. Only a strip that starts below
+   the fold is ever armed, and never under reduced motion, so in every other
+   case it is simply there.
+--------------------------------------------------------------------------- */
+
+[data-settle] .strip-dot {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+
+[data-settle="armed"] .strip-dot {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+[data-settle="armed"] .strip-ring,
+[data-settle="in"] .strip-ring {
+  stroke-dasharray: 1;
+}
+
+[data-settle="armed"] .strip-ring {
+  stroke-dashoffset: 1;
+}
+
+[data-settle="armed"] .strip-label {
+  opacity: 0;
+}
+
+[data-settle="in"] .strip-dot {
+  transition:
+    opacity var(--duration-ui) var(--ease-out-quart),
+    transform var(--duration-ui) var(--ease-out-quart);
+  transition-delay: calc(var(--c, 0) * 16ms);
+}
+
+[data-settle="in"] .strip-ring {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--duration-modal) var(--ease-out-quart) 560ms;
+}
+
+[data-settle="in"] .strip-label {
+  transition: opacity var(--duration-ui) var(--ease-out-quart) 680ms;
+}
+
+/* ---------------------------------------------------------------------------
    Map markers
 
    Hover and selection are instant. A user hovers markers hundreds of times in

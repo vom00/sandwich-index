@@ -478,6 +478,147 @@
   color: var(--color-ink-subtle);
 }
 
+/* --- The receipt beside the steps. A white slip on paper, set in Plex Mono.
+   On a wide screen it stays in view (sticky, under the header) while the
+   steps scroll past, and each step's two lines print as that step reaches the
+   middle of the screen: every step names a view timeline, and the section
+   shares them with the receipt (`timeline-scope`). On a narrow screen it sits
+   above the steps and prints against its own view timeline as it scrolls in.
+   Scroll-linked, never pinned: the page scrolls as it always does.
+   Fully printed where timelines are missing and under reduced motion. ---- */
+.lp-how-receipt {
+  display: block;
+  width: 100%;
+  max-width: 22rem;
+  height: auto;
+  margin-top: 2rem;
+  overflow: visible;
+  filter: drop-shadow(0 10px 18px rgb(21 20 15 / 0.1));
+}
+
+.lp-rc-slip {
+  fill: var(--color-paper-raised);
+}
+
+.lp-how-receipt text {
+  font-family: var(--font-mono);
+  fill: var(--color-ink);
+}
+
+.lp-rc-head {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+}
+
+.lp-rc-sub,
+.lp-rc-n,
+.lp-rc-label,
+.lp-rc-foot {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+}
+
+.lp-how-receipt .lp-rc-sub,
+.lp-how-receipt .lp-rc-n,
+.lp-how-receipt .lp-rc-label,
+.lp-how-receipt .lp-rc-foot {
+  fill: var(--color-ink-subtle);
+}
+
+.lp-rc-value {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.lp-rc-rule {
+  stroke: var(--color-ink-subtle);
+  stroke-width: 1.25;
+  stroke-dasharray: 4 3;
+}
+
+@media (min-width: 1024px) {
+  .lp-how-side {
+    align-self: stretch;
+  }
+
+  .lp-how-receipt {
+    position: sticky;
+    top: calc(var(--site-header-height) + 2.5rem);
+  }
+}
+
+@keyframes lp-rc-print {
+  from {
+    clip-path: inset(-4px 100% -4px 0);
+  }
+  to {
+    clip-path: inset(-4px 0 -4px 0);
+  }
+}
+
+@supports (animation-timeline: view()) and (timeline-scope: --a) {
+  @media (prefers-reduced-motion: no-preference) {
+    .lp-how {
+      timeline-scope: --how-1, --how-2, --how-3;
+    }
+
+    .lp-how .lp-step:nth-child(1) {
+      view-timeline-name: --how-1;
+    }
+
+    .lp-how .lp-step:nth-child(2) {
+      view-timeline-name: --how-2;
+    }
+
+    .lp-how .lp-step:nth-child(3) {
+      view-timeline-name: --how-3;
+    }
+
+    /* Narrow: the receipt prints as it comes up the screen, line after line. */
+    .lp-how-receipt {
+      view-timeline-name: --how-receipt;
+    }
+
+    .lp-rc-line {
+      animation: lp-rc-print linear both;
+      animation-timeline: --how-receipt;
+    }
+
+    .lp-rc-line[data-step="1"] {
+      animation-range: entry calc(30% + var(--i) * 10%) entry calc(40% + var(--i) * 10%);
+    }
+
+    .lp-rc-line[data-step="2"] {
+      animation-range: entry calc(50% + var(--i) * 10%) entry calc(60% + var(--i) * 10%);
+    }
+
+    .lp-rc-line[data-step="3"] {
+      animation-range: entry calc(70% + var(--i) * 10%) entry calc(80% + var(--i) * 10%);
+    }
+
+    /* Wide: each pair prints as its own step reaches the middle. */
+    @media (min-width: 1024px) {
+      .lp-rc-line[data-step] {
+        animation-range: cover calc(40% + var(--i) * 7%) cover calc(47% + var(--i) * 7%);
+      }
+
+      .lp-rc-line[data-step="1"] {
+        animation-timeline: --how-1;
+      }
+
+      .lp-rc-line[data-step="2"] {
+        animation-timeline: --how-2;
+      }
+
+      .lp-rc-line[data-step="3"] {
+        animation-timeline: --how-3;
+      }
+    }
+  }
+}
+
 /* Restrained scroll-tied reveals: only where the browser can tie them to
    scroll natively, and only for people who have not asked for less motion.
    Everything is visible by default. */
