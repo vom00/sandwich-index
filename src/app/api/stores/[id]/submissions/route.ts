@@ -1,4 +1,4 @@
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -98,6 +98,8 @@ export async function POST(
     } catch (error) {
       console.error("[api/submissions] recompute after submit failed", error);
     }
+    // The store page is cached; its history changed even if the price held.
+    revalidatePath(`/store/${storeId.data}`);
 
     return NextResponse.json({ status: result.status, submissionId: result.submissionId }, { status: 201 });
   } catch (error) {

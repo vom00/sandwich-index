@@ -1,4 +1,4 @@
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { INDEX_SNAPSHOT_TAG } from "@/lib/index-snapshot.server";
@@ -47,7 +47,10 @@ export async function POST(
     // A price changed, so the landing page's cached figures are marked
     // stale; the next visit rebuilds them in the background. Only on a
     // change: a rebuild reads about 500 stores, and this URL is public.
-    if (result.changed) revalidateTag(INDEX_SNAPSHOT_TAG, "max");
+    if (result.changed) {
+      revalidateTag(INDEX_SNAPSHOT_TAG, "max");
+      revalidatePath(`/store/${parsed.data}`);
+    }
 
     return NextResponse.json({ storeId: parsed.data, rollup: result.rollup });
   } catch (error) {

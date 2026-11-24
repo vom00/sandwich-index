@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { milesToMeters } from "@/lib/geohash";
@@ -148,6 +149,15 @@ export async function POST(request: Request): Promise<NextResponse> {
     // hour (`index-snapshot.server`). Dropping that cache here instead made
     // the next landing view re-read about 500 stores, and while the map fills
     // an area, syncs that add something come every few seconds.
+
+    // Store pages are cached (`store/[id]/page.tsx`). A sync that changed any
+    // store drops them all: which ones changed is not tracked, and a dropped
+    // page costs nothing until it is next visited. A sync of a settled area
+    // changes nothing and drops nothing.
+    const changed =
+      summary.created + summary.updated + addresses.resolved + numbers.assigned +
+      feedPrices.recorded + feedPrices.recomputed + feedPrices.retired;
+    if (changed > 0) revalidatePath("/store/[id]", "page");
 
     return NextResponse.json({ ...summary, addresses, numbers, feedPrices });
   } catch (error) {

@@ -7,8 +7,8 @@
  *   - The card renders for a priced and an unpriced store, and a bad or
  *     unknown store id gets a 404, not a card.
  *   - Other pages keep their own titles and the site name.
- *   - The sitemap lists the fixed pages and store pages, each once, under the
- *     site's own origin.
+ *   - The sitemap lists the fixed pages, each once, under the site's own
+ *     origin, and no store pages yet.
  *
  * Plain HTTP, no browser. Needs `npm run dev` and the emulator, like the
  * other suites.
@@ -108,13 +108,11 @@ async function storesNear(lat, lng) {
     for (const path of ['/', '/map', '/log', '/about']) {
       check(`the sitemap lists ${path}`, locs.includes(`${SITE_URL}${path}`));
     }
-    const storeLocs = locs.filter((loc) => loc.startsWith(`${SITE_URL}/store/`));
-    check('the sitemap lists store pages from the bundled list', storeLocs.length > 13_000, `${storeLocs.length}`);
-    check('the sitemap lists an OpenStreetMap store on file',
-      storeLocs.includes(`${SITE_URL}/store/${stores.find((store) => !store.id.startsWith('atp-'))?.id}`));
+    // Store pages are held back until a full crawl's reads are paid for
+    // (src/app/sitemap.ts; the listing version is on sitemap-all-stores).
+    check('the sitemap does not list store pages yet', !locs.some((loc) => loc.includes('/store/')));
     check('every URL is listed once', new Set(locs).size === locs.length, `${locs.length - new Set(locs).size} repeats`);
     check('every URL is under the site\'s origin', locs.length > 0 && locs.every((loc) => loc.startsWith(`${SITE_URL}/`)));
-    check('the sitemap is within the 50,000-URL limit', locs.length <= 50_000, `${locs.length}`);
   } catch (error) {
     check('suite ran to completion', false, error.message);
     console.error(error);

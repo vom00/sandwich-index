@@ -30,18 +30,25 @@ import { displayStateFor } from "@/lib/tiers";
 import { storeIdSchema } from "@/lib/validation";
 
 /**
- * Rendered per request, never cached.
+ * Cached per store, and dropped the moment the store changes.
  *
- * The price can change the second somebody submits a report, and nothing here
- * revalidates a cached copy. A store page quoting yesterday's number is the
- * exact failure this project exists to avoid, so the full route cache is opted
- * out of rather than trusted.
- *
- * The one exception is the area comparison's neighbours, cached per area for
- * up to an hour (`area-peers.server`): reading them fresh cost hundreds of
- * documents a view. This store's own price is always read fresh.
+ * Rendering every view cost a store read, its history and, once an hour per
+ * area, hundreds of neighbours (`area-peers.server`), so a crawler walking
+ * store pages could spend the free tier's 50,000 reads a day on its own. Each
+ * page is now built on its first visit and kept, but a cached page must never
+ * quote a superseded price, so every write that changes a store drops it:
+ * a visitor's report (the submission route, whether or not the price moved),
+ * a recompute that changed it, and a sync that changed anything in its area
+ * (`api/stores/sync`). Scripts that write through the Admin SDK cannot reach
+ * Next's cache; the hourly rebuild below is the backstop for those, and keeps
+ * relative ages and the stale mark honest.
  */
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
+
+/** None at build time: every store page is built on its first visit. */
+export function generateStaticParams(): { id: string }[] {
+  return [];
+}
 
 /**
  * There is deliberately no `loading.tsx` beside this file.
@@ -55,7 +62,7 @@ export const dynamic = "force-dynamic";
  */
 
 /**
- * One read of the store per request: the metadata and the page both need it,
+ * One read of the store per render: the metadata and the page both need it,
  * and on Firestore's free tier every read is counted.
  */
 const readStore = cache((id: string) => getStore(id));
