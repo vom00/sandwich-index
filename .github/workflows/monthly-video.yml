@@ -1,0 +1,67 @@
+# Render the monthly price-map video (docs/plans/monthly-video.md) on the 1st
+# for the month just ended, and keep it as a workflow artifact for 30 days.
+#
+# It reads src/data/monthly/<month>.json, the file the story page renders. If
+# that month's file isn't committed yet, it is built here from the committed
+# Drive Thru Index readings, without the live database, so the visitor-report
+# scene is left out (the render log says so). Nothing is committed, deployed
+# or posted: the video is a file to download from the run's page.
+name: Monthly video
+
+on:
+  schedule:
+    - cron: "0 14 1 * *"
+  workflow_dispatch:
+    inputs:
+      month:
+        description: "Month to render, yyyy-mm (default: last month)"
+        required: false
+
+concurrency:
+  group: monthly-video
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - id: month
+        env:
+          INPUT: ${{ github.event.inputs.month }}
+        run: |
+          month="${INPUT:-$(date -u -d "$(date -u +%Y-%m-01) -1 day" +%Y-%m)}"
+          if ! [[ "$month" =~ ^[0-9]{4}-(0[1-9]|1[0-2])$ ]]; then echo "Bad month: $month"; exit 1; fi
+          echo "month=$month" >> "$GITHUB_OUTPUT"
+          if [ -f "src/data/monthly/$month.json" ]; then echo "have=true" >> "$GITHUB_OUTPUT"; else echo "have=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Build the month's story file
+        if: steps.month.outputs.have == 'false'
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build:monthly-story -- --month "${{ steps.month.outputs.month }}"
+
+      - name: Install Remotion
+        working-directory: video
+        run: |
+          npm ci --no-audit --no-fund
+          npx remotion browser ensure
+
+      - name: Render
+        working-directory: video
+        run: node render.mjs "${{ steps.month.outputs.month }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: monthly-video-${{ steps.month.outputs.month }}
+          path: video/out/${{ steps.month.outputs.month }}.mp4
+          retention-days: 30
+          if-no-files-found: error

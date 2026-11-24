@@ -1,0 +1,23 @@
+{
+  "name": "sandwich-index-video",
+  "private": true,
+  "description": "The monthly price-map video (docs/plans/monthly-video.md). Kept out of the site's dependencies and its Vercel build.",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "node render.mjs",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.544",
+    "@remotion/cli": "4.0.544",
+    "@remotion/fonts": "4.0.544",
+    "@remotion/renderer": "4.0.544",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "remotion": "4.0.544"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "typescript": "^5"
+  }
+}

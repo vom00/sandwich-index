@@ -1,6 +1,36 @@
 # Plan: monthly price-map video for X, made with Remotion (Phase D, item 12)
 
-Plan only. Remotion is not installed, and nothing here is wired up.
+**Status: built (2026-11-24).** `video/` holds the Remotion 4.0.544 project, with its own
+`package.json` and lockfile (246 packages, about 270 MB on disk, none of it in the site's
+dependencies or its build; the root `tsconfig.json` excludes `video/`).
+
+- **Render:** `cd video && npm ci && node render.mjs [yyyy-mm]`. With no month it takes the newest
+  file in `src/data/monthly`. It prints the scenes it kept and why any were left out, and writes
+  `video/out/<month>.mp4` (git-ignored). November 2026: 25.0 s, 2.0 MB; the visitor-report scene is
+  left out because the file's `confirmed` is null.
+- **No Chrome download on this machine:** on Windows `render.mjs` hands Remotion the installed
+  Microsoft Edge. Elsewhere (CI) Remotion fetches its own headless Chrome
+  (`npx remotion browser ensure`). `REMOTION_BROWSER` overrides both.
+- **Scenes:** `video/src/plan.ts` decides them, pure and unit-tested
+  (`tests/unit/monthly-video.test.ts`); `video/src/MonthlyPriceMap.tsx` draws them;
+  `video/src/parts.tsx` has the frame-driven odometer, the split-flap board (the landing's own
+  `splitflap.ts` timing) and the `.reveal` rise.
+- **Fonts:** `video/public/fonts`: Plex Mono from `assets/fonts`, and the Latin Fraunces subset
+  the site's build self-hosts, each with its OFL notice.
+- **CI:** `.github/workflows/monthly-video.yml` runs at 14:00 UTC on the 1st (and by hand with a
+  month). It builds the month's file from the committed readings if it isn't committed yet
+  (without the live database, so no visitor-report scene), renders, and keeps the MP4 as a
+  30-day workflow artifact. The repo is public, so Actions minutes are free. Nothing is
+  committed, deployed or posted.
+- **Posting to X** is still not wired: it needs the owner's X developer account and API keys.
+
+Where it differs from the plan below: the title flips the year, not "November 2026", because the
+board's drum is `" $.0123456789"` (no letters); the month name is set in Fraunces above it. The
+map fills at an even pace through the price ranks, each dot fading in on `--ease-out-quart`; easing
+the whole pass front-loaded it so much that "cheapest first" didn't read. The map scene names its
+own dates (the landing map's readings, Oct 8 to Nov 1), which differ from the month's readings.
+
+The original plan follows.
 
 ## The video
 
