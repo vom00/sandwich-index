@@ -34,7 +34,19 @@ import "./landing.css";
  * first chapter lists, store by store.
  */
 
-export const dynamic = "force-dynamic";
+/**
+ * Built once and rebuilt at most hourly. The figures come from
+ * `getCachedIndexSnapshot`, cached for the same hour under
+ * `INDEX_SNAPSHOT_TAG`. A visitor's report that moves a store's price drops
+ * that tag (the submissions and recompute routes), and the page with it, so a
+ * new cheapest or dearest price doesn't wait for the hour.
+ *
+ * The build renders this page, so a production build reads Firestore once:
+ * the two ends of the priced range and the counts, about 500 reads. If
+ * Firestore can't answer (quota spent, credentials missing), the build fails
+ * and the live deployment stays as it was.
+ */
+export const revalidate = 3600;
 
 const LEADER_LIMIT = 3;
 const DTI_CREDIT = "Source: Drive Thru Index (https://drivethruindex.com)";
