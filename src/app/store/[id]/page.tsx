@@ -6,6 +6,7 @@ import { cache } from "react";
 import { ObservationLog } from "@/components/store/ObservationLog";
 import { PriceComparison } from "@/components/store/PriceComparison";
 import { PriceHistory } from "@/components/store/PriceHistory";
+import { ShareGifButton } from "@/components/store/ShareGifButton";
 import { SubmissionLog } from "@/components/store/SubmissionLog";
 import { StoreMorphLanding } from "@/components/store/StoreMorphLanding";
 import { SubmitPriceButton } from "@/components/store/SubmitPriceButton";
@@ -17,6 +18,8 @@ import { WordRise } from "@/components/ui/WordRise";
 import { feedName } from "@/lib/feeds";
 import { formatCents } from "@/lib/money";
 import { priceAge } from "@/lib/provenance";
+import { siteUrl } from "@/lib/site";
+import { storeCard } from "@/lib/store-card";
 import { getCachedAreaPeers } from "@/lib/area-peers.server";
 import {
   areaCellFor,
@@ -105,7 +108,8 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
   if (store === null) notFound();
 
   // Depends on the store record, so it cannot join the parallel batch above.
-  const comparison = areaComparisonFrom(store, await getCachedAreaPeers(areaCellFor(store)));
+  const [peers, card] = await Promise.all([getCachedAreaPeers(areaCellFor(store)), storeCard(store)]);
+  const comparison = areaComparisonFrom(store, peers);
 
   const state = displayStateFor(store);
   const label = storeLabel(store);
@@ -250,6 +254,10 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
           hasPrices={store.reportCount > 0}
         />
       </div>
+
+      {card.priced ? (
+        <ShareGifButton card={card} host={new URL(siteUrl()).host} fileName={`mcchicken-price-${store.id}.gif`} />
+      ) : null}
 
       <PriceComparison comparison={comparison} />
 

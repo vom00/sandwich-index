@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
@@ -27,7 +28,17 @@ import type { StoreWithId } from "@/types";
  *
  * A row's History link morphs its name and price into the store page's
  * header (`lib/store-morph`).
+ *
+ * When a search hides rows, the ones left slide up into the gaps rather than
+ * jumping (a layout animation, transform only), and the hidden ones fade out
+ * of the way. Rows that come back fade in where they belong. The list's first
+ * render does not animate, and under reduced motion nothing moves at all.
  */
+
+/** `--duration-ui` and `--ease-out-quart`; exits at `--duration-ui-exit`. */
+const ROW = { duration: 0.2, ease: [0.165, 0.84, 0.44, 1] } as const;
+const EXIT = { duration: 0.16, ease: [0.165, 0.84, 0.44, 1] } as const;
+
 /** Name widths for the skeleton rows, so they read as a list rather than a grid. */
 const SKELETON_NAME_WIDTHS = ["72%", "58%", "80%", "64%", "52%", "76%"];
 
@@ -87,6 +98,7 @@ export function StoreList({
   const tiers = assignTiers(stores);
   const listRef = useRef<HTMLUListElement>(null);
   const router = useRouter();
+  const still = useReducedMotion() === true;
 
   // Map selection scrolls the panel. `nearest` rather than `center` so a click
   // on an already-visible row does not yank the list under the user's cursor.
@@ -99,7 +111,10 @@ export function StoreList({
   if (ordered.length === 0) return null;
 
   return (
-    <ul ref={listRef} className="divide-y divide-rule">
+    <ul ref={listRef} className="relative divide-y divide-rule">
+      {/* `popLayout`: a row on its way out leaves the flow at once, so the
+          rows below start closing the gap straight away. */}
+      <AnimatePresence initial={false} mode="popLayout">
       {ordered.map(({ store, miles }) => {
         const state = displayStateFor(store);
         const tier = tiers.get(store.id) ?? null;
@@ -108,7 +123,15 @@ export function StoreList({
         const label = storeLabel(store);
 
         return (
-          <li key={store.id} data-store-id={store.id}>
+          <motion.li
+            key={store.id}
+            data-store-id={store.id}
+            layout={still ? false : "position"}
+            initial={still ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: still ? { duration: 0 } : EXIT }}
+            transition={ROW}
+          >
             <div
               // `.map-row`: a hover shade, and an accent bar that grows in down
               // the left edge of the selected store.
@@ -195,9 +218,10 @@ export function StoreList({
                 </Link>
               </div>
             </div>
-          </li>
+          </motion.li>
         );
       })}
+      </AnimatePresence>
     </ul>
   );
 }

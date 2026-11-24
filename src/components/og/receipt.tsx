@@ -51,12 +51,7 @@ export const TIER_COLOR: Record<Exclude<PriceTier, "none">, string> = {
 const RECEIPT_WIDTH = 600;
 const TOOTH = 15;
 
-export const RECEIPT_DATE = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-  timeZone: "UTC",
-});
+export { RECEIPT_DATE } from "@/lib/store-card";
 
 /** A torn till-roll edge: teeth pointing up (top of the slip) or down (bottom). */
 function TornEdge({ side }: { side: "top" | "bottom" }) {

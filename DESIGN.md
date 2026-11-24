@@ -94,6 +94,8 @@ Fixed timings outside the tokens, each in one place:
 | Odometer roll | 1100ms per wheel, 70ms between wheels, `--ease-out-expo` | `.odo-col` |
 | Link underline wipe | 280ms, `--ease-out-quart` | `.wipe` |
 | Menu board split-flap | 75ms per flap, 30ms between turning columns, forward only, settles once | `components/landing/world/splitflap.ts` |
+| Map list filtering | Rows left by a search slide into the gaps (200ms, `--ease-out-quart`, Motion `layout="position"`); hidden rows fade out in 160ms | `components/map/StoreList.tsx` |
+| Receipt GIF | Prints top to bottom over 1100ms, then the price wheels roll with the odometer timing; the last frame holds; plays once (no loop block) | `components/store/share-gif/` |
 | Store page reveal stagger | `animation-delay` from 70ms to 280ms, in reading order | `app/store/[id]/page.tsx` |
 
 ## Motion rules
@@ -127,6 +129,8 @@ Fixed timings outside the tokens, each in one place:
 | Check | `.check-stroke` | A tick that draws once, 240ms after an 80ms wait |
 | Tap target | `.tap-target` | Grows an inline control's hit area to 44px without moving the line |
 | Receipt | `components/og/receipt.tsx` | The till slip every share card is printed on |
+| Receipt lines | `lib/store-card.ts` | What a store's receipt says, shared by the link card and the GIF |
+| Receipt GIF | `ShareGifButton.tsx` | Draws the receipt's frames with the page's fonts, encodes them in a Web Worker (gifenc), shares on a phone, downloads elsewhere |
 
 ## Surfaces and elevation
 
