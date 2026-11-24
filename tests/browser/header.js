@@ -40,14 +40,19 @@ function check(name, passed, detail = '') {
 
 /**
  * Watches the header from before the page's own scripts run: whether the
- * pre-paint gate was added, and per frame for 2s, the top bun's opacity, the
- * wordmark's clip and whether the masthead's wheels were held at zero.
+ * pre-paint styles were added (the logo's hold, the figure's roll), and per
+ * frame for 2s, the top bun's opacity, the wordmark's clip, and whether the
+ * masthead's wheels were rolling. `rollingAtFirst` is that on the first frame
+ * the masthead existed, so a figure that rolls is never held still at zero.
  */
 function watchHeader() {
-  window.__header = { gate: false, bun: [], word: [], armed: false };
+  window.__header = { gate: false, roll: false, bun: [], word: [], rolling: false, rollingAtFirst: null };
   new MutationObserver((records) => {
     for (const record of records) {
-      for (const node of record.addedNodes) if (node.id === 'header-boot') window.__header.gate = true;
+      for (const node of record.addedNodes) {
+        if (node.id === 'header-boot') window.__header.gate = true;
+        if (node.id === 'header-boot-figure') window.__header.roll = true;
+      }
     }
   }).observe(document, { childList: true, subtree: true });
   const start = performance.now();
@@ -56,7 +61,11 @@ function watchHeader() {
     const word = document.querySelector('.logo-word');
     if (bun) window.__header.bun.push(Number(getComputedStyle(bun).opacity));
     if (word) window.__header.word.push(getComputedStyle(word).clipPath);
-    if (document.querySelector('.masthead .odo[data-armed]')) window.__header.armed = true;
+    if (document.querySelector('.masthead')) {
+      const rolling = document.getAnimations().some((a) => a.animationName === 'odo-roll' && a.effect?.target?.closest?.('.masthead'));
+      if (window.__header.rollingAtFirst === null) window.__header.rollingAtFirst = rolling;
+      if (rolling) window.__header.rolling = true;
+    }
     if (performance.now() - start < 2000) requestAnimationFrame(tick);
   };
   requestAnimationFrame(tick);
@@ -154,8 +163,8 @@ async function scrollState(page) {
           if (motion === 'reduced') {
             const first = await page.evaluate(() => window.__header);
             check(`${tag}: logo, wordmark and figure are final from the first frame`,
-              !first.gate && first.bun.every((o) => o === 1) && first.word.every((c) => c === 'none') && !first.armed,
-              `gate ${first.gate}, min bun ${Math.min(...first.bun)}, armed ${first.armed}`);
+              !first.gate && !first.roll && first.bun.every((o) => o === 1) && first.word.every((c) => c === 'none') && !first.rolling,
+              `gate ${first.gate}, roll ${first.roll}, min bun ${Math.min(...first.bun)}, rolling ${first.rolling}`);
           }
 
           await page.screenshot({ path: path.join(OUT, `${stem}-top.png`) });
@@ -199,7 +208,9 @@ async function scrollState(page) {
       check('first page: the wordmark inks in left to right',
         first.word.some((c) => /inset\(0px [1-9]/.test(c)) && ['none', 'inset(0px)', 'inset(0px 0% 0px 0px)'].includes(first.word.at(-1)),
         `${first.word[0]} → ${first.word.at(-1)}`);
-      check('first visit: the figure is held at zero, then rolls', first.armed && first.seen === String(MAP.priceCents.median), String(first.seen));
+      check('first visit: the figure rolls from the first frame, never held still at zero',
+        first.roll && first.rollingAtFirst === true && first.seen === String(MAP.priceCents.median),
+        `roll ${first.roll}, rolling at first frame ${first.rollingAtFirst}, seen ${first.seen}`);
       check('the session is marked as built', first.built === '1');
       const settled = await page.evaluate(() => {
         const header = document.querySelector('.site-header');
@@ -288,8 +299,8 @@ async function scrollState(page) {
       await page.waitForTimeout(800);
       const second = await page.evaluate(() => window.__header);
       check('a later page of the session shows the logo built, the figure still',
-        !second.gate && second.bun.every((o) => o === 1) && !second.armed,
-        `gate ${second.gate}, min bun ${Math.min(...second.bun)}, armed ${second.armed}`);
+        !second.gate && !second.roll && second.bun.every((o) => o === 1) && !second.rolling,
+        `gate ${second.gate}, roll ${second.roll}, min bun ${Math.min(...second.bun)}, rolling ${second.rolling}`);
 
       // A different stored figure rolls again (a changed median); the logo stays built.
       await page.evaluate(() => localStorage.setItem('si-masthead-seen', '1'));
@@ -297,8 +308,9 @@ async function scrollState(page) {
       await page.waitForTimeout(800);
       const changed = await page.evaluate(() => ({ ...window.__header, seen: localStorage.getItem('si-masthead-seen') }));
       check('a changed figure rolls again, and only the figure',
-        changed.gate && changed.armed && changed.bun.every((o) => o === 1) && changed.seen === String(MAP.priceCents.median),
-        `gate ${changed.gate}, armed ${changed.armed}, min bun ${Math.min(...changed.bun)}`);
+        !changed.gate && changed.roll && changed.rollingAtFirst === true && changed.bun.every((o) => o === 1)
+          && changed.seen === String(MAP.priceCents.median),
+        `gate ${changed.gate}, roll ${changed.roll}, rolling at first frame ${changed.rollingAtFirst}, min bun ${Math.min(...changed.bun)}`);
 
       // Timing tokens.
       const timing = await page.evaluate(() => {

@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Odometer } from "@/components/ui/Odometer";
 import { SandwichMark } from "@/components/ui/SandwichMark";
-import { FIGURE_SEEN_KEY, HEADER_BOOT_ID, LOGO_BUILT_KEY } from "@/lib/header-boot";
+import { HEADER_BOOT_ID, LOGO_BUILT_KEY } from "@/lib/header-boot";
 import type { NationalMedian } from "@/lib/landing-map";
 import { formatCents } from "@/lib/money";
 
@@ -19,12 +19,14 @@ import { formatCents } from "@/lib/money";
  *   drop into a stack (a spring, bounce 0.2, 60ms apart) and then the wordmark
  *   inks in left to right (600ms). Every later page shows it built.
  *   `lib/header-boot.ts` hides the layers before the first paint so they never
- *   flash built first.
+ *   flash built first, and this component takes over from it.
  * - **Masthead.** Beside the wordmark (under it on narrow screens), the
  *   national median and the date of the newest reading behind it: the same
  *   figure the landing page's map chapter states (`loadNationalMedian`). It
  *   rolls in on the Odometer the first time a browser sees it and again only
- *   when it has changed since that browser's last visit.
+ *   when it has changed since that browser's last visit; `lib/header-boot.ts`
+ *   starts that roll in CSS from the first paint, so the wheels never rest on
+ *   a zero that isn't the price.
  * - **Ink stroke.** The current page is marked with `aria-current="page"` and
  *   a hand-drawn stroke under its label: it draws in once when the visit
  *   starts, then glides to the next tab on navigation (Motion `layoutId`,
@@ -71,44 +73,34 @@ function isCurrent(pathname: string, href: string): boolean {
 export function SiteHeader({ national }: { national: NationalMedian | null }) {
   const pathname = usePathname();
   const logoRef = useRef<HTMLAnchorElement>(null);
-  const mastheadRef = useRef<HTMLParagraphElement>(null);
-  const figureKey = national === null ? null : String(national.cents);
 
-  // --- Once-only moments the pre-paint snippet held at their start. What is
-  // due is read from the snippet's style once and kept, so a second run of
-  // this effect (React runs effects twice in development) replays the same
-  // moments instead of finding the style gone and skipping them.
-  const due = useRef<{ logo: boolean; figure: boolean } | null>(null);
+  // --- The logo build, held at its start by the pre-paint snippet. Whether it
+  // is due is read from the snippet's style once and kept, so a second run of
+  // this effect (React runs effects twice in development) replays the build
+  // instead of finding the style gone and skipping it.
+  const buildDue = useRef<boolean | null>(null);
   useEffect(() => {
     const logo = logoRef.current;
     if (logo === null) return;
     const gate = document.getElementById(HEADER_BOOT_ID);
-    if (due.current === null) {
-      due.current = { logo: gate?.dataset.logo === "1", figure: gate?.dataset.figure === "1" };
-    }
-    const { logo: buildLogo, figure: rollFigure } = due.current;
-    const odometer = rollFigure ? mastheadRef.current?.querySelector<HTMLElement>(".odo") : null;
-    const layers = buildLogo ? [...logo.querySelectorAll<SVGGElement>(".logo-layer")] : [];
-    const word = buildLogo ? logo.querySelector<HTMLElement>(".logo-word") : null;
-    // Take over from the snippet's style without a frame in between: the
-    // layers hidden, the wheels at zero (the Odometer's own armed state).
+    buildDue.current ??= gate !== null;
+    if (!buildDue.current) return;
+    const layers = [...logo.querySelectorAll<SVGGElement>(".logo-layer")];
+    const word = logo.querySelector<HTMLElement>(".logo-word");
+    // Take over from the snippet's style without a frame in between.
     for (const layer of layers) {
       layer.style.opacity = "0";
       layer.style.transform = "translateY(-9px)";
     }
     if (word !== null) word.style.clipPath = "inset(0 100% 0 0)";
-    odometer?.setAttribute("data-armed", "");
     if (gate !== null) {
       gate.remove();
       try {
-        if (buildLogo) sessionStorage.setItem(LOGO_BUILT_KEY, "1");
-        if (odometer && figureKey !== null) localStorage.setItem(FIGURE_SEEN_KEY, figureKey);
+        sessionStorage.setItem(LOGO_BUILT_KEY, "1");
       } catch {
-        // Storage blocked: the moment plays again next page, which is harmless.
+        // Storage blocked: the logo builds again next page, which is harmless.
       }
     }
-    // The wheels roll up (1100ms a wheel, 70ms apart) as the wordmark inks in.
-    const roll = odometer ? window.setTimeout(() => odometer.removeAttribute("data-armed"), buildLogo ? 420 : 60) : undefined;
 
     // Bottom first, 60ms apart: each layer drops onto the one below.
     const running = layers.map((layer, index) => {
@@ -127,10 +119,8 @@ export function SiteHeader({ national }: { national: NationalMedian | null }) {
     }
     return () => {
       for (const animation of running) animation.stop();
-      if (roll !== undefined) window.clearTimeout(roll);
-      odometer?.removeAttribute("data-armed");
     };
-  }, [figureKey]);
+  }, []);
 
   // --- Ink stroke: after the first draw, later strokes arrive settled.
   const [inkSettled, setInkSettled] = useState(false);
@@ -190,7 +180,7 @@ export function SiteHeader({ national }: { national: NationalMedian | null }) {
           {national !== null ? (
             // The figure is the Odometer's own text for screen readers; the
             // short labels around it are spelled out for them.
-            <p ref={mastheadRef} className="masthead">
+            <p className="masthead">
               <span className="sr-only">National McChicken median </span>
               <span aria-hidden="true">
                 <span className="hidden md:inline">US </span>Median{" "}
