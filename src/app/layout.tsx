@@ -6,6 +6,7 @@ import { FirebaseBoot } from "@/components/ui/FirebaseBoot";
 import { SiteFooter } from "@/components/ui/SiteFooter";
 import { SiteHeader } from "@/components/ui/SiteHeader";
 import { HAS_ACTIVE_FEED } from "@/lib/feeds";
+import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
 /**
@@ -40,9 +41,23 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  // Makes relative image URLs (a store's share card) absolute, as social cards require.
+  metadataBase: new URL(siteUrl()),
   title: "Sandwich Index",
   description:
     `${HAS_ACTIVE_FEED ? "A price index" : "A crowdsourced price index"} for the McChicken. McDonald's franchisees set their own prices. This tracks what they actually charge, store by store.`,
+  // No title or description here on purpose: Next fills og:title,
+  // og:description and the Twitter pair from each page's own, and setting them
+  // here would give every store page the site's instead. Images come from a
+  // route's opengraph-image (store pages); Twitter reuses them.
+  openGraph: {
+    type: "website",
+    siteName: "Sandwich Index",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

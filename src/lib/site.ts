@@ -1,5 +1,5 @@
 /**
- * The canonical origin for absolute URLs (robots, sitemap, future OG tags).
+ * The canonical origin for absolute URLs (robots, sitemap, share cards).
  *
  * Comes from NEXT_PUBLIC_SITE_URL so each deployment names itself; the
  * localhost fallback keeps dev honest rather than emitting a production

@@ -9,7 +9,7 @@ import "server-only";
  * let anyone set the baseline to match whatever they wanted to submit.
  */
 
-import { Timestamp, type Firestore } from "firebase-admin/firestore";
+import { FieldPath, Timestamp, type Firestore } from "firebase-admin/firestore";
 
 import {
   OBSERVATIONS_COLLECTION,
@@ -46,6 +46,8 @@ import {
   LISTED_DUPLICATE_METERS,
   dropListedDuplicates,
   listedStoresNear,
+  toListedStore,
+  type KnownStore,
   type ListedRow,
   type ListedStore,
 } from "@/lib/store-list";
@@ -710,6 +712,41 @@ const BUNDLED_ROWS: readonly ListedRow[] = [...(usStoreRows as unknown as Listed
 
 export const bundledStoresNear: ListedStoreSource = (center, radiusMeters) =>
   listedStoresNear(BUNDLED_ROWS, center, radiusMeters);
+
+/** Id prefixes of stores from OpenStreetMap; every other store is `atp-` from the bundled list. */
+const OSM_ID_PREFIXES = ["node-", "relation-", "way-"] as const;
+
+/**
+ * The id of every store page, for the sitemap, without reading every store.
+ *
+ * Listed stores (`atp-…`) are the bundled list minus the ones a sync drops as
+ * the same restaurant as a store already on file from OpenStreetMap
+ * (`dropListedDuplicates`, as `syncAreaIfStale` does). Only those OSM stores
+ * are read: a few hundred documents, where reading the collection would spend
+ * about 13,800 of the free tier's 50,000 a day.
+ */
+export async function getStorePageIds(db: Firestore = getAdminDb()): Promise<string[]> {
+  const snapshots = await Promise.all(
+    OSM_ID_PREFIXES.map((prefix) =>
+      db
+        .collection(STORES_COLLECTION)
+        .where(FieldPath.documentId(), ">=", prefix)
+        .where(FieldPath.documentId(), "<", `${prefix}`)
+        .select("lat", "lng", "restaurantNumber")
+        .get(),
+    ),
+  );
+  const osm: KnownStore[] = snapshots.flatMap((snapshot) =>
+    snapshot.docs.map((document) => ({
+      id: document.id,
+      lat: Number(document.get("lat")),
+      lng: Number(document.get("lng")),
+      restaurantNumber: (document.get("restaurantNumber") as string | null | undefined) ?? null,
+    })),
+  );
+  const { kept } = dropListedDuplicates(BUNDLED_ROWS.map(toListedStore), osm);
+  return [...new Set([...osm.map((store) => store.id), ...kept.map((store) => store.osmId)])].sort();
+}
 
 let listedLocations: Map<string, LatLng> | null = null;
 

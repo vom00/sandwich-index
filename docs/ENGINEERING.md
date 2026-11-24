@@ -257,7 +257,7 @@ lost. Export first if it matters: `npx firebase emulators:export .emulator-data`
 | `FIREBASE_CLIENT_EMAIL` | prod | Service account email. Only when pointing at a real project, and not on App Hosting, where the server's own identity is used. |
 | `FIREBASE_PRIVATE_KEY` | prod | Service account key, newlines escaped as `\n`. |
 | `OVERPASS_CONTACT_EMAIL` | no | Added to the Overpass `User-Agent` beside the site URL. Overpass is donated infrastructure and asks clients to identify themselves. |
-| `NEXT_PUBLIC_SITE_URL` | prod | Canonical origin for `robots.txt` and `sitemap.xml`. Falls back to `http://localhost:3000`, so an unset value in production advertises localhost to crawlers. |
+| `NEXT_PUBLIC_SITE_URL` | prod | Canonical origin for `robots.txt`, `sitemap.xml` and the absolute share-card URLs in Open Graph and Twitter tags (`metadataBase`). Falls back to `http://localhost:3000`, so an unset value in production advertises localhost to crawlers. |
 | `NEXT_DIST_DIR` | no | Build output directory. Set it to build while `next dev` is running, so the two do not fight over `.next`. |
 
 ### App Check
