@@ -8,6 +8,7 @@ import { PriceComparison } from "@/components/store/PriceComparison";
 import { PriceHistory } from "@/components/store/PriceHistory";
 import { PriceStrip } from "@/components/store/PriceStrip";
 import { ShareGifButton } from "@/components/store/ShareGifButton";
+import { StillThisPrice } from "@/components/store/StillThisPrice";
 import { SubmissionLog } from "@/components/store/SubmissionLog";
 import { StoreMorphLanding } from "@/components/store/StoreMorphLanding";
 import { SubmitPriceButton } from "@/components/store/SubmitPriceButton";
@@ -237,6 +238,7 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
                   </span>
                 </div>
               ) : null}
+              <StillThisPrice storeId={store.id} priceCents={store.priceCents} />
             </>
           )}
 

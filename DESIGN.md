@@ -105,7 +105,7 @@ Fixed timings outside the tokens, each in one place:
 1. **Only `transform` and `opacity` animate.** Never width, height, top, padding or anything that relays out.
 2. **Never `ease-in` for UI.** It withholds feedback when it is most needed and reads as lag. (A falling flap may accelerate; that is physics, not UI.)
 3. **Exits run about 20% faster than entrances.** Product UI stays under 300ms; only the hero and the odometer go longer.
-4. **One moment per page.** Landing: the camera pull-back from sandwich to country. Store page: the price rolling onto its card. Everything else is quiet: the national strip below the fold settles once, small and in under a second, and the "How it works" receipt only follows the reader's own scroll.
+4. **One moment per page.** Landing: the camera pull-back from sandwich to country. Store page: the price rolling onto its card. About page: its three numbers rolling up once as it opens. Everything else is quiet: the national strip below the fold settles once, small and in under a second, and the "How it works" receipt only follows the reader's own scroll.
 5. **Nothing loops.** Every animation settles once and stops. A scroll-linked piece stops when the scroll does; the 3D canvas requests no frames while idle.
 6. **Reduced motion gets the final state from the first paint.** `animation: none` rather than a shorter animation, so nothing is stranded at opacity 0. Scroll-linked pieces are not shown or not pinned, the 3D scene is one still frame, and the map to store morph becomes a crossfade.
 7. **Hover is gated** behind `(hover: hover) and (pointer: fine)` so a tap doesn't leave a phantom hover.
@@ -136,6 +136,8 @@ Fixed timings outside the tokens, each in one place:
 | Settle on view | `SettleOnView.tsx`, `[data-settle]` | Server-rendered finished; arms (`armed`) only below the fold with motion allowed, then flips to `in` once and lets CSS transitions settle it |
 | Price strip | `PriceStrip.tsx` | Every nationally priced store as dots by price, this store ringed; positions precomputed by `npm run build:price-strip` |
 | How-it-works receipt | `HowReceipt` in `app/page.tsx` | Sticky till slip whose lines print as the steps scroll past |
+| Still this price | `StillThisPrice.tsx` | One quiet button per place a price is seen; a tap is an ordinary report of the price on file (same Turnstile, App Check and once-a-day rule), then the check tick and a dated thanks. No field, no dialog |
+| Numbers funnel | `NumbersFunnel.tsx` | The about page's three counts (on file, priced, confirmed recently), each a subset of the one above, from the landing page's snapshot so the two never disagree; figures on the odometer, ink bars at their final width |
 
 ## Surfaces and elevation
 

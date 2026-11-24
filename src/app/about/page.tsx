@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 
+import { NumbersFunnel } from "@/components/about/NumbersFunnel";
 import { RailToc, type RailItem } from "@/components/ui/RailToc";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import { WordRise } from "@/components/ui/WordRise";
 import { ACTIVE_FEEDS, HAS_ACTIVE_FEED } from "@/lib/feeds";
+import { getCachedIndexSnapshot } from "@/lib/index-snapshot.server";
 import { PRICE_MAX_CENTS, PRICE_MIN_CENTS, formatCents } from "@/lib/money";
 import { BIG_MOVE_PERCENT, CORROBORATION_PERCENT } from "@/lib/pricing";
 import { STALE_AFTER_DAYS } from "@/types";
@@ -37,17 +39,28 @@ function Section({ id, children }: { id: string; children: React.ReactNode }) {
   );
 }
 
-export default function AboutPage() {
+/**
+ * Rebuilt at most hourly, like the landing page, whose snapshot the numbers
+ * at the top share; a report that moves a price drops both early
+ * (`INDEX_SNAPSHOT_TAG`).
+ */
+export const revalidate = 3600;
+
+/** The same argument the landing page passes, so both read one cache entry. */
+const LEADER_LIMIT = 3;
+
+export default async function AboutPage() {
+  const snapshot = await getCachedIndexSnapshot(LEADER_LIMIT);
   return (
     // On wide screens a two-column grid: the rail on the left spanning the
-    // page's three rows (title, introduction, sections), the text on the right.
+    // page's four rows (title, introduction, numbers, sections), the text on the right.
     <main
       id="main"
       className="mx-auto w-full max-w-2xl px-5 py-16 sm:px-8 sm:py-24 lg:grid lg:max-w-[68rem] lg:grid-cols-[12rem_minmax(0,42rem)] lg:content-start lg:justify-center lg:gap-x-16"
     >
       <ScrollProgress />
 
-      <div className="hidden lg:row-span-3 lg:block">
+      <div className="hidden lg:row-span-4 lg:block">
         <div className="sticky top-[calc(var(--site-header-height)+2.5rem)]">
           <RailToc items={SECTIONS} />
         </div>
@@ -74,6 +87,8 @@ export default function AboutPage() {
           </>
         )}
       </p>
+
+      <NumbersFunnel snapshot={snapshot} />
 
       <div className="mt-12 space-y-10 lg:col-start-2">
         <Section id="why-prices-differ">

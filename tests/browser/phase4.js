@@ -600,7 +600,9 @@ async function apiStore(page, id) {
       animatedDash !== null && animatedDash !== '', String(animatedDash));
 
     const panelFrames = await motionPage.evaluate(async () => {
-      document.querySelector('main button').click();
+      // The dialog's own trigger: a priced store's card now has the
+      // one-tap confirm buttons before it.
+      [...document.querySelectorAll('main button')].find((b) => /^Log (a|the first) price$/.test(b.textContent.trim())).click();
       const seen = new Set();
       for (let i = 0; i < 12; i += 1) {
         const panel = document.querySelector('dialog .max-w-lg');
@@ -631,7 +633,9 @@ async function apiStore(page, id) {
       stillDash === null || stillDash === '', String(stillDash));
 
     const stillFrames = await stillPage.evaluate(async () => {
-      document.querySelector('main button').click();
+      // The dialog's own trigger: a priced store's card now has the
+      // one-tap confirm buttons before it.
+      [...document.querySelectorAll('main button')].find((b) => /^Log (a|the first) price$/.test(b.textContent.trim())).click();
       const seen = new Set();
       for (let i = 0; i < 12; i += 1) {
         const panel = document.querySelector('dialog .max-w-lg');

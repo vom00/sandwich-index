@@ -331,6 +331,29 @@ function followAndWatch(page, selector) {
     check('every dot is in place and the ring is drawn', strip.dots > 50 && strip.visible && /^0(px)?$/.test(strip.ring), `${strip.dots} dots, ring ${strip.ring}`);
     check('it names this store\'s price and its national shares',
       strip.text.includes(`$${(stripStore.priceCents / 100).toFixed(2)}`) && /cheaper than \S+ of the [\d,]+ stores/.test(strip.text));
+
+    // ---------------------------------------------------------------
+    console.log('\nThe about page\'s three numbers');
+    // ---------------------------------------------------------------
+    await page.goto(`${TARGET_URL}/`, { waitUntil: 'load' });
+    const landingTracked = await page.evaluate(() => document.body.textContent.match(/([\d,]+) restaurants tracked/i)?.[1] ?? null);
+    await page.goto(`${TARGET_URL}/about`, { waitUntil: 'load' });
+    const funnel = await page.evaluate(() => ({
+      figures: [...document.querySelectorAll('[aria-labelledby="index-in-numbers"] .odo')].map((odo) => ({
+        value: odo.querySelector('.sr-only').textContent,
+        roll: odo.dataset.roll,
+      })),
+      rolling: document.getAnimations().filter((a) => a.effect?.pseudoElement === '::before' && a.effect.target?.closest?.('[aria-labelledby="index-in-numbers"]')).length,
+    }));
+    const counts = funnel.figures.map((f) => Number(f.value.replace(/,/g, '')));
+    check('three figures, each a subset of the one above',
+      counts.length === 3 && counts[0] >= counts[1] && counts[1] >= counts[2], funnel.figures.map((f) => f.value).join(' ≥ '));
+    check('the first is the same count the landing page shows (one source)', landingTracked !== null && funnel.figures[0]?.value === landingTracked,
+      `${funnel.figures[0]?.value} vs ${landingTracked}`);
+    check('the figures roll up on wheels as the page opens', funnel.figures.every((f) => f.roll === 'load') && funnel.rolling > 0, `${funnel.rolling} wheels rolling`);
+    await page.waitForTimeout(1800);
+    check('and settle once, then stop', await page.evaluate(() =>
+      document.getAnimations().filter((a) => a.effect?.target?.closest?.('[aria-labelledby="index-in-numbers"]') && a.playState === 'running').length === 0));
     await page.close();
     await context.close();
 
@@ -359,6 +382,9 @@ function followAndWatch(page, selector) {
       document.getAnimations().filter((a) => a.effect?.pseudoElement === '::before' && a.effect.target?.classList?.contains('odo-col')).length === 0));
     check('the national strip is simply there, never armed', await page.evaluate(() =>
       document.querySelector('[data-settle]') === null && document.querySelectorAll('.strip-dot').length > 50));
+    await page.goto(`${TARGET_URL}/about`, { waitUntil: 'load' });
+    check('the about page\'s numbers do not roll', await page.evaluate(() =>
+      document.getAnimations().filter((a) => a.effect?.pseudoElement === '::before' && a.effect.target?.classList?.contains('odo-col')).length === 0));
     await page.goto(`${TARGET_URL}/`, { waitUntil: 'load' });
     check('the receipt is fully printed from the start', await page.evaluate(() =>
       [...document.querySelectorAll('.lp-rc-line')].every((g) => !/inset\(\S+ [1-9]/.test(getComputedStyle(g).clipPath))));
