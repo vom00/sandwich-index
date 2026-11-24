@@ -1,7 +1,7 @@
 "use client";
 
 import L from "leaflet";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 
 import type { LatLng } from "@/lib/geohash";
@@ -39,6 +39,7 @@ interface MapCanvasProps {
   onSelect: (storeId: string) => void;
 }
 
+/** Standard OpenStreetMap tiles, toned down to paper in globals.css (`.leaflet-tile-pane`). */
 const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 /** OSM tile usage policy requires visible attribution. */
 const TILE_ATTRIBUTION =
@@ -183,6 +184,71 @@ function FitToResults({
   return null;
 }
 
+/** One step of the drop-in stagger, and at most this many steps. */
+const DROP_STEP_MS = 35;
+const DROP_STEPS = 10;
+/** Standard UI duration: a pill is interface, not a figure. */
+const DROP_MS = 220;
+
+/**
+ * The price pills drop into place once, the first time an area's stores are
+ * on the map: nearest the centre first, rippling outward in at most ten
+ * 35ms steps however many stores there are. It plays from here, once per
+ * map, so nothing else (a selection, a search, a background sync redrawing
+ * the pills) can replay it. Under reduced motion the pills are simply there.
+ *
+ * It starts in the next animation frame, which runs before that frame is
+ * painted, so no pill is seen before it drops. Not sooner: react-leaflet adds
+ * each marker in an effect, and in development React adds new ones, removes
+ * them and adds them again, so pills found any earlier may already be gone.
+ */
+function DropIn({ ready }: { ready: boolean }) {
+  const map = useMap();
+  const played = useRef(false);
+
+  useEffect(() => {
+    if (!ready || played.current) return;
+    const frame = requestAnimationFrame(() => {
+      played.current = true;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      drop(map);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [map, ready]);
+
+  return null;
+}
+
+/** Drops every pill on the map in, nearest the centre first. */
+function drop(map: L.Map) {
+  const container = map.getContainer();
+  const box = container.getBoundingClientRect();
+  const centreX = box.left + box.width / 2;
+  const centreY = box.top + box.height / 2;
+  const pills = Array.from(map.getPane("markerPane")?.querySelectorAll<HTMLElement>(".marker-pill") ?? [])
+    .map((pill) => {
+      const rect = pill.getBoundingClientRect();
+      return { pill, distance: Math.hypot(rect.left + rect.width / 2 - centreX, rect.top + rect.height / 2 - centreY) };
+    })
+    .sort((a, b) => a.distance - b.distance);
+
+  const easing =
+    getComputedStyle(container).getPropertyValue("--ease-out-quart").trim() || "cubic-bezier(0.165, 0.84, 0.44, 1)";
+  const lastStep = Math.min(pills.length - 1, DROP_STEPS - 1);
+  pills.forEach(({ pill }, rank) => {
+    const step = pills.length > 1 ? Math.round((rank / (pills.length - 1)) * lastStep) : 0;
+    pill.animate(
+      [
+        { opacity: 0, transform: "translateY(-10px)" },
+        { opacity: 1, transform: "none" },
+      ],
+      // `backwards` holds each pill out of sight through its delay; nothing
+      // is held after the end, so the pill is left exactly as styled.
+      { duration: DROP_MS, delay: step * DROP_STEP_MS, easing, fill: "backwards" },
+    );
+  });
+}
+
 /**
  * Leaflet measures the container on creation. When the map is inside a layout
  * that settles after mount, that measurement is wrong and the tiles render into
@@ -219,6 +285,20 @@ export default function MapCanvas({
     typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // Built only when what they show changes. A new icon object makes Leaflet
+  // rewrite the marker's HTML, which would cut a pill's drop-in short, so a
+  // render for any other reason (the sync spinner, say) must reuse them.
+  const icons = useMemo(
+    () =>
+      new Map(
+        shown.map((store) => [
+          store.id,
+          buildIcon(store, tiers.get(store.id) ?? null, displayStateFor(store), store.id === selectedId),
+        ]),
+      ),
+    [shown, tiers, selectedId],
+  );
+
   const selected = stores.find((store) => store.id === selectedId) ?? null;
 
   return (
@@ -245,19 +325,18 @@ export default function MapCanvas({
       <ViewportSync center={center} selected={selected} reducedMotion={reducedMotion} />
       <FitToResults center={center} matches={visibleIds === null ? null : shown} reducedMotion={reducedMotion} />
 
-      {shown.map((store) => {
-        const state = displayStateFor(store);
-        return (
-          <Marker
-            key={store.id}
-            position={[store.lat, store.lng]}
-            icon={buildIcon(store, tiers.get(store.id) ?? null, state, store.id === selectedId)}
-            // Selected marker sits above its neighbours so it is never hidden.
-            zIndexOffset={store.id === selectedId ? 1000 : 0}
-            eventHandlers={{ click: () => onSelect(store.id) }}
-          />
-        );
-      })}
+      {shown.map((store) => (
+        <Marker
+          key={store.id}
+          position={[store.lat, store.lng]}
+          icon={icons.get(store.id)}
+          // Selected marker sits above its neighbours so it is never hidden.
+          zIndexOffset={store.id === selectedId ? 1000 : 0}
+          eventHandlers={{ click: () => onSelect(store.id) }}
+        />
+      ))}
+
+      <DropIn ready={shown.length > 0} />
     </MapContainer>
   );
 }

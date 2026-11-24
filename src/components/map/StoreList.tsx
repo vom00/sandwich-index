@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 import { Confidence } from "@/components/ui/Confidence";
@@ -8,6 +9,7 @@ import { StoreStateBadge } from "@/components/ui/StoreStateBadge";
 import { distanceMeters, type LatLng } from "@/lib/geohash";
 import { formatCents } from "@/lib/money";
 import { storeLabel } from "@/lib/store-label";
+import { morphToStore } from "@/lib/store-morph";
 import { TIER_PRESENTATION, assignTiers, displayStateFor } from "@/lib/tiers";
 import type { StoreWithId } from "@/types";
 
@@ -22,7 +24,43 @@ import type { StoreWithId } from "@/types";
  * Half of the two-way selection contract: clicking a row selects a store, and a
  * selection made on the map scrolls the matching row into view. Keeping both
  * directions in one component is what stops them drifting apart.
+ *
+ * A row's History link morphs its name and price into the store page's
+ * header (`lib/store-morph`).
  */
+/** Name widths for the skeleton rows, so they read as a list rather than a grid. */
+const SKELETON_NAME_WIDTHS = ["72%", "58%", "80%", "64%", "52%", "76%"];
+
+/**
+ * Stand-in rows while the area's stores load: the same padding and the same
+ * three lines as a real row, so the list does not jump when they arrive.
+ * Still blocks, with no shimmer; the header already says it is looking, and
+ * nothing on the site loops.
+ */
+export function StoreListSkeleton() {
+  return (
+    <ul aria-hidden="true" className="divide-y divide-rule">
+      {SKELETON_NAME_WIDTHS.map((width, index) => (
+        <li key={index} className="px-4 py-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <div className="my-1 h-4 rounded bg-paper-sunken" style={{ width }} />
+              <div className="mt-1.5 h-3 w-24 rounded bg-paper-sunken" />
+            </div>
+            <div className="flex shrink-0 flex-col items-end gap-1.5 pt-1">
+              <div className="h-5 w-12 rounded bg-paper-sunken" />
+              <div className="h-3 w-20 rounded bg-paper-sunken" />
+            </div>
+          </div>
+          <div className="mt-2 flex min-h-11 items-center">
+            <div className="h-6 w-28 rounded-full bg-paper-sunken" />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function StoreList({
   stores,
   visibleIds,
@@ -48,6 +86,7 @@ export function StoreList({
 
   const tiers = assignTiers(stores);
   const listRef = useRef<HTMLUListElement>(null);
+  const router = useRouter();
 
   // Map selection scrolls the panel. `nearest` rather than `center` so a click
   // on an already-visible row does not yank the list under the user's cursor.
@@ -86,7 +125,7 @@ export function StoreList({
                   // 44px minimum target, and the whole label is the target.
                   className="press -m-1 min-h-11 min-w-0 flex-1 rounded p-1 text-left"
                 >
-                  <span className="block font-medium">
+                  <span data-morph-source="name" className="block w-fit font-medium">
                     {label.text}
                     {label.qualifier !== null ? (
                       <span className="font-normal text-ink-subtle">
@@ -109,7 +148,7 @@ export function StoreList({
                       —
                     </span>
                   ) : (
-                    <span className="tabular block text-lg font-medium">
+                    <span data-morph-source="price" className="tabular ml-auto block w-fit text-lg font-medium">
                       {formatCents(store.priceCents)}
                     </span>
                   )}
@@ -142,6 +181,14 @@ export function StoreList({
 
                 <Link
                   href={`/store/${store.id}`}
+                  onNavigate={(event) =>
+                    morphToStore(
+                      event,
+                      router,
+                      `/store/${store.id}`,
+                      listRef.current?.querySelector(`[data-store-id="${store.id}"]`),
+                    )
+                  }
                   className="link-prose ml-auto inline-flex min-h-11 items-center px-1 text-sm"
                 >
                   History

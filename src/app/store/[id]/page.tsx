@@ -7,6 +7,7 @@ import { ObservationLog } from "@/components/store/ObservationLog";
 import { PriceComparison } from "@/components/store/PriceComparison";
 import { PriceHistory } from "@/components/store/PriceHistory";
 import { SubmissionLog } from "@/components/store/SubmissionLog";
+import { StoreMorphLanding } from "@/components/store/StoreMorphLanding";
 import { SubmitPriceButton } from "@/components/store/SubmitPriceButton";
 import { Confidence } from "@/components/ui/Confidence";
 import { FeedCredit } from "@/components/ui/FeedCredit";
@@ -118,7 +119,10 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
       : (observations.find((observation) => observation.feed === store.priceFeed) ?? null);
 
   return (
-    <main id="main" className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-8 sm:py-14">
+    // `data-morph-page`, the name and the price below: where a store row or
+    // sheet on the map lands when it morphs into this page (`lib/store-morph`).
+    <main id="main" data-morph-page className="mx-auto w-full max-w-3xl px-5 py-10 sm:px-8 sm:py-14">
+      <StoreMorphLanding />
       <Link href="/map" className="link-wipe hover-accent inline-flex min-h-11 items-center gap-1.5 text-sm">
         <span className="btn-arrow-back" aria-hidden="true">←</span>
         <span className="wipe">Back to the map</span>
@@ -129,7 +133,11 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
         <p className="reveal font-mono text-xs uppercase tracking-[0.18em] text-ink-subtle">
           McChicken price
         </p>
-        <h1 className="reveal mt-2 font-display text-3xl leading-tight sm:text-4xl" style={{ animationDelay: "70ms" }}>
+        <h1
+          data-morph-target="name"
+          className="reveal mt-2 w-fit font-display text-3xl leading-tight sm:text-4xl"
+          style={{ animationDelay: "70ms" }}
+        >
           {label.text}
           {label.qualifier !== null ? (
             <span className="text-2xl text-ink-subtle"> ({label.qualifier})</span>
@@ -160,6 +168,7 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
                     is plain text inside (`Odometer`). */}
                 <Odometer
                   roll="load"
+                  morph="target"
                   value={formatCents(store.priceCents)}
                   className="tabular text-5xl font-medium sm:text-6xl"
                 />

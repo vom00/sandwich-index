@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { LocationGate } from "@/components/map/LocationGate";
-import { StoreList } from "@/components/map/StoreList";
+import { StoreList, StoreListSkeleton } from "@/components/map/StoreList";
 import { StoreSheet } from "@/components/map/StoreSheet";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import type { LatLng } from "@/lib/geohash";
@@ -18,17 +18,15 @@ import type { StoreWithId } from "@/types";
 
 /**
  * Leaflet touches `window` at module scope, so the map can only ever be loaded
- * in the browser. The skeleton below reserves the full height of the map area,
- * which is what keeps this from contributing layout shift.
+ * in the browser. The plain paper below reserves the full height of the map
+ * area, which is what keeps this from contributing layout shift; it is the
+ * map's own background colour, so the tiles arrive on it rather than replace
+ * it. No spinner: the list beside it shows skeleton rows, and nothing loops.
  */
 const MapCanvas = dynamic(() => import("@/components/map/MapCanvas"), {
   ssr: false,
   loading: () => (
-    <div className="flex size-full items-center justify-center bg-paper-sunken">
-      <LoaderCircle
-        aria-hidden="true"
-        className="size-6 animate-spin text-ink-subtle motion-reduce:animate-none"
-      />
+    <div className="size-full bg-paper-sunken">
       <span className="sr-only">Loading map</span>
     </div>
   ),
@@ -390,6 +388,8 @@ export function MapExperience() {
               title="No stores tracked here yet"
               body="We have no McDonald's locations on file within fifteen miles. That usually means there are none nearby, or, outside the US, that OpenStreetMap has none mapped here."
             />
+          ) : stores.length === 0 ? (
+            <StoreListSkeleton />
           ) : visibleIds !== null && visibleIds.size === 0 ? (
             <EmptyState
               title={`No store here matches “${query.trim()}”`}

@@ -3,7 +3,8 @@
 import { X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 import { Confidence } from "@/components/ui/Confidence";
 import { FeedCredit } from "@/components/ui/FeedCredit";
@@ -13,6 +14,7 @@ import { StoreStateBadge } from "@/components/ui/StoreStateBadge";
 import { formatCents } from "@/lib/money";
 import { priceAge } from "@/lib/provenance";
 import { storeLabel, storeLabelText } from "@/lib/store-label";
+import { morphToStore } from "@/lib/store-morph";
 import { displayStateFor } from "@/lib/tiers";
 import type { StoreWithId, Submission } from "@/types";
 
@@ -27,6 +29,9 @@ import type { StoreWithId, Submission } from "@/types";
  *
  * When the user prefers reduced motion, `initial={false}` skips the entrance
  * entirely rather than merely shortening it.
+ *
+ * Following either link to the store page morphs the sheet's name and price
+ * into that page's header (`lib/store-morph`).
  */
 /** Whether the sheet is docked to the right (640px and up) rather than the bottom. */
 function useWideScreen(): boolean {
@@ -45,7 +50,7 @@ function StoreHeading({ store }: { store: StoreWithId }) {
   const { text, qualifier } = storeLabel(store);
 
   return (
-    <h2 className="font-display text-lg leading-snug">
+    <h2 data-morph-source="name" className="w-fit font-display text-lg leading-snug">
       {text}
       {qualifier !== null ? (
         <span className="text-sm text-ink-subtle"> ({qualifier})</span>
@@ -63,6 +68,8 @@ export function StoreSheet({
 }) {
   const reducedMotion = useReducedMotion() ?? false;
   const wide = useWideScreen();
+  const router = useRouter();
+  const sheetRef = useRef<HTMLElement>(null);
 
   /**
    * History is stored with the id it belongs to rather than on its own.
@@ -116,6 +123,7 @@ export function StoreSheet({
     <AnimatePresence>
       {store !== null ? (
         <motion.aside
+          ref={sheetRef}
           key={store.id}
           role="dialog"
           aria-label={`Price detail for ${storeLabelText(store)}`}
@@ -162,7 +170,12 @@ export function StoreSheet({
             ) : (
               <>
                 {/* Rolls up on wheels each time a store's sheet opens. */}
-                <Odometer roll="load" value={formatCents(store.priceCents)} className="tabular text-3xl font-medium" />
+                <Odometer
+                  roll="load"
+                  morph="source"
+                  value={formatCents(store.priceCents)}
+                  className="tabular text-3xl font-medium"
+                />
                 <span className="pb-1 text-sm text-ink-subtle">current</span>
               </>
             )}
@@ -196,6 +209,7 @@ export function StoreSheet({
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
               href={`/store/${store.id}`}
+              onNavigate={(event) => morphToStore(event, router, `/store/${store.id}`, sheetRef.current)}
               className="btn-primary press inline-flex min-h-11 flex-1 items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-accent-ink"
             >
               Log a price
@@ -203,6 +217,7 @@ export function StoreSheet({
             </Link>
             <Link
               href={`/store/${store.id}`}
+              onNavigate={(event) => morphToStore(event, router, `/store/${store.id}`, sheetRef.current)}
               className="btn-quiet press inline-flex min-h-11 items-center justify-center rounded-md border border-rule-strong px-4 py-2 font-medium"
             >
               Full history

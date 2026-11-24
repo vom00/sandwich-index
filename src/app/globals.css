@@ -309,10 +309,11 @@ h6 {
 /* ---------------------------------------------------------------------------
    Map markers
 
-   Deliberately unanimated. A user hovers markers hundreds of times in a
-   session, and a transition on each one turns reading the map into waiting for
-   it. State changes here are instant, by design, not by omission — there is no
-   reduced-motion guard below because there is no motion to guard.
+   Hover and selection are instant. A user hovers markers hundreds of times in
+   a session, and a transition on each one turns reading the map into waiting
+   for it. The one piece of motion is the pills dropping in when an area's
+   prices first arrive, nearest first, played once from MapCanvas (`DropIn`)
+   and skipped entirely under reduced motion. Nothing here replays it.
 --------------------------------------------------------------------------- */
 
 .marker-hit {
@@ -379,6 +380,13 @@ h6 {
   font-family: var(--font-body);
 }
 
+/* The street map, toned down to paper so the price pills are the only colour
+   on it. Only the tile layer: markers and controls sit in other panes. The
+   OpenStreetMap palette's reds and yellows go with the saturation. */
+.leaflet-container .leaflet-tile-pane {
+  filter: saturate(0.3) sepia(0.14) contrast(0.9) brightness(1.03);
+}
+
 .leaflet-container .leaflet-control-attribution {
   background-color: rgb(255 255 255 / 0.85);
   font-size: 0.6875rem;
@@ -409,12 +417,23 @@ h6 {
    the element simply shows its finished state.
 =========================================================================== */
 
-/* --- Pinned header: frosted paper, with a hairline shadow that fades in as
-   soon as anything scrolls underneath it. ------------------------------- */
+/* --- Paper grain: fractal noise at 4% opacity, drawn once as a 160px tile
+   and repeated. A texture you feel more than see, laid over the header, the
+   primary button and the ink band on the landing page. Static: nothing about
+   it moves, so it needs no reduced-motion rule. ------------------------- */
+:root {
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='2 0 0 0 -.5 2 0 0 0 -.5 2 0 0 0 -.5 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.04'/%3E%3C/svg%3E");
+}
+
+.paper-grain {
+  background-image: var(--grain);
+}
+
+/* --- Pinned header: solid paper with grain, and a hairline shadow that
+   fades in as soon as anything scrolls underneath it. ------------------- */
 .site-header {
-  background-color: color-mix(in srgb, var(--color-paper) 86%, transparent);
-  -webkit-backdrop-filter: saturate(1.4) blur(14px);
-  backdrop-filter: saturate(1.4) blur(14px);
+  background-color: var(--color-paper);
+  background-image: var(--grain);
 }
 
 .site-header::after {
@@ -507,26 +526,17 @@ h6 {
   }
 }
 
-/* --- Primary button: depth, a hover shade, a light sheen across the face,
-   and an arrow that steps forward. Layered on top of `.press`. ---------- */
+/* --- Primary button: depth, paper grain on the face, a hover shade, and an
+   arrow that steps forward. Layered on top of `.press`. ----------------- */
 .btn-primary {
   position: relative;
   overflow: hidden;
   isolation: isolate;
+  background-image: var(--grain);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.14),
     0 1px 2px rgb(21 20 15 / 0.16),
     0 8px 18px -10px rgb(18 57 94 / 0.6);
-}
-
-.btn-primary::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.16) 50%, transparent 70%);
-  transform: translateX(-110%);
-  pointer-events: none;
 }
 
 .btn-arrow {
@@ -542,11 +552,6 @@ h6 {
 
   .btn-primary:hover:not(:disabled) {
     background-color: var(--color-accent-hover);
-  }
-
-  .btn-primary:hover:not(:disabled)::after {
-    transform: translateX(110%);
-    transition: transform 700ms var(--ease-out-quart);
   }
 
   :hover > .btn-arrow {
@@ -751,7 +756,12 @@ h6 {
 }
 
 /* A figure that is on screen when the page opens rolls from the first paint,
-   in CSS alone; the animation ends on the figure's own digit. */
+   in CSS alone; the animation ends on the figure's own digit.
+
+   `backwards`, not `both`: once the roll ends the animation lets go of the
+   wheel, so when the figure later changes, the transition on `.odo-col`
+   above rolls each wheel from its old digit to its new one. A `forwards` fill
+   would hold the transform and the new digit would jump into place. */
 @keyframes odo-roll {
   from {
     transform: translateY(0);
@@ -760,12 +770,54 @@ h6 {
 
 @media (prefers-reduced-motion: no-preference) {
   .odo[data-roll="load"] .odo-col::before {
-    animation: odo-roll 1100ms var(--ease-out-expo) calc(var(--k, 0) * 70ms) both;
+    animation: odo-roll 1100ms var(--ease-out-expo) calc(var(--k, 0) * 70ms) backwards;
   }
 }
 
 .odo-ch::before {
   content: attr(data-c);
+}
+
+/* --- Map to store page: the store's name and price carry over.
+
+   `lib/store-morph` names the clicked row's (or sheet's) name and price,
+   marks the document `data-morph`, and starts a view transition; the store
+   page's header holds the matching names below. The names exist only while
+   the document is marked, so no other navigation picks them up.
+
+   Arriving this way, the morph is the page's entrance: the store page's rise
+   and the price's roll finish instantly rather than playing over it. Cut to
+   zero length rather than removed, because the mark comes off again later
+   and an animation that was removed would start over when it came back.
+   Under reduced motion `data-morph="fade"` names nothing, and the page
+   crossfades. -------------------------------------------------------------- */
+:root[data-morph="store"] [data-morph-target="name"] {
+  view-transition-name: store-name;
+}
+
+:root[data-morph="store"] [data-morph-target="price"] {
+  view-transition-name: store-price;
+}
+
+:root[data-morph] [data-morph-page] .reveal,
+:root[data-morph] [data-morph-page] .odo[data-roll="load"] .odo-col::before {
+  animation-duration: 0s;
+  animation-delay: 0s;
+}
+
+:root[data-morph]::view-transition-group(*),
+:root[data-morph]::view-transition-old(*),
+:root[data-morph]::view-transition-new(*) {
+  animation-duration: var(--duration-modal);
+  animation-timing-function: var(--ease-out-quart);
+}
+
+/* A name that wraps differently on the map and on the page would show both
+   wrappings at once through a full-length crossfade; the old one goes in the
+   first half instead. */
+:root[data-morph]::view-transition-old(store-name),
+:root[data-morph]::view-transition-old(store-price) {
+  animation-duration: var(--duration-micro);
 }
 
 /* --- Row hover: rows that lead to a store nudge right and show an arrow. */
@@ -974,10 +1026,6 @@ h6 {
   .rail-link,
   .rail-link::before {
     transition: none;
-  }
-
-  .btn-primary::after {
-    display: none;
   }
 
   .sheet-close:hover svg {

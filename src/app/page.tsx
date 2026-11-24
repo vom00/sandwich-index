@@ -429,7 +429,7 @@ function HowItWorks() {
 function Contribute({ snapshot }: { snapshot: IndexSnapshot }) {
   const blank = snapshot.trackedStoreCount - snapshot.pricedStoreCount;
   return (
-    <section className="on-ink mt-28 bg-ink text-paper" aria-labelledby="lp-add">
+    <section className="on-ink paper-grain mt-28 bg-ink text-paper" aria-labelledby="lp-add">
       <div className="mx-auto grid w-full max-w-[68rem] gap-8 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-12">
         <div className="lg:col-span-7">
           <p className="lp-eyebrow lp-eyebrow--ink">Your turn</p>

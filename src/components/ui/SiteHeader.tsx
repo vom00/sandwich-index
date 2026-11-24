@@ -37,8 +37,8 @@ export function SiteHeader() {
   const pathname = usePathname();
 
   return (
-    // The paper colour comes from `.site-header` in globals.css: a frosted,
-    // slightly translucent paper, with a soft shadow once the page scrolls.
+    // The paper comes from `.site-header` in globals.css: solid paper with a
+    // faint grain, and a soft shadow once the page scrolls.
     <header className="site-header sticky top-0 z-[1500] shrink-0 border-b border-rule">
       <div className="mx-auto flex h-full w-full max-w-[68rem] items-center justify-between gap-3 px-5 sm:px-8">
         <Link

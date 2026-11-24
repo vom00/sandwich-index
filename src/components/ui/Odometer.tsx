@@ -21,16 +21,24 @@ import { useEffect, useRef, type CSSProperties } from "react";
  * The server always renders the final digits; zero is only ever shown to a
  * figure that is out of sight. Under reduced motion nothing moves.
  *
+ * When `value` changes later, each wheel rolls from its old digit to its new
+ * one (the transition on `.odo-col`). Wheels are matched from the right, by
+ * place value, so $9.99 becoming $10.09 turns the wheels for the places the
+ * two figures share instead of reshuffling every column.
+ *
  * Idea from Rare UI's Animated Counter; written here from scratch.
  */
 export function Odometer({
   value,
   className,
   roll = "view",
+  morph,
 }: {
   value: string;
   className?: string;
   roll?: "view" | "load";
+  /** A store price that morphs from the map into the store page (`lib/store-morph`). */
+  morph?: "source" | "target";
 }) {
   const ref = useRef<HTMLSpanElement>(null);
 
@@ -61,22 +69,30 @@ export function Odometer({
     };
   }, [roll]);
 
+  const characters = Array.from(value);
   let column = 0;
   return (
-    <span ref={ref} className={className ? `odo ${className}` : "odo"} data-roll={roll}>
+    <span
+      ref={ref}
+      className={className ? `odo ${className}` : "odo"}
+      data-roll={roll}
+      data-morph-source={morph === "source" ? "price" : undefined}
+      data-morph-target={morph === "target" ? "price" : undefined}
+    >
       <span className="sr-only">{value}</span>
       <span className="odo-row" aria-hidden="true">
-        {Array.from(value).map((character, index) =>
-          /\d/.test(character) ? (
+        {characters.map((character, index) => {
+          const place = characters.length - index;
+          return /\d/.test(character) ? (
             <span
-              key={index}
+              key={place}
               className="odo-col"
               style={{ "--d": Number(character), "--k": column++ } as CSSProperties}
             />
           ) : (
-            <span key={index} className="odo-ch" data-c={character} />
-          ),
-        )}
+            <span key={place} className="odo-ch" data-c={character} />
+          );
+        })}
       </span>
     </span>
   );
