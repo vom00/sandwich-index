@@ -147,16 +147,22 @@ export function WorldStory({ prices, children }: { prices: readonly number[]; ch
       if (world === null) return;
       const dt = last === 0 ? 16 : Math.min(100, now - last);
       target = reduced ? 0 : beatAt(window.scrollY);
-      if (shown < 0) shown = target;
+      // A jump (the first frame, a resize) sets the board straight to its
+      // price; only a scroll turns its flaps.
+      const jump = shown < 0;
+      if (jump) shown = target;
       else shown += (target - shown) * (1 - Math.exp(-dt / 70));
       if (Math.abs(target - shown) < 0.0005) shown = target;
-      world.update(shown);
+      world.update(shown, jump || reduced ? undefined : now);
       world.render();
       root!.dataset.beat = shown.toFixed(3);
       const calls = String(world.drawCalls());
       if (root!.dataset.calls !== calls) root!.dataset.calls = calls;
-      if (shown !== target) {
-        if (last !== 0) watch(dt);
+      const moving = shown !== target;
+      // Keep drawing while the camera moves or the board's flaps are still
+      // falling; once both have settled, no more frames until the next scroll.
+      if (moving || world.busy()) {
+        if (moving && last !== 0) watch(dt);
         last = now;
         raf = requestAnimationFrame(frame);
       } else {

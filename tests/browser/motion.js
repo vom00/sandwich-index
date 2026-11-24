@@ -1,5 +1,5 @@
 /**
- * Phase 3 polish: the map, the odometer, the map-to-store morph and the grain.
+ * Phase 3 polish: the map, the odometer, the map-to-store morph and the texture.
  *
  * What it promises:
  *   - While an area's stores load, the list shows still skeleton rows, and
@@ -12,8 +12,9 @@
  *     own rise does not replay once the morph is over.
  *   - An odometer whose figure changes after its first roll rolls again
  *     instead of jumping.
- *   - The header, the primary button and the landing page's ink band carry
- *     paper grain; the header has no blur and the button no sheen.
+ *   - Grain is on paper only (the header, solid, no blur). The landing
+ *     page's ink band carries a faint halftone instead, and the primary
+ *     button neither grain nor sheen.
  *   - Under reduced motion: no pill drop, no roll, and the page crossfades
  *     with nothing named.
  *
@@ -238,7 +239,7 @@ function followAndWatch(page, selector) {
     await page.close();
 
     // ---------------------------------------------------------------
-    console.log('\nPaper grain');
+    console.log('\nGrain on paper, halftone on ink');
     // ---------------------------------------------------------------
     page = await context.newPage();
     await page.goto(`${TARGET_URL}/`, { waitUntil: 'load' });
@@ -246,6 +247,7 @@ function followAndWatch(page, selector) {
       const header = getComputedStyle(document.querySelector('.site-header'));
       const button = document.querySelector('.btn-primary');
       const band = document.querySelector('section.on-ink');
+      const dots = getComputedStyle(band, '::before');
       return {
         headerGrain: header.backgroundImage.includes('feTurbulence'),
         headerOpaque: header.backgroundColor,
@@ -253,15 +255,20 @@ function followAndWatch(page, selector) {
         buttonGrain: getComputedStyle(button).backgroundImage.includes('feTurbulence'),
         buttonSheen: getComputedStyle(button, '::after').content,
         bandGrain: getComputedStyle(band).backgroundImage.includes('feTurbulence'),
+        bandHalftone: band.classList.contains('ink-halftone') && dots.content !== 'none' &&
+          dots.backgroundImage.includes('radial-gradient') && /contrast/.test(dots.filter) &&
+          dots.mixBlendMode === 'screen',
+        halftoneOpacity: Number(dots.opacity),
         opacity: Number((decodeURIComponent(header.backgroundImage).match(/opacity='([\d.]+)'/) ?? [])[1]),
       };
     });
     check('the header is solid paper with grain and no blur',
       grain.headerGrain && grain.headerOpaque === 'rgb(251, 250, 247)' && (grain.headerBlur === 'none' || grain.headerBlur === ''),
       `${grain.headerOpaque}, blur ${grain.headerBlur}`);
-    check('the primary button has grain and no sheen', grain.buttonGrain && grain.buttonSheen === 'none', grain.buttonSheen);
-    check('the ink band has grain', grain.bandGrain);
     check('the grain is under 5% opacity', grain.opacity > 0 && grain.opacity < 0.05, String(grain.opacity));
+    check('the primary button has no grain and no sheen', !grain.buttonGrain && grain.buttonSheen === 'none', grain.buttonSheen);
+    check('the ink band has a halftone screen, not grain', grain.bandHalftone && !grain.bandGrain);
+    check('the halftone stays faint', grain.halftoneOpacity > 0 && grain.halftoneOpacity <= 0.12, String(grain.halftoneOpacity));
     await page.close();
     await context.close();
 

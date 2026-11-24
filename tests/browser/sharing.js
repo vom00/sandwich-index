@@ -6,7 +6,8 @@
  *     site), and point at an absolute 1200x630 PNG share card.
  *   - The card renders for a priced and an unpriced store, and a bad or
  *     unknown store id gets a 404, not a card.
- *   - Other pages keep their own titles and the site name.
+ *   - Other pages keep their own titles and the site name; the landing page
+ *     and pages without a card of their own share the price spread's card.
  *   - The sitemap lists the fixed pages, each once, under the site's own
  *     origin, and no store pages yet.
  *
@@ -88,6 +89,31 @@ async function storesNear(lat, lng) {
     for (const id of ['node-1', 'not-a-store']) {
       const response = await fetch(`${TARGET_URL}/store/${id}/opengraph-image`);
       check(`no card for ${id}`, response.status === 404, `${response.status}`);
+    }
+
+    // ---------------------------------------------------------------
+    console.log('\nSpread card');
+    // ---------------------------------------------------------------
+    {
+      const home = metaTags(await (await fetch(`${TARGET_URL}/`)).text());
+      const spreadImage = home['og:image'] ?? '';
+      check('the landing page shares the spread card, as an absolute URL',
+        spreadImage.startsWith(`${SITE_URL}/opengraph-image`), spreadImage);
+      check('the spread card is declared 1200x630 PNG with alt text',
+        home['og:image:width'] === '1200' && home['og:image:height'] === '630' &&
+        home['og:image:type'] === 'image/png' && /cheapest and the priciest/.test(home['og:image:alt'] ?? ''));
+      const map = metaTags(await (await fetch(`${TARGET_URL}/map`)).text());
+      check('a page without a card of its own shares the spread card', map['og:image'] === spreadImage, map['og:image']);
+      check('a store page keeps its own card', image !== spreadImage && image.includes('/store/'));
+      const response = await fetch(`${TARGET_URL}/opengraph-image`);
+      const size = response.ok ? pngSize(await response.arrayBuffer()) : null;
+      check('the spread card is a 1200x630 PNG',
+        response.status === 200 && response.headers.get('content-type') === 'image/png' &&
+        size?.width === 1200 && size?.height === 630,
+        `${response.status} ${size ? `${size.width}x${size.height}` : ''}`);
+      const cache = response.headers.get('cache-control') ?? '';
+      check('the spread card is cached for an hour, not marked immutable',
+        /max-age=3600/.test(cache) && !/immutable/.test(cache), cache);
     }
 
     // ---------------------------------------------------------------

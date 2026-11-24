@@ -27,7 +27,7 @@ import {
 } from "@/lib/stores.server";
 import { storeLabel, storeLabelText } from "@/lib/store-label";
 import { locationSource } from "@/lib/store-list";
-import { displayStateFor } from "@/lib/tiers";
+import { displayStateFor, relativeAge } from "@/lib/tiers";
 import { storeIdSchema } from "@/lib/validation";
 
 /**
@@ -118,6 +118,15 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
       ? null
       : (observations.find((observation) => observation.feed === store.priceFeed) ?? null);
 
+  // The newest report still waiting, for the held slot's date. Submissions
+  // come newest first.
+  const heldReport =
+    store.heldPriceCents === null
+      ? null
+      : (submissions.find(
+          (submission) => submission.status === "pending" && submission.priceCents === store.heldPriceCents,
+        ) ?? null);
+
   return (
     // `data-morph-page`, the name and the price below: where a store row or
     // sheet on the map lands when it morphs into this page (`lib/store-morph`).
@@ -157,10 +166,16 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
       >
         <div>
           {store.priceCents === null ? (
-            <p className="max-w-md text-lg leading-relaxed text-ink-muted">
-              Nobody has reported a price for this store. There is nothing to
-              show and no honest way to guess one.
-            </p>
+            // The empty state says what is missing, why, and the one thing
+            // that fills it; the button beside it is that thing.
+            <div className="max-w-md">
+              <p className="font-display text-2xl leading-snug">No price here yet</p>
+              <p className="mt-2 leading-relaxed text-ink-muted">
+                Nobody has reported a price for this store, and we won&rsquo;t
+                guess one. Seen it on a receipt, the menu board or the app? Log it
+                and it becomes this store&rsquo;s price.
+              </p>
+            </div>
           ) : (
             <>
               <div className="flex items-baseline gap-2">
@@ -197,6 +212,25 @@ export default async function StorePage(props: PageProps<"/store/[id]">) {
               </div>
               {behindPrice !== null ? (
                 <FeedCredit feed={behindPrice.feed} observedAt={behindPrice.observedAt} className="mt-1 text-xs text-ink-subtle" />
+              ) : null}
+              {store.heldPriceCents !== null ? (
+                // A report more than 40% from the price waits in a slot of
+                // its own until a second person agrees (`lib/pricing`). It
+                // rises in once, with the card, or when it first appears
+                // after a visitor logs it.
+                <div
+                  data-held-slot
+                  className="reveal mt-4 flex max-w-md flex-wrap items-baseline gap-x-3 gap-y-1 rounded-md border border-dashed border-ink-subtle/60 px-3.5 py-2.5"
+                  style={{ animationDelay: "280ms" }}
+                >
+                  <span className="tabular text-lg font-medium text-ink-muted">
+                    {formatCents(store.heldPriceCents)}
+                  </span>
+                  <span className="text-xs leading-relaxed text-ink-subtle">
+                    held{heldReport !== null ? `, reported ${relativeAge(heldReport.submittedAt)}` : ""}. One
+                    more report of the same price makes it this store&rsquo;s price.
+                  </span>
+                </div>
               ) : null}
             </>
           )}

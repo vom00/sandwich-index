@@ -166,7 +166,9 @@ export function StoreSheet({
 
           <div className="mt-3 flex items-end gap-3">
             {store.priceCents === null ? (
-              <p className="text-ink-muted">No prices submitted yet.</p>
+              <p className="text-ink-muted">
+                <span className="font-medium text-ink">No price here yet.</span> Seen one? Be the first to log it.
+              </p>
             ) : (
               <>
                 {/* Rolls up on wheels each time a store's sheet opens. */}
@@ -212,7 +214,7 @@ export function StoreSheet({
               onNavigate={(event) => morphToStore(event, router, `/store/${store.id}`, sheetRef.current)}
               className="btn-primary press inline-flex min-h-11 flex-1 items-center justify-center rounded-md bg-accent px-4 py-2 font-medium text-accent-ink"
             >
-              Log a price
+              {store.priceCents === null && store.reportCount === 0 ? "Log the first price" : "Log a price"}
               <span className="btn-arrow ml-2" aria-hidden="true">→</span>
             </Link>
             <Link

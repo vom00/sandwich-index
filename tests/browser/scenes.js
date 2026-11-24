@@ -162,6 +162,21 @@ const cents = (text) => Math.round(Number(text.replace(/[^0-9.]/g, '')) * 100);
     check('[counter] every price the board shows is listed in the page',
       boards.length > 0 && boards.every((b) => listedCents.includes(b)), `${boards.join(',')} in ${listed.join(',')}`);
 
+    // The flaps turn when the price changes, then settle: once they have, the
+    // scene asks for no more frames until the next scroll.
+    await scrollToBeat(wide.page, 0.6);
+    await scrollToBeat(wide.page, 1.5);
+    await wide.page.waitForTimeout(1500);
+    const idleFrames = await wide.page.evaluate(async () => {
+      let count = 0;
+      const request = window.requestAnimationFrame;
+      window.requestAnimationFrame = (callback) => { count += 1; return request(callback); };
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      window.requestAnimationFrame = request;
+      return count;
+    });
+    check('[counter] the board settles once and the scene stops drawing', idleFrames === 0, `${idleFrames} frames in 1s idle`);
+
     await scrollToBeat(wide.page, 1);
     const calls = Number(await wide.page.locator('.lp-story').getAttribute('data-calls'));
     check('[counter] the busiest shot stays cheap to draw', calls > 0 && calls <= 40, `${calls} draw calls`);

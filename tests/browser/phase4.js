@@ -274,6 +274,7 @@ async function apiStore(page, id) {
       await goto(page, `/store/${unmeasured}`);
       const unmeasuredText = (await page.locator('main').innerText()).replace(/\s+/g, ' ');
       check('unmeasured store says so plainly',
+        /No price here yet/.test(unmeasuredText) &&
         /Nobody has reported a price for this store/.test(unmeasuredText), unmeasured);
       check('unmeasured store invites the first price',
         await page.getByRole('button', { name: /Log the first price/ }).count() === 1);

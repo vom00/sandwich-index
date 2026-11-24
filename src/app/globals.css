@@ -307,6 +307,32 @@ h6 {
 }
 
 /* ---------------------------------------------------------------------------
+   Logged-price tick
+
+   The confirmation's tick draws itself once, start to end, on the modal
+   budget. The path carries pathLength="1", so the dash maths is the same at
+   any size. Under reduced motion there is no animation and it is simply
+   drawn.
+--------------------------------------------------------------------------- */
+
+@keyframes check-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+.check-stroke path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .check-stroke path {
+    animation: check-draw var(--duration-modal) var(--ease-out-quart) 80ms backwards;
+  }
+}
+
+/* ---------------------------------------------------------------------------
    Map markers
 
    Hover and selection are instant. A user hovers markers hundreds of times in
@@ -418,15 +444,43 @@ h6 {
 =========================================================================== */
 
 /* --- Paper grain: fractal noise at 4% opacity, drawn once as a 160px tile
-   and repeated. A texture you feel more than see, laid over the header, the
-   primary button and the ink band on the landing page. Static: nothing about
-   it moves, so it needs no reduced-motion rule. ------------------------- */
+   and repeated. A texture you feel more than see, and only ever on paper:
+   the pinned header. Ink surfaces get the halftone below instead. Static:
+   nothing about it moves, so it needs no reduced-motion rule. ----------- */
 :root {
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='2 0 0 0 -.5 2 0 0 0 -.5 2 0 0 0 -.5 0 0 0 0 1'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.04'/%3E%3C/svg%3E");
 }
 
-.paper-grain {
-  background-image: var(--grain);
+/* --- Halftone on ink: a newsprint screen of paper-coloured dots at 45°,
+   largest in the top-left corner and shrinking to nothing across the band,
+   as a print's dot coverage follows how dark the tone under it is.
+
+   Drawn without an image: two backgrounds (a radial cone repeated on a 9px
+   grid, and the tone ramp) are screened together, then a hard contrast turns
+   every cone into a dot whose size is set by the ramp beneath it. Inverted,
+   that gives light dots on black; `screen` lets only the dots lighten the
+   ink, at 9%. It is oversized and turned 45° so the screen sits at the
+   print angle. Static, so it needs no reduced-motion rule. -------------- */
+.ink-halftone {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.ink-halftone::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(closest-side, #000, #fff) 0 0 / 9px 9px,
+    linear-gradient(90deg, #000 24%, #fff 64%);
+  background-blend-mode: screen;
+  filter: contrast(24) invert(1);
+  mix-blend-mode: screen;
+  opacity: 0.09;
+  transform: rotate(45deg);
 }
 
 /* --- Pinned header: solid paper with grain, and a hairline shadow that
@@ -526,13 +580,12 @@ h6 {
   }
 }
 
-/* --- Primary button: depth, paper grain on the face, a hover shade, and an
-   arrow that steps forward. Layered on top of `.press`. ----------------- */
+/* --- Primary button: depth, a hover shade, and an arrow that steps
+   forward. Layered on top of `.press`. No grain: it is not paper. ------- */
 .btn-primary {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background-image: var(--grain);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.14),
     0 1px 2px rgb(21 20 15 / 0.16),

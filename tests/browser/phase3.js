@@ -203,7 +203,7 @@ async function launchBrowser() {
       /current price|no confirmed|no prices yet|\$\d+\.\d{2}/i.test(sheetText));
     check('sheet shows submission count', /price(s)?|no confirmed/i.test(sheetText));
     check('sheet has a prominent Log a price action',
-      await sheet.getByRole('link', { name: /log a price/i }).isVisible());
+      await sheet.getByRole('link', { name: /log (a|the first) price/i }).isVisible());
 
     // --- two-way sync: map selection highlights the panel row ---
     const selectedInPanel = await page.locator('[data-store-id] button[aria-pressed="true"]').count();

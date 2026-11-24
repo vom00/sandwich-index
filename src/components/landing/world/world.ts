@@ -54,6 +54,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { mergeGeometries, mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
 
 import { loadParts, type Parts } from "./parts";
+import { flipAt, planFlip, stillColumns, textAt, type FlapFrame, type Flip } from "./splitflap";
 import { loadPriceMap, priceTier, type PriceMap, type PriceMapScale } from "@/lib/landing-map";
 import { formatCents } from "@/lib/money";
 
@@ -516,7 +517,60 @@ function blobTexture(): CanvasTexture {
   return new CanvasTexture(canvas);
 }
 
-function drawBoard(canvas: HTMLCanvasElement, cents: number | null, font: string): void {
+/** The board's price as its flaps spell it, right-aligned to the widest price so the tiles never move. */
+function boardText(cents: number | null, width: number): string {
+  return (cents === null ? "—" : formatCents(cents)).padStart(width, " ");
+}
+
+const TILE = "#34322c";
+const TILE_H = 216;
+const TILE_GAP = 12;
+
+/**
+ * Half of one flap tile: the top or bottom half of `character`, folded about
+ * the hinge by `scale` (1 flat, 0 edge-on) and darkened by `shade` (0 to 1)
+ * as it turns away from the light.
+ */
+function drawHalf(
+  context: CanvasRenderingContext2D,
+  x: number,
+  top: number,
+  w: number,
+  character: string,
+  side: "top" | "bottom",
+  scale: number,
+  shade: number,
+): void {
+  if (scale < 0.02) return;
+  const hinge = top + TILE_H / 2;
+  context.save();
+  context.translate(0, hinge);
+  context.scale(1, scale);
+  context.translate(0, -hinge);
+  context.beginPath();
+  context.rect(x, side === "top" ? top : hinge, w, TILE_H / 2);
+  context.clip();
+  context.fillStyle = TILE;
+  context.beginPath();
+  context.roundRect(x, top, w, TILE_H, 10);
+  context.fill();
+  context.fillStyle = C.paper;
+  context.fillText(character, x + w / 2, hinge + 8);
+  if (shade > 0) {
+    context.fillStyle = `rgba(0, 0, 0, ${(0.5 * shade).toFixed(3)})`;
+    context.fillRect(x, top, w, TILE_H);
+  }
+  context.restore();
+}
+
+/**
+ * The menu board: its heading, and the price on a row of split-flap tiles.
+ * A turning column shows the next character on its upper half and the
+ * current one on its lower half, with the flap between them falling over the
+ * hinge: the current character's top folding down and away, then the next
+ * character's bottom folding down into place.
+ */
+function drawBoard(canvas: HTMLCanvasElement, columns: readonly FlapFrame[], font: string): void {
   const context = canvas.getContext("2d")!;
   const { width: W, height: H } = canvas;
   context.fillStyle = C.board;
@@ -526,9 +580,27 @@ function drawBoard(canvas: HTMLCanvasElement, cents: number | null, font: string
   context.textBaseline = "middle";
   context.font = `500 44px ${font}`;
   context.fillText("CHICKEN SANDWICH", W / 2, H * 0.24);
-  context.fillStyle = C.paper;
-  context.font = `500 200px ${font}`;
-  context.fillText(cents === null ? "—" : formatCents(cents), W / 2, H * 0.64);
+
+  const n = Math.max(1, columns.length);
+  const tileW = Math.min(128, (W - 80 - TILE_GAP * (n - 1)) / n);
+  const left = (W - (tileW * n + TILE_GAP * (n - 1))) / 2;
+  const top = H * 0.64 - TILE_H / 2;
+  context.font = `500 168px ${font}`;
+  columns.forEach((frame, i) => {
+    const x = left + i * (tileW + TILE_GAP);
+    const turning = frame.progress > 0;
+    drawHalf(context, x, top, tileW, turning ? frame.next : frame.current, "top", 1, 0);
+    drawHalf(context, x, top, tileW, frame.current, "bottom", 1, 0);
+    if (turning) {
+      // A flap falls under its own weight: slow off the top, fast onto the stack.
+      const fold = Math.cos(Math.PI * frame.progress * frame.progress);
+      if (fold > 0) drawHalf(context, x, top, tileW, frame.current, "top", fold, 1 - fold);
+      else drawHalf(context, x, top, tileW, frame.next, "bottom", -fold, 1 + fold);
+    }
+    // The hinge: the gap between the two halves.
+    context.fillStyle = C.board;
+    context.fillRect(x, top + TILE_H / 2 - 2, tileW, 4);
+  });
 }
 
 function drawTag(context: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, cents: number, tier: keyof typeof TIER_COLOR, font: string): void {
@@ -654,8 +726,15 @@ export interface WorldOptions {
 }
 
 export interface World {
-  /** Position everything for a beat (0..5). Pure: does not render. */
-  update(beat: number): void;
+  /**
+   * Position everything for a beat (0..5). Does not render. With `now` (a
+   * frame's timestamp), a change of price turns the board's flaps; without
+   * it, the board jumps straight to the price (the first frame, a resize,
+   * reduced motion).
+   */
+  update(beat: number, now?: number): void;
+  /** True while the board's flaps are still turning: keep drawing frames until it is false. */
+  busy(): boolean;
   render(): void;
   resize(layout: WorldLayout, pixelRatio: number): void;
   setShadows(on: boolean): void;
@@ -862,7 +941,10 @@ export async function createWorld(canvas: HTMLCanvasElement, options: WorldOptio
   const boardCanvas = document.createElement("canvas");
   boardCanvas.width = 1024;
   boardCanvas.height = 400;
-  drawBoard(boardCanvas, prices[0] ?? null, options.monoFont);
+  const boardWidth = Math.max(1, ...prices.map((cents) => formatCents(cents).length));
+  let boardShows = boardText(prices[0] ?? null, boardWidth);
+  let flip: Flip | null = null;
+  drawBoard(boardCanvas, stillColumns(boardShows), options.monoFont);
   const boardTexture = new CanvasTexture(boardCanvas);
   boardTexture.colorSpace = SRGBColorSpace;
   boardTexture.anisotropy = 8;
@@ -991,7 +1073,20 @@ export async function createWorld(canvas: HTMLCanvasElement, options: WorldOptio
     return distance;
   }
 
-  function update(beat: number): void {
+  /** Paint the board as it stands at `now`, or at rest when `now` is undefined. */
+  function paintBoard(now: number | undefined): void {
+    if (flip !== null && now !== undefined) {
+      const frame = flipAt(flip, now);
+      drawBoard(boardCanvas, frame.columns, options.monoFont);
+      if (frame.done) flip = null;
+    } else {
+      flip = null;
+      drawBoard(boardCanvas, stillColumns(boardShows), options.monoFont);
+    }
+    boardTexture.needsUpdate = true;
+  }
+
+  function update(beat: number, now?: number): void {
     const distance = placeCamera(beat);
 
     // 0 → 1: the sandwich comes apart into its layers and closes again.
@@ -1002,14 +1097,19 @@ export async function createWorld(canvas: HTMLCanvasElement, options: WorldOptio
     if (shadowsOn && sandwichBeat !== lastSandwichBeat) renderer.shadowMap.needsUpdate = true;
     lastSandwichBeat = sandwichBeat;
 
-    // 0.45 → 1.8: the board steps from the cheapest real price to the dearest.
+    // 0.45 → 1.8: the board steps from the cheapest real price to the dearest,
+    // each change turning the flaps from whatever they show at that moment.
     if (prices.length > 0) {
       const index = Math.min(prices.length - 1, Math.floor(clamp01((beat - 0.45) / 1.35) * prices.length));
       if (index !== boardIndex) {
         boardIndex = index;
-        drawBoard(boardCanvas, prices[index] ?? null, options.monoFont);
-        boardTexture.needsUpdate = true;
+        const next = boardText(prices[index] ?? null, boardWidth);
+        if (now !== undefined) flip = planFlip(flip === null ? boardShows : textAt(flip, now), next, now);
+        boardShows = next;
         options.onBoardIndex?.(index);
+        paintBoard(now);
+      } else if (flip !== null) {
+        paintBoard(now);
       }
     }
 
@@ -1058,6 +1158,7 @@ export async function createWorld(canvas: HTMLCanvasElement, options: WorldOptio
 
   return {
     update,
+    busy: () => flip !== null,
     render() {
       renderer.render(scene, camera);
     },

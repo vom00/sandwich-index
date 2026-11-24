@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, LoaderCircle, TriangleAlert, X } from "lucide-react";
+import { LoaderCircle, TriangleAlert, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
@@ -106,6 +106,10 @@ export function SubmitPriceDialog({
   const [accepted, setAccepted] = useState<Accepted | null>(null);
   const [failure, setFailure] = useState<Failure | null>(null);
   const { slotRef: turnstileSlot, getToken: getTurnstileToken } = useTurnstile();
+  // Set when a report went through: the page behind is refreshed as the
+  // dialog finishes closing, so the new price rolls into the card in view
+  // instead of behind the backdrop.
+  const refreshOnClose = useRef(false);
 
   // Open the dialog once its contents are committed, so `showModal()` has
   // something to move focus into.
@@ -135,7 +139,14 @@ export function SubmitPriceDialog({
     setSource("in_store");
     setAccepted(null);
     setFailure(null);
-  }, []);
+    if (refreshOnClose.current) {
+      refreshOnClose.current = false;
+      // Pull the price, the chart and the log back down from the server. The
+      // card's figure rolls from the old price to the new one (`Odometer`),
+      // and a held report appears in its dashed slot under the price.
+      router.refresh();
+    }
+  }, [router]);
 
   const handleSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -158,9 +169,9 @@ export function SubmitPriceDialog({
 
       if (result.ok) {
         setAccepted({ priceCents: parsed.cents, status: result.status });
-        // Pull the price, the chart and the log back down from the server. The
-        // write already committed; this is only about what the page shows.
-        router.refresh();
+        // The write already committed; what the page shows catches up when
+        // the dialog closes (`handleExitComplete`).
+        refreshOnClose.current = true;
         return;
       }
 
@@ -170,7 +181,7 @@ export function SubmitPriceDialog({
         retryAfter: result.retryAfter,
       });
     },
-    [priceInput, source, storeId, router, getTurnstileToken],
+    [priceInput, source, storeId, getTurnstileToken],
   );
 
   const transitionIn = { duration: reducedMotion ? 0 : ENTER_SECONDS, ease: EASE_OUT_QUART };
@@ -503,7 +514,20 @@ function Confirmation({
   return (
     <div role="status" className="mt-5">
       <div className="flex items-start gap-3">
-        <Check aria-hidden="true" className="mt-1 size-5 shrink-0 text-tier-low" />
+        {/* A tick that draws itself once (`.check-stroke` in globals.css);
+            under reduced motion it is simply there. */}
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2.25}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="check-stroke mt-1 size-5 shrink-0 text-tier-low"
+        >
+          <path d="M4.5 12.5l5 5L19.5 7" pathLength={1} />
+        </svg>
         <div>
           <h3
             ref={headingRef}
@@ -515,15 +539,16 @@ function Confirmation({
 
           {accepted.status === "accepted" ? (
             <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
-              That is this store&rsquo;s price from now on. The page behind this
-              has already been updated.
+              That is this store&rsquo;s price from now on. Close this and
+              you&rsquo;ll see it land on the page.
             </p>
           ) : (
             <p className="mt-1.5 text-sm leading-relaxed text-ink-muted">
               It is more than 40% away from what this store is currently listed
               at, so it is held rather than applied. That is not an accusation:
-              prices really do jump. It needs one more person to see the same
-              thing, and then it becomes the price.
+              prices really do jump. It waits under the price on this
+              store&rsquo;s page until one more person sees the same thing, and
+              then it becomes the price.
             </p>
           )}
         </div>
