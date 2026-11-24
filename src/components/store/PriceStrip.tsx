@@ -118,7 +118,12 @@ export function PriceStrip({ priceCents }: { priceCents: number }) {
         {/* Labels in HTML, so they stay readable at any width the picture is drawn. */}
         <div aria-hidden="true" className="relative mt-1 h-4 font-mono text-[11px] text-ink-subtle">
           {AXIS_LABELS.map((cents) => (
-            <span key={cents} className="absolute -translate-x-1/2" style={{ left: pct(xOf(cents)) }}>
+            // On a phone the last label would run into "$4.00+", so it drops out.
+            <span
+              key={cents}
+              className={`absolute -translate-x-1/2 ${cents === AXIS_LABELS.at(-1) ? "max-sm:hidden" : ""}`}
+              style={{ left: pct(xOf(cents)) }}
+            >
               {formatCents(cents)}
             </span>
           ))}

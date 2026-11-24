@@ -60,12 +60,14 @@ export function Confidence({
 
   return (
     <span className="text-xs text-ink-subtle">
-      {sampleCount === 1 ? "1 price" : `${sampleCount} prices`}
+      {/* "5 prices (5 not counted)" read as though those five were the
+          uncounted ones; naming both halves says there are ten in all. */}
+      {sampleCount === 1 ? "1 price counted" : `${sampleCount} prices counted`}
       {excluded > 0 ? (
         <>
-          {" "}
+          {", "}
           <span title="Delivery prices and submissions held for review are not counted">
-            ({excluded} not counted)
+            {excluded} not
           </span>
         </>
       ) : null}

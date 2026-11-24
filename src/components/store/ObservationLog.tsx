@@ -47,7 +47,9 @@ export function ObservationLog({
         visitor logs after them replaces them.
       </p>
 
-      <div className="mt-4 overflow-x-auto">
+      {/* On a phone the table is wider than the screen and scrolls sideways;
+          a focusable, named region lets a keyboard scroll it too. */}
+      <div className="mt-4 overflow-x-auto" tabIndex={0} role="region" aria-label="Prices from feeds, table">
         <table className="w-full min-w-[22rem] border-collapse text-left">
           <caption className="sr-only">
             Every price an outside feed listed for this store, newest first

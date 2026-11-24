@@ -58,8 +58,9 @@ export function SubmissionLog({ submissions }: { submissions: readonly Submissio
 
       {/* Four narrow columns fit a 360px screen, but a long source label plus a
           long exclusion reason can still overflow — scrolling the table is
-          better than truncating the reason. */}
-      <div className="mt-4 overflow-x-auto">
+          better than truncating the reason. A focusable, named region lets a
+          keyboard scroll it too. */}
+      <div className="mt-4 overflow-x-auto" tabIndex={0} role="region" aria-label="Every report, table">
         <table className="w-full min-w-[22rem] border-collapse text-left">
           <caption className="sr-only">
             Every price reported for this store, newest first

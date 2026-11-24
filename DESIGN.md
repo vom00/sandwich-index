@@ -195,3 +195,15 @@ Fixed timings outside the tokens, each in one place:
   Log a price <span className="btn-arrow" aria-hidden>→</span>
 </button>
 ```
+
+## Checking a change
+
+After every phase, with the dev server and emulator running:
+
+```sh
+TARGET_URL=http://localhost:3100 npm run check:pages -- <label>
+```
+
+It screenshots the landing page, the map (after "Use my location"), a priced store page and the about page at 375 and 1440 px. Each gets a first screen with motion on and a full page with reduced motion, so every scroll-linked and settle-on-view piece is drawn finished. It also runs axe (WCAG 2.0 to 2.2 A and AA, plus best practice) on each. Serious and critical findings fail the run unless they are listed, with a reason, in `ACCEPTED` at the top of `tests/browser/check-pages.js`. Output goes to `tests/browser/screenshots/check/<label>/` (git-ignored): the PNGs, `axe.json` and `summary.md`.
+
+A full-page capture never scrolls, so anything drawn only near the viewport (the reduced-motion dot map, settle-on-view pieces) can look blank in it. Check those with a real scroll before calling it a bug.

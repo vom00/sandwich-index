@@ -65,7 +65,9 @@ export function PriceComparison({ comparison }: { comparison: AreaComparison }) 
           className="tabular text-3xl font-medium sm:text-4xl"
           style={{ color: colorVar }}
         >
-          {direction === "level" ? formatCents(0) : formatCentsDelta(comparison.deltaCents)}
+          {/* Level means the store charges exactly the area median. A large
+              "$0.00" read as a price, so the shared figure stands in. */}
+          {direction === "level" ? formatCents(comparison.areaMedianCents) : formatCentsDelta(comparison.deltaCents)}
         </span>
 
         {comparison.percentDelta !== null && direction !== "level" ? (
