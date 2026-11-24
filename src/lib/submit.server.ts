@@ -71,7 +71,7 @@ export async function verifyAppCheck(token: string | null): Promise<VerifyResult
   if (!process.env.NEXT_PUBLIC_FIREBASE_APPCHECK_SITE_KEY) return { ok: true };
   if (!token) return { ok: false, why: "missing app check token" };
   try {
-    await getAdminAppCheck().verifyToken(token);
+    await (await getAdminAppCheck()).verifyToken(token);
     return { ok: true };
   } catch (error) {
     return { ok: false, why: `app check: ${(error as Error).message}` };
@@ -85,7 +85,7 @@ export async function verifySignIn(
   const token = authorization?.match(/^Bearer (.+)$/)?.[1];
   if (!token) return null;
   try {
-    const decoded = await getAdminAuth().verifyIdToken(token);
+    const decoded = await (await getAdminAuth()).verifyIdToken(token);
     return { uid: decoded.uid, anonymous: decoded.firebase.sign_in_provider === "anonymous" };
   } catch {
     return null;

@@ -17,8 +17,8 @@ import "server-only";
 import { X509Certificate, createPublicKey } from "node:crypto";
 
 import { applicationDefault, cert, getApp, getApps, initializeApp, type App } from "firebase-admin/app";
-import { getAppCheck, type AppCheck } from "firebase-admin/app-check";
-import { getAuth, type Auth } from "firebase-admin/auth";
+import type { AppCheck } from "firebase-admin/app-check";
+import type { Auth } from "firebase-admin/auth";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
 import { describeKey, normalizeCredentials } from "@/lib/firebase/private-key";
@@ -126,13 +126,23 @@ export function getAdminDb(): Firestore {
   return getFirestore(createApp());
 }
 
+/*
+ * Auth and App Check load only when the submission route verifies a token.
+ * Both pull in firebase-admin's JWT verifier (jwks-rsa, then jose), and a
+ * module imported at the top here loads for every route that reads
+ * Firestore: on 2026-11-24 a runtime that can't require() jose's ES module
+ * took every one of those routes down with it.
+ */
+
 /** Verifies the sign-in tokens the submission route receives. */
-export function getAdminAuth(): Auth {
+export async function getAdminAuth(): Promise<Auth> {
+  const { getAuth } = await import("firebase-admin/auth");
   return getAuth(createApp());
 }
 
 /** Verifies App Check tokens, once App Check is switched on. */
-export function getAdminAppCheck(): AppCheck {
+export async function getAdminAppCheck(): Promise<AppCheck> {
+  const { getAppCheck } = await import("firebase-admin/app-check");
   return getAppCheck(createApp());
 }
 
