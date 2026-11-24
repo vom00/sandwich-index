@@ -1,0 +1,84 @@
+{
+  "month": "2026-11",
+  "generatedAt": "2026-11-24T12:53:54.223Z",
+  "feed": {
+    "id": "drivethruindex",
+    "from": "2026-11-01T08:00:00.000Z",
+    "to": "2026-11-01T08:00:00.000Z",
+    "stores": 13697
+  },
+  "listedStores": 13831,
+  "states": {
+    "minStores": 20,
+    "ranked": 51,
+    "cheapest": {
+      "medianCents": 169,
+      "states": [
+        {
+          "state": "TX",
+          "stores": 1286
+        }
+      ]
+    },
+    "priciest": {
+      "medianCents": 299,
+      "states": [
+        {
+          "state": "NH",
+          "stores": 55
+        },
+        {
+          "state": "AK",
+          "stores": 26
+        },
+        {
+          "state": "VT",
+          "stores": 25
+        }
+      ]
+    }
+  },
+  "movers": {
+    "previous": {
+      "from": "2026-10-22T08:00:00.000Z",
+      "to": "2026-10-31T08:00:00.000Z"
+    },
+    "compared": 13642,
+    "up": 1229,
+    "down": 7,
+    "top": [
+      {
+        "storeId": "atp-6173",
+        "label": "3301 Battleground Ave, Greensboro, NC",
+        "fromCents": 199,
+        "toCents": 279,
+        "fromAt": "2026-10-22T08:00:00.000Z",
+        "toAt": "2026-11-01T08:00:00.000Z"
+      },
+      {
+        "storeId": "atp-18551",
+        "label": "5701 Inman Road, Greensboro, NC",
+        "fromCents": 199,
+        "toCents": 279,
+        "fromAt": "2026-10-22T08:00:00.000Z",
+        "toAt": "2026-11-01T08:00:00.000Z"
+      },
+      {
+        "storeId": "atp-1630",
+        "label": "1212 Emancipation Hwy, Fredericksburg, VA",
+        "fromCents": 219,
+        "toCents": 299,
+        "fromAt": "2026-10-22T08:00:00.000Z",
+        "toAt": "2026-11-01T08:00:00.000Z"
+      }
+    ],
+    "tiedAtTop": 6
+  },
+  "confirmed": null,
+  "missing": [
+    {
+      "field": "confirmed",
+      "reason": "Reports from visitors are counted in the site’s live database, which was not read when this story was built."
+    }
+  ]
+}

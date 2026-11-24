@@ -37,24 +37,16 @@ invent a figure.
 
 The Phase G item 7 script (`scripts/build-monthly-story.ts`) writes
 `src/data/monthly/<yyyy-mm>.json`. The data story page and this video both read that file, so
-the page and the video can't disagree. Shape:
+the page and the video can't disagree. The shape is `MonthlyStory` in `src/lib/monthly-story.ts`,
+built in Phase G. It changed from this plan's first draft in three ways:
 
-```ts
-interface MonthlyStory {
-  month: "2026-11";
-  generatedAt: string;                 // ISO
-  stores: { tracked: number; priced: number };
-  states: {
-    cheapest: { state: string; medianCents: number; stores: number } | null;
-    priciest: { state: string; medianCents: number; stores: number } | null;
-  };
-  movers: { storeId: string; label: string; fromCents: number; toCents: number; at: string }[]; // up to 3, may be []
-  confirmed: { count: number } | null; // prices confirmed in the month ("still this price?" plus matching reports)
-  map: { file: "src/data/landing/price-map.json"; newestObservedAt: string };
-  source: { feeds: string[]; from: string; to: string };
-  missing: string[];                   // every field left null, by name
-}
-```
+- **A state tie is kept whole.** `cheapest` and `priciest` each have one median and every state at
+  it. November 2026's priciest is a three-way tie, so scene 3 shows all three names on one pill.
+- **Movers carry their context.** There's how many stores were compared, how many went up and
+  down, and how many share the largest change (`tiedAtTop`), so a tie is never hidden.
+- **`missing` gives a reason for each blank field.** `calculateMetadata` drops a scene when its
+  field is null, as planned. The price map comes straight from `price-map.json`, which the story
+  no longer points to.
 
 ## Where it lives
 

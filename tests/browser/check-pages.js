@@ -41,6 +41,14 @@ const ACCEPTED = {
     'WCAG 2.5.8 "equivalent" exception: where pins overlap in a dense area, every pin is also a 44px row in the list beside the map (91 pins, 91 rows checked). The overlap itself goes once the MapLibre map (Phase H) hides colliding pills.',
 };
 
+/** The newest month with a data story (`src/data/monthly/<yyyy-mm>.json`). */
+const STORY_MONTH = fs
+  .readdirSync(path.join(__dirname, '../../src/data/monthly'))
+  .filter((name) => /^\d{4}-\d{2}\.json$/.test(name))
+  .map((name) => name.slice(0, 7))
+  .sort()
+  .at(-1);
+
 async function pages() {
   const listing = await (await fetch(`${TARGET_URL}/api/stores?lat=${COPPELL.latitude}&lng=${COPPELL.longitude}&radiusMiles=15`)).json();
   const priced = listing.stores.find((store) => store.priceCents !== null);
@@ -51,6 +59,8 @@ async function pages() {
     { name: 'map', url: '/map', ready: '.marker-pill', prepare: (page) => page.getByRole('button', { name: /use my location/i }).click() },
     { name: 'store', url: `/store/${priced.id}` },
     { name: 'about', url: '/about' },
+    // The monthly data story (Phase G), its newest month.
+    { name: 'story', url: `/story/${STORY_MONTH}` },
   ];
 }
 
